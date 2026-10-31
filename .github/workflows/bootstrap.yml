@@ -10,6 +10,11 @@ on:
 permissions:
   contents: write
 
+defaults:
+  run:
+    # bash -eo pipefail: lỗi ở đầu pipe (ví dụ `script | tee log`) làm bước thất bại
+    shell: bash
+
 jobs:
   bootstrap:
     runs-on: ubuntu-latest
@@ -44,7 +49,11 @@ jobs:
           code=$?
           set -e
           if [ "$code" = "2" ]; then
-            name="$(date -u +%Y%m%d%H%M%S)_auto"
+            # Tên phải xếp SAU migration cuối cùng, kể cả khi migration cũ mang mốc thời gian tương lai
+            latest="$(ls prisma/migrations | grep -E '^[0-9]{14}_' | sort | tail -n1 | cut -c1-14)"
+            now="$(date -u +%Y%m%d%H%M%S)"
+            if [ -n "$latest" ] && [ "$now" -le "$latest" ]; then now=$((latest + 1)); fi
+            name="${now}_auto"
             mkdir -p "prisma/migrations/$name"
             npx prisma migrate diff --from-migrations prisma/migrations --to-schema-datamodel prisma/schema.prisma \
               --shadow-database-url "$SHADOW_DATABASE_URL" --script > "prisma/migrations/$name/migration.sql"
