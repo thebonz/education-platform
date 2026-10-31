@@ -138,6 +138,8 @@ jobs:
         env:
           E2E_ADMIN_EMAIL: admin@happyclass.test
         run: |
+          # Test gọi API trực tiếp từ Node (không qua Chromium) cũng cần phân giải tên miền thử
+          echo "127.0.0.1 english.happyclass.test vietnamese.happyclass.test admin.happyclass.test" | sudo tee -a /etc/hosts
           npx playwright install --with-deps chromium
           PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/pw.json npx playwright test --reporter=github,list,json
       - name: Tóm tắt Playwright
