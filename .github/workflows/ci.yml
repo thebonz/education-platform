@@ -166,3 +166,71 @@ jobs:
           name: playwright-report
           path: apps/web/playwright-report
           if-no-files-found: ignore
+
+  deploy-smoke:
+    name: Chạy thử ops/deploy-test.sh như trên máy chủ
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      HC_DATA_DIR: /tmp/hc-data
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Triển khai lần 1 (máy mới)
+        run: sudo --preserve-env=HC_DATA_DIR bash ops/deploy-test.sh 2>&1 | tee /tmp/deploy1.log
+
+      - name: Tạo Super Admin không tương tác và đăng nhập qua Web
+        run: |
+          printf '%s' 'Ci-Admin-Password-2026' | sudo ADMIN_EMAIL=admin@happyclass.test ADMIN_NAME="CI Admin" bash ops/create-admin.sh
+          code=$(curl -s -o /tmp/login.json -w '%{http_code}' -c /tmp/cookies.txt \
+            -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' \
+            -d '{"email":"admin@happyclass.test","password":"Ci-Admin-Password-2026"}' http://127.0.0.1:3100/api/auth/login)
+          test "$code" = "200" || { echo "::error title=login::HTTP $code $(cat /tmp/login.json)"; exit 1; }
+          curl -fsS -b /tmp/cookies.txt http://127.0.0.1:3100/api/admin/stats | grep -q '"publishedGames":6'
+          echo "::notice title=Deploy smoke::Đăng nhập Super Admin qua Web và đọc /api/admin/stats thành công"
+
+      - name: Sao lưu database
+        run: |
+          sudo --preserve-env=HC_DATA_DIR bash ops/backup-db.sh ci
+          sudo ls -l /tmp/hc-data/backups/
+          sudo sh -c 'cd /tmp/hc-data/backups && sha256sum -c *.sha256'
+
+      - name: Triển khai lần 2 (cập nhật, phải idempotent và tự sao lưu trước migrate)
+        run: |
+          sudo --preserve-env=HC_DATA_DIR bash ops/deploy-test.sh 2>&1 | tee /tmp/deploy2.log
+          grep -q 'Sao lưu database trước khi áp migration' /tmp/deploy2.log
+          test "$(sudo sh -c 'ls /tmp/hc-data/backups/*.dump | wc -l')" -ge 2
+          sudo docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM games"' | grep -qx 12
+          echo "::notice title=Deploy smoke::Triển khai lần 2 idempotent; vẫn 12 game; có bản sao lưu trước migrate"
+
+      - name: Container chạy user không phải root, cổng chỉ bind 127.0.0.1, Postgres không publish
+        run: |
+          fail=0
+          for s in api web; do
+            u="$(sudo docker compose exec -T "$s" id -un | tr -d '\r')"
+            echo "::notice title=user-$s::$u"; [ "$u" = node ] || fail=1
+          done
+          for s in postgres api web; do
+            b="$(sudo docker inspect -f '{{json .HostConfig.PortBindings}}' "$(sudo docker compose ps -q "$s")")"
+            echo "::notice title=ports-$s::$b"
+            case "$s" in
+              postgres) [ "$b" = "{}" ] || [ "$b" = "null" ] || fail=1 ;;
+              *) echo "$b" | grep -q '"HostIp":"127.0.0.1"' || fail=1; ! echo "$b" | grep -q '"HostIp":""' || fail=1 ;;
+            esac
+          done
+          exit $fail
+
+      - name: Gỡ môi trường, dữ liệu vẫn còn
+        run: |
+          sudo docker compose down
+          sudo test -f /tmp/hc-data/database/postgres/PG_VERSION
+          echo "::notice title=Deploy smoke::docker compose down giữ nguyên dữ liệu trên HC_DATA_DIR"
+
+      - name: Log khi lỗi (annotation)
+        if: failure()
+        run: |
+          for f in /tmp/deploy1.log /tmp/deploy2.log; do
+            [ -f "$f" ] || continue
+            body="$(tail -n 50 "$f" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; echo "::error title=$(basename $f)::${body}"
+          done
+          body="$(sudo docker compose logs --tail 40 2>&1 | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; echo "::error title=compose-logs::${body}"

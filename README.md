@@ -59,43 +59,31 @@ docker-compose.yml           môi trường chạy thử cách ly trên DL380
 
 ## Chạy trên máy chủ (chạy thử nội bộ)
 
-Yêu cầu: Docker Engine + Compose v2, quyền `sudo`. Toàn bộ lệnh bên dưới **không đụng** đến các dự án Docker khác trên máy chủ.
+Yêu cầu: Docker Engine + Compose v2, quyền `sudo`. Script **chỉ** tạo project Docker `happyclass` và thư mục `/data/education-games-platform`; không đụng các dự án khác. Script tự so sánh trạng thái CMMS/Airdrop trước và sau khi chạy.
 
 ```bash
-sudo mkdir -p /data/education-games-platform/{source,database/postgres,backups,logs}
+sudo mkdir -p /data/education-games-platform
+sudo git clone https://github.com/thebonz/education-platform.git /data/education-games-platform/source
 cd /data/education-games-platform/source
-sudo git clone https://github.com/thebonz/education-platform.git .
-sudo cp .env.example .env && sudo chmod 600 .env
-sudo nano .env    # đổi POSTGRES_PASSWORD và mật khẩu trong DATABASE_URL (dùng: openssl rand -base64 32)
-
-sudo docker compose config --quiet          # kiểm tra cấu hình
-sudo docker compose build
-sudo docker compose up -d postgres
-sudo docker compose run --rm migrate        # áp migration (có chủ đích)
-sudo docker compose run --rm seed           # vai trò, sản phẩm, 12 game demo (không ghi đè dữ liệu đã sửa)
-sudo docker compose up -d api web
-sudo docker compose ps
-curl -s http://127.0.0.1:3101/api/health
+sudo bash ops/deploy-test.sh      # tạo .env (mật khẩu ngẫu nhiên), build, migrate, seed, chạy, kiểm tra
+sudo bash ops/create-admin.sh     # tạo Super Admin (mật khẩu nhập ẩn)
 ```
 
-Tạo tài khoản Super Admin đầu tiên. Mật khẩu được đọc từ stdin, nên không nằm trong lịch sử shell:
+Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`. Script tự sao lưu database trước khi áp migration.
 
-```bash
-read -rs ADMIN_PW && printf '%s' "$ADMIN_PW" | \
-  sudo docker compose run --rm -T api node dist/cli/create-admin.js admin@happyclass.asia "Quản trị viên"
-unset ADMIN_PW
-```
+| Script | Việc làm |
+| --- | --- |
+| `ops/deploy-test.sh` | Triển khai/cập nhật, idempotent; tạo `.env` nếu chưa có (không ghi đè); kiểm tra cổng, health, các trang chính |
+| `ops/create-admin.sh` | Tạo Super Admin đầu tiên |
+| `ops/backup-db.sh [nhãn]` | `pg_dump` vào `/data/education-games-platform/backups`, kèm SHA-256, giữ 14 bản |
 
-Mở thử từ máy tính cá nhân qua SSH tunnel (không mở cổng ra Internet):
-
-```bash
-ssh -L 3100:127.0.0.1:3100 rootx@<IP-máy-chủ>
-# rồi mở http://localhost:3100
-```
+Mở thử từ máy tính cá nhân qua SSH tunnel (không mở cổng ra Internet): `ssh -L 3100:127.0.0.1:3100 rootx@<IP-máy-chủ>`, rồi vào `http://localhost:3100`.
 
 Ở chế độ `MAIL_TRANSPORT=log`, email xác thực được in ra log: `sudo docker compose logs api | grep "DEV MAIL" -A6`.
 
-Gỡ môi trường mà vẫn giữ dữ liệu: `sudo docker compose down`. **Không** dùng `-v` hay `docker system prune`.
+Gỡ môi trường mà vẫn giữ dữ liệu: `sudo docker compose down`. **Không** dùng `-v`, `docker system prune` hay `docker volume prune`.
+
+CI chạy chính các script này trên một máy mới (job `deploy-smoke`) ở mỗi pull request.
 
 ## Phát triển trên máy cá nhân
 
