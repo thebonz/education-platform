@@ -79,7 +79,9 @@ jobs:
         run: npm run build -w @happyclass/api
 
       - name: Test API (unit + e2e với PostgreSQL thật)
-        run: npm test -w @happyclass/api -- --ci
+        run: |
+          npm test -w @happyclass/api -- --ci --json --outputFile=/tmp/jest.json
+          node -e "const r=require('/tmp/jest.json'); console.log('::notice title=Jest::suites ' + r.numPassedTestSuites + '/' + r.numTotalTestSuites + ', tests passed ' + r.numPassedTests + ', failed ' + r.numFailedTests + ', total ' + r.numTotalTests)"
 
       - name: Build Web
         run: npm run build -w @happyclass/web
@@ -117,7 +119,11 @@ jobs:
           E2E_ADMIN_EMAIL: admin@happyclass.test
         run: |
           npx playwright install --with-deps chromium
-          npx playwright test --reporter=github,list
+          PLAYWRIGHT_JSON_OUTPUT_NAME=/tmp/pw.json npx playwright test --reporter=github,list,json
+      - name: Tóm tắt Playwright
+        if: always()
+        run: |
+          [ -f /tmp/pw.json ] && node -e "const s=require('/tmp/pw.json').stats; console.log('::notice title=Playwright::expected(pass) ' + s.expected + ', unexpected(fail) ' + s.unexpected + ', flaky ' + s.flaky + ', skipped ' + s.skipped)" || true
 
       - name: Log API/Web khi lỗi (xuất dạng annotation)
         if: failure()
