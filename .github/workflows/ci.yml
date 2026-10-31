@@ -256,3 +256,52 @@ jobs:
             body="$(tail -n 50 "$f" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; echo "::error title=$(basename $f)::${body}"
           done
           body="$(sudo docker compose logs --tail 40 2>&1 | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; echo "::error title=compose-logs::${body}"
+
+  upgrade-smoke:
+    name: Nâng cấp từ bản đang chạy (main) lên bản mới, giữ dữ liệu
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    env:
+      HC_DATA_DIR: /tmp/hc-data
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Cài bản main (giống máy chủ hiện tại)
+        run: |
+          git checkout -q "origin/${{ github.base_ref }}"
+          echo "::notice title=Upgrade smoke::Bản gốc: $(git rev-parse --short HEAD)"
+          sudo --preserve-env=HC_DATA_DIR bash ops/deploy-test.sh 2>&1 | tee /tmp/up1.log
+          printf '%s' 'Ci-Admin-Password-2026' | sudo ADMIN_EMAIL=admin@happyclass.test ADMIN_NAME="CI Admin" bash ops/create-admin.sh
+          curl -fsS -c /tmp/c.txt -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' \
+            -d '{"email":"admin@happyclass.test","password":"Ci-Admin-Password-2026"}' http://127.0.0.1:3100/api/auth/login > /dev/null
+
+      - name: Nâng cấp lên commit của PR
+        run: |
+          sudo chown -R "$(id -u)" .git
+          git checkout -q "${{ github.event.pull_request.head.sha }}"
+          sudo --preserve-env=HC_DATA_DIR bash ops/deploy-test.sh 2>&1 | tee /tmp/up2.log
+          grep -q 'Sao lưu database trước khi áp migration' /tmp/up2.log
+
+      - name: Dữ liệu cũ còn nguyên, nội dung mới đã phát hành
+        run: |
+          q() { sudo docker compose exec -T postgres sh -c "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -tAc \"$1\""; }
+          test "$(q "SELECT count(*) FROM users WHERE email='admin@happyclass.test'")" = 1
+          test "$(q "SELECT count(*) FROM user_sessions WHERE revoked_at IS NULL")" -ge 1
+          test "$(q "SELECT count(*) FROM games")" = 12
+          test "$(q "SELECT count(*) FROM game_versions")" = 24
+          test "$(q "SELECT count(*) FROM games WHERE seed_revision = 2 AND level_id IS NOT NULL")" = 12
+          test "$(q "SELECT count(*) FROM games WHERE is_published")" = 11
+          # Phiên đăng nhập tạo ở bản cũ vẫn dùng được sau nâng cấp
+          curl -fsS -b /tmp/c.txt http://127.0.0.1:3100/api/auth/me | grep -q admin@happyclass.test
+          curl -fsS http://127.0.0.1:3100/api/catalog/products/english/games/team-quiz/play | grep -q '"mode":"teams"'
+          echo "::notice title=Upgrade smoke::Nâng cấp giữ tài khoản và phiên; 12 game có phiên bản 2; 11 game đang xuất bản"
+
+      - name: Log khi lỗi (annotation)
+        if: failure()
+        run: |
+          for f in /tmp/up1.log /tmp/up2.log; do
+            [ -f "$f" ] || continue
+            body="$(tail -n 50 "$f" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; echo "::error title=$(basename $f)::${body}"
+          done
