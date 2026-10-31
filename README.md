@@ -131,3 +131,15 @@ DATABASE_URL=postgresql://.../happyclass_test npm run test:api
 | `product_manager` | Sửa sản phẩm, theme, tên miền |
 | `accountant` | Xem thống kê (doanh thu từ giai đoạn 6) |
 | `super_admin` | Toàn quyền, gán vai trò, xem nhật ký thao tác |
+
+## CI
+
+Workflow `.github/workflows/ci.yml` chạy trên mỗi pull request:
+
+1. Kiểm tra Prisma: validate schema và phát hiện lệch giữa migration với schema.
+2. Typecheck và build cả API lẫn Web.
+3. Chạy test API (unit + e2e) trên PostgreSQL 16 thật.
+4. Chạy test Playwright đăng nhập dùng chung giữa các subdomain `*.happyclass.test`.
+5. Build Docker image và kiểm tra `docker-compose.yml`.
+
+Phiên bản đang dùng (theo `package-lock.json`): Next.js 15.5.28, NestJS 11.2.8, Prisma 6.19.3. Thay đổi schema phải đi kèm migration mới (`npx prisma migrate dev --name <tên>`); CI sẽ báo lỗi nếu migration lệch schema.
