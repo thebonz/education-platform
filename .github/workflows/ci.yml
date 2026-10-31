@@ -117,11 +117,16 @@ jobs:
           E2E_ADMIN_EMAIL: admin@happyclass.test
         run: |
           npx playwright install --with-deps chromium
-          npx playwright test
+          npx playwright test --reporter=github,list
 
-      - name: Log API/Web khi lỗi
+      - name: Log API/Web khi lỗi (xuất dạng annotation)
         if: failure()
-        run: tail -n 200 /tmp/api.log /tmp/web.log || true
+        run: |
+          for f in /tmp/api.log /tmp/web.log; do
+            [ -f "$f" ] || continue
+            body="$(tail -n 60 "$f" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"
+            echo "::warning title=$(basename "$f")::${body}"
+          done
 
       - name: Build Docker images
         run: |
