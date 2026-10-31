@@ -49,7 +49,7 @@ test('sai mật khẩu hiển thị lỗi, không lộ thông tin', async ({ pag
   await page.getByLabel('Email').fill(email);
   await page.getByLabel('Mật khẩu').fill('wrong-password-123');
   await page.getByRole('button', { name: 'Đăng nhập' }).click();
-  await expect(page.getByRole('alert')).toHaveText('Email hoặc mật khẩu không đúng.');
+  await expect(page.locator('.form-error')).toHaveText('Email hoặc mật khẩu không đúng.');
 });
 
 test('tên miền riêng không hiện tiền tố đường dẫn và thư viện có 6 game @mobile', async ({ page }) => {
@@ -97,5 +97,5 @@ test('super admin xem tổng quan, tìm và khóa người dùng; người bị 
   await other.getByLabel('Email').fill(email);
   await other.getByLabel('Password').fill(PW);
   await other.getByRole('button', { name: 'Log in' }).click();
-  await expect(other.getByRole('alert')).toHaveText('This account is locked. Please contact support.');
+  await expect(other.locator('.form-error')).toHaveText('This account is locked. Please contact support.');
 });

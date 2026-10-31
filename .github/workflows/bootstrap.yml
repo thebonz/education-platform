@@ -24,6 +24,9 @@ jobs:
         with: { node-version: '22' }
       - name: Sinh lockfile và migration
         if: steps.need.outputs.run == 'true'
+        env:
+          # Chỉ để Prisma đọc schema; bước này không kết nối database.
+          DATABASE_URL: postgresql://placeholder:placeholder@localhost:5432/placeholder
         run: |
           [ -f package-lock.json ] || npm install --no-audit --no-fund
           cd apps/api
