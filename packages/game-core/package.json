@@ -1,0 +1,49 @@
+{
+  "name": "@happyclass/game-core",
+  "version": "0.3.0",
+  "private": true,
+  "description": "Lõi game dùng chung cho API và Web: schema template, RNG có seed, logic chấm điểm",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "files": [
+    "dist"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "npm run build && node --test \"dist/**/*.test.js\""
+  },
+  "dependencies": {
+    "zod": "^3.25.0"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.3"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./rng": {
+      "types": "./dist/rng.d.ts",
+      "default": "./dist/rng.js"
+    },
+    "./text": {
+      "types": "./dist/text.d.ts",
+      "default": "./dist/text.js"
+    },
+    "./bingo": {
+      "types": "./dist/bingo.d.ts",
+      "default": "./dist/bingo.js"
+    },
+    "./scoring": {
+      "types": "./dist/scoring.d.ts",
+      "default": "./dist/scoring.js"
+    },
+    "./templates": {
+      "types": "./dist/templates.d.ts",
+      "default": "./dist/templates.js"
+    }
+  }
+}

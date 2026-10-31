@@ -36,7 +36,7 @@ describe('Phân quyền và quản trị', () => {
     expect(stats.body.users.total).toBe(2);
     expect(stats.body.products).toEqual(expect.arrayContaining([
       expect.objectContaining({ slug: 'english', publishedGames: 6 }),
-      expect.objectContaining({ slug: 'vietnamese', publishedGames: 6 }),
+      expect.objectContaining({ slug: 'vietnamese', publishedGames: 5 }),
     ]));
     const users = await admin(superCookie).get('/api/admin/users?q=member').expect(200);
     expect(users.body.total).toBe(1);

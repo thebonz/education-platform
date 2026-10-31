@@ -12,25 +12,42 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
 
 ## Trạng thái
 
-**Giai đoạn 2 – Shared Core.**
+**Giai đoạn 3 – English Games và hệ template game.**
 
-- Đã có: tài khoản dùng chung, đăng ký tự do, xác thực email, đăng nhập/đăng xuất, quên/đổi mật khẩu, quản lý phiên, phân quyền (RBAC), admin cơ bản, nhật ký thao tác, kiểm tra quyền chơi game ở backend.
-- Kế thừa từ Sprint 1: 12 game demo.
+- Đã có (giai đoạn 2): tài khoản dùng chung, đăng ký tự do + xác thực email, phiên dùng chung giữa các subdomain, phân quyền (RBAC), admin cơ bản, nhật ký thao tác.
+- Mới (giai đoạn 3):
+  - Game Shell: âm thanh đọc to (giọng Anh-Anh hoặc Anh-Mỹ), hiệu ứng, đồng hồ, chế độ đội, toàn màn hình (phím F), chơi lại, màn kết quả có sao.
+  - 6 template: bingo, picture-match, quiz, hidden-picture, bubble-spelling, spelling.
+  - 6 game tiếng Anh viết lại; 5 game tiếng Việt chuyển sang template mới ("Ghép vần" tạm ẩn chờ giai đoạn 4).
+  - Thư viện lọc theo cấp độ, danh mục và loại miễn phí/trả phí; tìm kiếm không dấu.
+  - Lưu kết quả chơi, game gần đây, game yêu thích; SEO gồm metadata, JSON-LD, sitemap và robots theo tên miền.
 - Chưa có:
+  - Vietnamese Games lớp 1–5 (giai đoạn 4);
+  - Game Builder (giai đoạn 5);
   - membership và thanh toán (giai đoạn 6);
-  - Game Builder và hệ template (giai đoạn 3 và 5);
   - trường học và Offline Player (giai đoạn 7).
+
+## Thêm game mới
+
+- **Cùng kiểu chơi (template có sẵn):** thêm một gói vào `apps/api/src/cli/content/english.ts` hoặc `vietnamese.ts`. Mỗi gói gồm slug, tiêu đề, template, danh mục, cấp độ, `revision` và dữ liệu.
+  - Dữ liệu được kiểm tra bằng schema trong `packages/game-core/src/templates.ts`. Seed từ chối gói sai và báo rõ vị trí lỗi.
+  - Muốn phát hành nội dung mới cho một game đã có: tăng `revision`. Seed tạo phiên bản mới và giữ bản cũ; game đã được admin sửa thì seed không đụng tới.
+  - Trên máy chủ: `sudo git pull && sudo bash ops/deploy-test.sh`.
+- **Kiểu chơi mới:** thêm schema vào `game-core/src/templates.ts` và component vào `apps/web/src/games/templates/`, rồi đăng ký trong `apps/web/src/games/registry.ts`. Không cần sửa Game Shell.
+- **Từ giai đoạn 5:** admin tạo game trong Game Builder, dùng chính các schema trên.
 
 ## Cấu trúc
 
 ```text
+packages/
+  game-core/   schema template (zod), RNG có seed, logic bingo/chấm điểm – dùng chung API và Web
 apps/
   api/   NestJS + Prisma + PostgreSQL
     src/auth       đăng ký, đăng nhập, phiên (cookie HttpOnly), token email
     src/rbac       ma trận vai trò → quyền (review qua Git)
     src/admin      quản trị người dùng, sản phẩm, tên miền, nhật ký
     src/catalog    thư viện game + AccessService (điểm quyết định quyền chơi duy nhất)
-    src/cli        seed.ts, create-admin.ts
+    src/cli        seed.ts, create-admin.ts, content/ (gói nội dung game)
     prisma         schema.prisma, migrations/
     test           unit + e2e với PostgreSQL thật
   web/   Next.js 15 (App Router)
@@ -38,6 +55,7 @@ apps/
     src/app/api/[...path]    proxy cùng origin tới API
     src/app/[product]        trang English / Vietnamese
     src/app/admin            trang quản trị
+    src/games                Game Shell + 6 template game
     e2e/                     Playwright: đăng nhập dùng chung giữa subdomain
 docker-compose.yml           môi trường chạy thử cách ly trên DL380
 .github/workflows/ci.yml     build, test, e2e, build Docker image
