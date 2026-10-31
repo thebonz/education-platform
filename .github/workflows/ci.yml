@@ -205,10 +205,20 @@ jobs:
 
       - name: Container chạy user không phải root, cổng chỉ bind 127.0.0.1, Postgres không publish
         run: |
-          for s in api web; do test "$(sudo docker compose exec -T $s id -un)" = node; done
-          sudo docker compose ps --format '{{.Service}} {{.Publishers}}' | tee /tmp/ports.txt
-          ! grep -E '0\.0\.0\.0|::' /tmp/ports.txt
-          test -z "$(sudo docker compose port postgres 5432 2>/dev/null || true)"
+          fail=0
+          for s in api web; do
+            u="$(sudo docker compose exec -T "$s" id -un | tr -d '\r')"
+            echo "::notice title=user-$s::$u"; [ "$u" = node ] || fail=1
+          done
+          for s in postgres api web; do
+            b="$(sudo docker inspect -f '{{json .HostConfig.PortBindings}}' "$(sudo docker compose ps -q "$s")")"
+            echo "::notice title=ports-$s::$b"
+            case "$s" in
+              postgres) [ "$b" = "{}" ] || [ "$b" = "null" ] || fail=1 ;;
+              *) echo "$b" | grep -q '"HostIp":"127.0.0.1"' || fail=1; ! echo "$b" | grep -q '"HostIp":""' || fail=1 ;;
+            esac
+          done
+          exit $fail
 
       - name: Gỡ môi trường, dữ liệu vẫn còn
         run: |
