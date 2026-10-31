@@ -1,0 +1,15 @@
+{
+  "name": "happyclass-platform",
+  "private": true,
+  "description": "HappyClass – English Games & Vietnamese Games trên một nền tảng dùng chung",
+  "workspaces": ["apps/api", "apps/web"],
+  "engines": { "node": ">=22" },
+  "scripts": {
+    "dev:api": "npm run start:dev -w @happyclass/api",
+    "dev:web": "npm run dev -w @happyclass/web",
+    "build": "npm run build -w @happyclass/api && npm run build -w @happyclass/web",
+    "typecheck": "npm run typecheck -w @happyclass/api && npm run typecheck -w @happyclass/web",
+    "test:api": "npm test -w @happyclass/api",
+    "test:e2e": "npm run test:e2e -w @happyclass/web"
+  }
+}

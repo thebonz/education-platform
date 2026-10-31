@@ -1,0 +1,139 @@
+# =============================================================================
+# HappyClass – môi trường chạy thử nội bộ trên DL380 Gen10 (cách ly CMMS/Airdrop)
+#   - Project name cố định "happyclass", network riêng
+#   - PostgreSQL riêng, KHÔNG publish cổng ra host
+#   - Web/API chỉ bind 127.0.0.1 (mặc định 3100/3101)
+#   - Dữ liệu trên ổ /data; giới hạn RAM/CPU; log xoay vòng 10 MB × 5
+#   - Migration và seed là bước chạy có chủ đích (profile "ops")
+#
+# Lệnh (trong thư mục chứa file này và .env):
+#   sudo docker compose config --quiet                 # kiểm tra cấu hình
+#   sudo docker compose build
+#   sudo docker compose up -d postgres
+#   sudo docker compose run --rm migrate
+#   sudo docker compose run --rm seed
+#   sudo docker compose up -d api web
+#   sudo docker compose ps
+# Gỡ (giữ nguyên dữ liệu trên /data):  sudo docker compose down
+# =============================================================================
+name: happyclass
+
+x-logging: &default-logging
+  driver: json-file
+  options: { max-size: "10m", max-file: "5" }
+
+x-api-env: &api-env
+  DATABASE_URL: ${DATABASE_URL:?Thiếu DATABASE_URL trong .env}
+  SITE_ENGLISH_URL: ${SITE_ENGLISH_URL:?Thiếu SITE_ENGLISH_URL}
+  SITE_VIETNAMESE_URL: ${SITE_VIETNAMESE_URL:?Thiếu SITE_VIETNAMESE_URL}
+  SITE_ADMIN_URL: ${SITE_ADMIN_URL:?Thiếu SITE_ADMIN_URL}
+  COOKIE_DOMAIN: ${COOKIE_DOMAIN:-}
+  COOKIE_SECURE: ${COOKIE_SECURE:-false}
+  SESSION_TTL_DAYS: ${SESSION_TTL_DAYS:-30}
+  TRUST_PROXY_HOPS: ${TRUST_PROXY_HOPS:-1}
+  AUTH_RATE_LIMIT_PER_MINUTE: ${AUTH_RATE_LIMIT_PER_MINUTE:-10}
+  MAIL_TRANSPORT: ${MAIL_TRANSPORT:-log}
+  MAIL_FROM: ${MAIL_FROM:-HappyClass <no-reply@happyclass.asia>}
+  SMTP_HOST: ${SMTP_HOST:-}
+  SMTP_PORT: ${SMTP_PORT:-587}
+  SMTP_USER: ${SMTP_USER:-}
+  SMTP_PASSWORD: ${SMTP_PASSWORD:-}
+  SMTP_SECURE: ${SMTP_SECURE:-false}
+  TERMS_VERSION: ${TERMS_VERSION:-2026-11-01}
+
+x-hardening: &hardening
+  security_opt: ["no-new-privileges:true"]
+  pids_limit: 512
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?Thiếu POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Thiếu POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?Thiếu POSTGRES_DB}
+    volumes:
+      - ${HC_DATA_DIR:-/data/education-games-platform}/database/postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 12
+    networks: [hc_net]
+    mem_limit: 4g
+    cpus: 2
+    shm_size: 256m
+    logging: *default-logging
+    <<: *hardening
+
+  migrate:
+    image: happyclass/api:local
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    profiles: ["ops"]
+    restart: "no"
+    command: ["/app/node_modules/.bin/prisma", "migrate", "deploy", "--schema", "prisma/schema.prisma"]
+    environment: { DATABASE_URL: "${DATABASE_URL:?Thiếu DATABASE_URL}" }
+    depends_on: { postgres: { condition: service_healthy } }
+    networks: [hc_net]
+    logging: *default-logging
+
+  seed:
+    image: happyclass/api:local
+    profiles: ["ops"]
+    restart: "no"
+    command: ["node", "dist/cli/seed.js"]
+    environment: *api-env
+    depends_on: { postgres: { condition: service_healthy } }
+    networks: [hc_net]
+    logging: *default-logging
+
+  api:
+    image: happyclass/api:local
+    build: { context: ., dockerfile: apps/api/Dockerfile }
+    restart: unless-stopped
+    environment:
+      <<: *api-env
+      PORT: 4000
+      NODE_ENV: ${API_NODE_ENV:-development}
+    depends_on: { postgres: { condition: service_healthy } }
+    ports: ["127.0.0.1:${HC_API_HOST_PORT:-3101}:4000"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:4000/api/health >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [hc_net]
+    mem_limit: 1g
+    cpus: 1
+    logging: *default-logging
+    <<: *hardening
+
+  web:
+    image: happyclass/web:local
+    build: { context: ., dockerfile: apps/web/Dockerfile }
+    restart: unless-stopped
+    environment:
+      API_INTERNAL_URL: http://api:4000/api
+      SITE_ENGLISH_URL: ${SITE_ENGLISH_URL}
+      SITE_VIETNAMESE_URL: ${SITE_VIETNAMESE_URL}
+      SITE_ADMIN_URL: ${SITE_ADMIN_URL}
+    depends_on: { api: { condition: service_healthy } }
+    ports: ["127.0.0.1:${HC_WEB_HOST_PORT:-3100}:3000"]
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://127.0.0.1:3000/ >/dev/null || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+    networks: [hc_net]
+    mem_limit: 1536m
+    cpus: 2
+    logging: *default-logging
+    <<: *hardening
+
+networks:
+  hc_net:
+    name: happyclass_net
+    driver: bridge
