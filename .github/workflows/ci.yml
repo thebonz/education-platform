@@ -130,11 +130,15 @@ jobs:
 
       - name: Build Docker images
         run: |
-          docker build -f apps/api/Dockerfile -t happyclass/api:ci .
-          docker build -f apps/web/Dockerfile -t happyclass/web:ci .
-          docker run --rm happyclass/api:ci id -un | grep -qx node
-          docker run --rm happyclass/web:ci id -un | grep -qx node
-          docker run --rm --entrypoint /app/node_modules/.bin/prisma happyclass/api:ci --version
+          annotate() { body="$(tail -n 40 "$2" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; echo "::error title=$1::${body}"; }
+          check() { name="$1"; shift; if ! "$@" > "/tmp/$name.log" 2>&1; then annotate "$name" "/tmp/$name.log"; exit 1; fi; }
+          export DOCKER_BUILDKIT=1 BUILDKIT_PROGRESS=plain
+          check docker-build-api docker build -f apps/api/Dockerfile -t happyclass/api:ci .
+          check docker-build-web docker build -f apps/web/Dockerfile -t happyclass/web:ci .
+          check api-user sh -c 'docker run --rm happyclass/api:ci id -un | grep -qx node'
+          check web-user sh -c 'docker run --rm happyclass/web:ci id -un | grep -qx node'
+          check api-prisma docker run --rm --entrypoint /app/node_modules/.bin/prisma happyclass/api:ci --version
+          docker image ls happyclass/*
 
       - name: Kiểm tra docker-compose.yml
         run: cp .env.example .env && docker compose config --quiet && rm .env
