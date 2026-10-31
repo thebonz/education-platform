@@ -1,0 +1,225 @@
+// HappyClass – Shared Core schema (Giai đoạn 2)
+// Bảng membership, đơn hàng, thanh toán, trường học, offline sẽ được thêm ở
+// giai đoạn 6–7 bằng migration riêng, theo thiết kế trong báo cáo kiến trúc.
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "linux-musl-openssl-3.0.x"]
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Sản phẩm (English, Vietnamese, sau này Math...)
+// ---------------------------------------------------------------------------
+
+model Product {
+  id          String          @id @default(uuid()) @db.Uuid
+  slug        String          @unique
+  name        String
+  description String?
+  locale      String          @default("vi")
+  theme       Json?
+  isActive    Boolean         @default(true) @map("is_active")
+  domains     ProductDomain[]
+  categories  GameCategory[]
+  games       Game[]
+  createdAt   DateTime        @default(now()) @map("created_at")
+  updatedAt   DateTime        @updatedAt @map("updated_at")
+
+  @@map("products")
+}
+
+model ProductDomain {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  hostname  String   @unique
+  isPrimary Boolean  @default(false) @map("is_primary")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([productId])
+  @@map("product_domains")
+}
+
+// ---------------------------------------------------------------------------
+// Danh mục và game (template đầy đủ ở giai đoạn 3)
+// ---------------------------------------------------------------------------
+
+enum AccessLevel {
+  FREE
+  PREMIUM
+}
+
+model GameCategory {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  slug      String
+  name      String
+  sortOrder Int      @default(0) @map("sort_order")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  games     Game[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([productId, slug])
+  @@map("game_categories")
+}
+
+model Game {
+  id          String        @id @default(uuid()) @db.Uuid
+  productId   String        @map("product_id") @db.Uuid
+  categoryId  String?       @map("category_id") @db.Uuid
+  slug        String
+  title       String
+  summary     String
+  templateKey String        @map("template_key")
+  gradeLevel  String?       @map("grade_level")
+  difficulty  String?
+  accessLevel AccessLevel   @default(PREMIUM) @map("access_level")
+  thumbnail   String?
+  isPublished Boolean       @default(false) @map("is_published")
+  sortOrder   Int           @default(0) @map("sort_order")
+  product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category    GameCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  versions    GameVersion[]
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  @@unique([productId, slug])
+  @@index([productId, isPublished, sortOrder])
+  @@map("games")
+}
+
+model GameVersion {
+  id            String   @id @default(uuid()) @db.Uuid
+  gameId        String   @map("game_id") @db.Uuid
+  versionNumber Int      @map("version_number")
+  content       Json
+  isPublished   Boolean  @default(false) @map("is_published")
+  game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@unique([gameId, versionNumber])
+  @@map("game_versions")
+}
+
+// ---------------------------------------------------------------------------
+// Tài khoản, phiên đăng nhập, token, đồng ý xử lý dữ liệu
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String       @id @default(uuid()) @db.Uuid
+  email           String       @unique
+  passwordHash    String       @map("password_hash")
+  displayName     String       @map("display_name")
+  emailVerifiedAt DateTime?    @map("email_verified_at")
+  isActive        Boolean      @default(true) @map("is_active")
+  lockedReason    String?      @map("locked_reason")
+  lastLoginAt     DateTime?    @map("last_login_at")
+  roles           UserRole[]
+  sessions        UserSession[]
+  tokens          AuthToken[]
+  consents        Consent[]
+  createdAt       DateTime     @default(now()) @map("created_at")
+  updatedAt       DateTime     @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+model UserSession {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @map("user_id") @db.Uuid
+  tokenHash  String    @unique @map("token_hash")
+  userAgent  String?   @map("user_agent")
+  ipAddress  String?   @map("ip_address")
+  expiresAt  DateTime  @map("expires_at")
+  lastSeenAt DateTime  @default(now()) @map("last_seen_at")
+  revokedAt  DateTime? @map("revoked_at")
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt  DateTime  @default(now()) @map("created_at")
+
+  @@index([userId, revokedAt])
+  @@map("user_sessions")
+}
+
+enum AuthTokenType {
+  VERIFY_EMAIL
+  RESET_PASSWORD
+}
+
+model AuthToken {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @map("user_id") @db.Uuid
+  type      AuthTokenType
+  tokenHash String        @unique @map("token_hash")
+  expiresAt DateTime      @map("expires_at")
+  usedAt    DateTime?     @map("used_at")
+  user      User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime      @default(now()) @map("created_at")
+
+  @@index([userId, type])
+  @@map("auth_tokens")
+}
+
+model Consent {
+  id          String   @id @default(uuid()) @db.Uuid
+  userId      String   @map("user_id") @db.Uuid
+  kind        String // terms | privacy | adult_account
+  version     String
+  acceptedAt  DateTime @default(now()) @map("accepted_at")
+  ipAddress   String?  @map("ip_address")
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
+  @@map("consents")
+}
+
+// ---------------------------------------------------------------------------
+// Phân quyền (RBAC). Quyền cụ thể của từng vai trò định nghĩa trong code
+// (apps/api/src/rbac/permissions.ts) để review được qua Git.
+// ---------------------------------------------------------------------------
+
+model Role {
+  id          String     @id @default(uuid()) @db.Uuid
+  key         String     @unique
+  name        String
+  description String?
+  users       UserRole[]
+
+  @@map("roles")
+}
+
+model UserRole {
+  userId    String   @map("user_id") @db.Uuid
+  roleId    String   @map("role_id") @db.Uuid
+  grantedBy String?  @map("granted_by") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  role      Role     @relation(fields: [roleId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, roleId])
+  @@map("user_roles")
+}
+
+// ---------------------------------------------------------------------------
+// Nhật ký thao tác
+// ---------------------------------------------------------------------------
+
+model AuditLog {
+  id         String   @id @default(uuid()) @db.Uuid
+  actorId    String?  @map("actor_id") @db.Uuid
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String?  @map("entity_id")
+  metadata   Json?
+  ipAddress  String?  @map("ip_address")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId, createdAt])
+  @@index([actorId, createdAt])
+  @@index([createdAt])
+  @@map("audit_logs")
+}

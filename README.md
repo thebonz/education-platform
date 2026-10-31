@@ -1,2 +1,145 @@
-# education-platform
-building web education platform 
+# HappyClass – English Games & Vietnamese Games
+
+Một nền tảng lõi dùng chung (Modular Monolith) cho hai sản phẩm game giáo dục:
+
+| Site | Chế độ domain (production) | Chế độ đường dẫn (chạy thử) |
+| --- | --- | --- |
+| English Games | `https://english.happyclass.asia` | `http://localhost:3100/english` |
+| Vietnamese Games | `https://tiengviet.happyclass.asia` | `http://localhost:3100/vietnamese` |
+| Admin | `https://admin.happyclass.asia` | `http://localhost:3100/admin` |
+
+Tên miền **không nằm trong code**: đặt bằng biến môi trường `SITE_*_URL`.
+
+## Trạng thái
+
+**Giai đoạn 2 – Shared Core.**
+
+- Đã có: tài khoản dùng chung, đăng ký tự do, xác thực email, đăng nhập/đăng xuất, quên/đổi mật khẩu, quản lý phiên, phân quyền (RBAC), admin cơ bản, nhật ký thao tác, kiểm tra quyền chơi game ở backend.
+- Kế thừa từ Sprint 1: 12 game demo.
+- Chưa có:
+  - membership và thanh toán (giai đoạn 6);
+  - Game Builder và hệ template (giai đoạn 3 và 5);
+  - trường học và Offline Player (giai đoạn 7).
+
+## Cấu trúc
+
+```text
+apps/
+  api/   NestJS + Prisma + PostgreSQL
+    src/auth       đăng ký, đăng nhập, phiên (cookie HttpOnly), token email
+    src/rbac       ma trận vai trò → quyền (review qua Git)
+    src/admin      quản trị người dùng, sản phẩm, tên miền, nhật ký
+    src/catalog    thư viện game + AccessService (điểm quyết định quyền chơi duy nhất)
+    src/cli        seed.ts, create-admin.ts
+    prisma         schema.prisma, migrations/
+    test           unit + e2e với PostgreSQL thật
+  web/   Next.js 15 (App Router)
+    src/middleware.ts        định tuyến theo tên miền
+    src/app/api/[...path]    proxy cùng origin tới API
+    src/app/[product]        trang English / Vietnamese
+    src/app/admin            trang quản trị
+    e2e/                     Playwright: đăng nhập dùng chung giữa subdomain
+docker-compose.yml           môi trường chạy thử cách ly trên DL380
+.github/workflows/ci.yml     build, test, e2e, build Docker image
+```
+
+## Bảo mật đã áp dụng
+
+- **Mật khẩu:** băm bằng Argon2id. Database chỉ lưu hash SHA-256 của token phiên và token email; token email chỉ dùng được một lần và có hạn (xác thực email 24 giờ, đặt lại mật khẩu 1 giờ).
+- **Cookie phiên `hc_session`:** `HttpOnly`, `SameSite=Lax`, `Secure` (bắt buộc ở production), domain `.happyclass.asia` để dùng chung giữa các subdomain.
+- **Chống CSRF:** request thay đổi dữ liệu phải có `Origin`/`Referer` thuộc danh sách site.
+- **Giới hạn tần suất:** đăng nhập, đăng ký và quên mật khẩu bị giới hạn 10 lần/phút/IP (cấu hình được).
+- **Không lộ email đã đăng ký:** đăng ký, đăng nhập và quên mật khẩu trả về cùng kết quả dù email có tồn tại hay không.
+- **Phân quyền ở backend:** dùng `@RequirePermissions`.
+  - Chỉ Super Admin cấp được quyền Super Admin, và hệ thống luôn giữ ít nhất một Super Admin.
+  - Khóa tài khoản sẽ đăng xuất mọi thiết bị của người đó.
+- **Nội dung game:** API danh sách không bao giờ trả nội dung game. Nội dung chỉ trả qua `/play` sau khi `AccessService` cho phép.
+- **Dữ liệu trẻ em:** tài khoản do người lớn (giáo viên/phụ huynh) tạo; hệ thống lưu bằng chứng đồng ý (bảng `consents`); học sinh không cần email.
+- **Bí mật:** chỉ đặt trong `.env`, không có trong Git. PostgreSQL không publish cổng ra máy chủ.
+
+## Chạy trên máy chủ (chạy thử nội bộ)
+
+Yêu cầu: Docker Engine + Compose v2, quyền `sudo`. Toàn bộ lệnh bên dưới **không đụng** đến các dự án Docker khác trên máy chủ.
+
+```bash
+sudo mkdir -p /data/education-games-platform/{source,database/postgres,backups,logs}
+cd /data/education-games-platform/source
+sudo git clone https://github.com/thebonz/education-platform.git .
+sudo cp .env.example .env && sudo chmod 600 .env
+sudo nano .env    # đổi POSTGRES_PASSWORD và mật khẩu trong DATABASE_URL (dùng: openssl rand -base64 32)
+
+sudo docker compose config --quiet          # kiểm tra cấu hình
+sudo docker compose build
+sudo docker compose up -d postgres
+sudo docker compose run --rm migrate        # áp migration (có chủ đích)
+sudo docker compose run --rm seed           # vai trò, sản phẩm, 12 game demo (không ghi đè dữ liệu đã sửa)
+sudo docker compose up -d api web
+sudo docker compose ps
+curl -s http://127.0.0.1:3101/api/health
+```
+
+Tạo tài khoản Super Admin đầu tiên. Mật khẩu được đọc từ stdin, nên không nằm trong lịch sử shell:
+
+```bash
+read -rs ADMIN_PW && printf '%s' "$ADMIN_PW" | \
+  sudo docker compose run --rm -T api node dist/cli/create-admin.js admin@happyclass.asia "Quản trị viên"
+unset ADMIN_PW
+```
+
+Mở thử từ máy tính cá nhân qua SSH tunnel (không mở cổng ra Internet):
+
+```bash
+ssh -L 3100:127.0.0.1:3100 rootx@<IP-máy-chủ>
+# rồi mở http://localhost:3100
+```
+
+Ở chế độ `MAIL_TRANSPORT=log`, email xác thực được in ra log: `sudo docker compose logs api | grep "DEV MAIL" -A6`.
+
+Gỡ môi trường mà vẫn giữ dữ liệu: `sudo docker compose down`. **Không** dùng `-v` hay `docker system prune`.
+
+## Phát triển trên máy cá nhân
+
+Cần Node.js 22 và PostgreSQL 16 (tên database test phải chứa chữ `test`).
+
+```bash
+npm ci
+cp .env.example .env    # sửa DATABASE_URL trỏ tới localhost
+(cd apps/api && npx prisma migrate deploy && npm run seed)
+npm run dev:api         # http://localhost:4000/api/health
+npm run dev:web         # http://localhost:3100
+DATABASE_URL=postgresql://.../happyclass_test npm run test:api
+```
+
+## API chính
+
+| Nhóm | Endpoint |
+| --- | --- |
+| Auth | `POST /api/auth/register`, `verify-email`, `resend-verification`, `login`, `logout`, `logout-all`, `forgot-password`, `reset-password`, `change-password`; `GET /api/auth/me` |
+| Tài khoản | `GET/PATCH /api/account/profile`, `GET /api/account/sessions`, `DELETE /api/account/sessions/:id` |
+| Thư viện | `GET /api/catalog/products[/:slug[/games[/:game[/play]]]]` |
+| Admin | `GET /api/admin/stats`, `GET /api/admin/users`, `GET /api/admin/users/:id`, `POST …/lock`, `…/unlock`, `…/revoke-sessions`, `PUT …/roles`, `GET/PATCH /api/admin/products`, `POST /api/admin/products/:id/domains`, `DELETE /api/admin/domains/:id`, `GET /api/admin/audit-logs` |
+| Hệ thống | `GET /api/health` |
+
+## Vai trò
+
+| Vai trò | Quyền chính |
+| --- | --- |
+| `member` | Tự quản lý tài khoản (Free Member; Premium = member + entitlement, từ giai đoạn 6) |
+| `teacher`, `school_admin` | Như member; quyền lớp/trường bổ sung ở giai đoạn 7 |
+| `support` | Xem và khóa người dùng, thu hồi phiên |
+| `content_editor`, `content_reviewer` | Vào admin, xem trước game trả phí |
+| `product_manager` | Sửa sản phẩm, theme, tên miền |
+| `accountant` | Xem thống kê (doanh thu từ giai đoạn 6) |
+| `super_admin` | Toàn quyền, gán vai trò, xem nhật ký thao tác |
+
+## CI
+
+Workflow `.github/workflows/ci.yml` chạy trên mỗi pull request:
+
+1. Kiểm tra Prisma: validate schema và phát hiện lệch giữa migration với schema.
+2. Typecheck và build cả API lẫn Web.
+3. Chạy test API (unit + e2e) trên PostgreSQL 16 thật.
+4. Chạy test Playwright đăng nhập dùng chung giữa các subdomain `*.happyclass.test`.
+5. Build Docker image và kiểm tra `docker-compose.yml`.
+
+Phiên bản đang dùng (theo `package-lock.json`): Next.js 15.5.28, NestJS 11.2.8, Prisma 6.19.3. Thay đổi schema phải đi kèm migration mới (`npx prisma migrate dev --name <tên>`); CI sẽ báo lỗi nếu migration lệch schema.
