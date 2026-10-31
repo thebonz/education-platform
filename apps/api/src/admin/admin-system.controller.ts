@@ -56,12 +56,13 @@ export class AdminSystemController {
   async stats() {
     const now = new Date();
     const since = new Date(now.getTime() - 7 * 86_400_000);
-    const [users, verified, locked, newUsers7d, activeSessions, products] = await Promise.all([
+    const [users, verified, locked, newUsers7d, activeSessions, plays7d, products] = await Promise.all([
       this.prisma.user.count(),
       this.prisma.user.count({ where: { emailVerifiedAt: { not: null } } }),
       this.prisma.user.count({ where: { isActive: false } }),
       this.prisma.user.count({ where: { createdAt: { gte: since } } }),
       this.prisma.userSession.count({ where: { revokedAt: null, expiresAt: { gt: now } } }),
+      this.prisma.gameSession.count({ where: { createdAt: { gte: since } } }),
       this.prisma.product.findMany({
         select: { slug: true, name: true, _count: { select: { games: { where: { isPublished: true } } } } },
         orderBy: { name: 'asc' },
@@ -70,6 +71,7 @@ export class AdminSystemController {
     return {
       users: { total: users, verified, locked, new7d: newUsers7d },
       activeSessions,
+      plays7d,
       products: products.map((p) => ({ slug: p.slug, name: p.name, publishedGames: p._count.games })),
       generatedAt: now.toISOString(),
     };

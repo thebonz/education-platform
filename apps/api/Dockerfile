@@ -6,25 +6,31 @@ WORKDIR /app
 
 FROM base AS deps
 COPY package.json package-lock.json ./
+COPY packages/game-core/package.json packages/game-core/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
-RUN npm ci -w @happyclass/api --include-workspace-root=false
+RUN npm ci -w @happyclass/game-core -w @happyclass/api --include-workspace-root=false
 
 FROM deps AS build
+COPY packages/game-core packages/game-core
+RUN npm run build -w @happyclass/game-core
 COPY apps/api apps/api
 WORKDIR /app/apps/api
 RUN npm run prisma:generate && npm run build
 
 FROM base AS prod-deps
 COPY package.json package-lock.json ./
+COPY packages/game-core/package.json packages/game-core/package.json
 COPY apps/api/package.json apps/api/package.json
 COPY apps/web/package.json apps/web/package.json
-RUN npm ci -w @happyclass/api --include-workspace-root=false --omit=dev && npm cache clean --force
+RUN npm ci -w @happyclass/game-core -w @happyclass/api --include-workspace-root=false --omit=dev && npm cache clean --force
 
 FROM base AS runtime
 ENV NODE_ENV=production
 COPY --from=prod-deps --chown=node:node /app/node_modules /app/node_modules
 COPY --from=build --chown=node:node /app/node_modules/.prisma /app/node_modules/.prisma
+COPY --from=build --chown=node:node /app/packages/game-core/package.json /app/packages/game-core/package.json
+COPY --from=build --chown=node:node /app/packages/game-core/dist /app/packages/game-core/dist
 COPY --from=build --chown=node:node /app/apps/api/dist /app/apps/api/dist
 COPY --from=build --chown=node:node /app/apps/api/prisma /app/apps/api/prisma
 COPY --chown=node:node apps/api/package.json /app/apps/api/package.json

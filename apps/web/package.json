@@ -1,6 +1,6 @@
 {
   "name": "@happyclass/web",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev -p 3100",
@@ -10,6 +10,7 @@
     "test:e2e": "playwright test"
   },
   "dependencies": {
+    "@happyclass/game-core": "0.3.0",
     "next": "^15.5.0",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
