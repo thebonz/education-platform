@@ -28,6 +28,7 @@ export const TAXONOMY: Taxonomy = {
     categories: [
       ['chu-cai', 'Chữ cái'], ['tu-vung', 'Từ vựng'], ['dau-thanh', 'Dấu thanh'],
       ['van-va-tieng', 'Vần và tiếng'], ['chinh-ta', 'Chính tả'], ['do-vui', 'Đố vui'],
+      ['luyen-tu-va-cau', 'Luyện từ và câu'], ['cau-va-dau-cau', 'Câu và dấu câu'],
     ],
   },
 };

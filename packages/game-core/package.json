@@ -44,6 +44,10 @@
     "./templates": {
       "types": "./dist/templates.d.ts",
       "default": "./dist/templates.js"
+    },
+    "./vi": {
+      "types": "./dist/vi/index.d.ts",
+      "default": "./dist/vi/index.js"
     }
   }
 }

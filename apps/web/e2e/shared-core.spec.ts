@@ -52,10 +52,10 @@ test('sai mật khẩu hiển thị lỗi, không lộ thông tin', async ({ pag
   await expect(page.locator('.form-error')).toHaveText('Email hoặc mật khẩu không đúng.');
 });
 
-test('tên miền riêng không hiện tiền tố đường dẫn và thư viện có 5 game @mobile', async ({ page }) => {
+test('tên miền riêng không hiện tiền tố đường dẫn và thư viện có 23 game @mobile', async ({ page }) => {
   await page.goto(`${VI}/games`);
-  await expect(page.getByTestId('game-card')).toHaveCount(5);
-  await page.getByPlaceholder('Tìm trò chơi, kỹ năng...').fill('chinh ta');
+  await expect(page.getByTestId('game-card')).toHaveCount(23);
+  await page.getByPlaceholder('Tìm trò chơi, kỹ năng...').fill('tro choi chinh ta');
   await expect(page.getByTestId('game-card')).toHaveCount(1);
   await page.getByTestId('game-card').first().click();
   await expect(page).toHaveURL(`${VI}/games/tro-choi-chinh-ta`);

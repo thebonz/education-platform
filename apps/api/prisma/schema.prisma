@@ -55,6 +55,13 @@ enum AccessLevel {
   PREMIUM
 }
 
+/// Trạng thái duyệt nội dung bởi giáo viên. Mỗi phiên bản nội dung mới quay về PENDING.
+enum ReviewStatus {
+  PENDING
+  APPROVED
+  CHANGES_REQUESTED
+}
+
 model GameCategory {
   id        String   @id @default(uuid()) @db.Uuid
   productId String   @map("product_id") @db.Uuid
@@ -102,6 +109,11 @@ model Game {
   // Seed chỉ cập nhật game còn do seed quản lý; Game Builder (giai đoạn 5) đặt false khi admin sửa.
   managedBySeed Boolean     @default(true) @map("managed_by_seed")
   seedRevision  Int         @default(0) @map("seed_revision")
+  reviewStatus  ReviewStatus @default(PENDING) @map("review_status")
+  reviewedAt    DateTime?   @map("reviewed_at")
+  // Không đặt khóa ngoại: người duyệt có thể bị xóa tài khoản, lịch sử nằm ở audit_logs.
+  reviewedById  String?     @map("reviewed_by_id") @db.Uuid
+  reviewNote    String?     @map("review_note")
   product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   category    GameCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
   level       Level?        @relation(fields: [levelId], references: [id], onDelete: SetNull)
@@ -114,6 +126,7 @@ model Game {
   @@unique([productId, slug])
   @@index([productId, isPublished, sortOrder])
   @@index([levelId])
+  @@index([reviewStatus])
   @@map("games")
 }
 

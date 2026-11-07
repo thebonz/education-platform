@@ -19,6 +19,7 @@ export const PERMISSIONS = [
   'products.update',
   'games.read_all',
   'games.play_premium_preview',
+  'games.review',
   'audit.read',
 ] as const;
 
@@ -38,7 +39,7 @@ export const ROLES = {
   },
   content_reviewer: {
     name: 'Duyệt nội dung',
-    permissions: ['account.self', 'admin.access', 'games.read_all', 'games.play_premium_preview'],
+    permissions: ['account.self', 'admin.access', 'games.read_all', 'games.play_premium_preview', 'games.review'],
   },
   product_manager: {
     name: 'Quản lý sản phẩm',

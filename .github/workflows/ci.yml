@@ -211,6 +211,19 @@ jobs:
           curl -fsS -b /tmp/cookies.txt http://127.0.0.1:3100/api/admin/stats | grep -q '"publishedGames":6'
           echo "::notice title=Deploy smoke::Đăng nhập Super Admin qua Web và đọc /api/admin/stats thành công"
 
+      - name: Tạo tài khoản giáo viên duyệt nội dung bằng script
+        run: |
+          printf '%s' 'Ci-Reviewer-Password-2026' | sudo ADMIN_EMAIL=reviewer@happyclass.test ADMIN_NAME="Cô Giáo CI" bash ops/create-admin.sh --role content_reviewer
+          curl -fsS -c /tmp/rev.txt -o /dev/null -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' \
+            -d '{"email":"reviewer@happyclass.test","password":"Ci-Reviewer-Password-2026"}' http://127.0.0.1:3100/api/auth/login
+          curl -fsS -b /tmp/rev.txt http://127.0.0.1:3100/api/auth/me | grep -q '"games.review"'
+          # Giáo viên duyệt xem được nội dung nhưng không quản lý người dùng
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/rev.txt 'http://127.0.0.1:3100/api/admin/games?review=PENDING')" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/rev.txt http://127.0.0.1:3100/api/admin/users)" = 403
+          # Vai trò sai bị từ chối
+          if printf '%s' 'Ci-Reviewer-Password-2026' | sudo ADMIN_EMAIL=x@happyclass.test bash ops/create-admin.sh --role member; then exit 1; fi
+          echo "::notice title=Deploy smoke::Tạo tài khoản content_reviewer bằng ops/create-admin.sh --role, đăng nhập và đúng quyền"
+
       - name: Sao lưu database
         run: |
           sudo --preserve-env=HC_DATA_DIR bash ops/backup-db.sh ci
@@ -222,8 +235,11 @@ jobs:
           sudo --preserve-env=HC_DATA_DIR bash ops/deploy-test.sh 2>&1 | tee /tmp/deploy2.log
           grep -q 'Sao lưu database trước khi áp migration' /tmp/deploy2.log
           test "$(sudo sh -c 'ls /tmp/hc-data/backups/*.dump | wc -l')" -ge 2
-          sudo docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM games"' | grep -qx 12
-          echo "::notice title=Deploy smoke::Triển khai lần 2 idempotent; vẫn 12 game; có bản sao lưu trước migrate"
+          # Lần 2 không tạo/cập nhật game nào; số game khớp số gói nội dung trong mã nguồn
+          grep -q 'game mới 0, cập nhật 0' /tmp/deploy2.log
+          games="$(sudo docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM games"')"
+          grep -q "giữ nguyên ${games}\." /tmp/deploy2.log
+          echo "::notice title=Deploy smoke::Triển khai lần 2 idempotent; vẫn ${games} game; có bản sao lưu trước migrate"
 
       - name: Container chạy user không phải root, cổng chỉ bind 127.0.0.1, Postgres không publish
         run: |

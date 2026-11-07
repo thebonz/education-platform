@@ -12,26 +12,29 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
 
 ## Trạng thái
 
-**Giai đoạn 3 – English Games và hệ template game.**
+**Giai đoạn 4 – Vietnamese Games lớp 1–5.**
 
 - Đã có (giai đoạn 2): tài khoản dùng chung, đăng ký tự do + xác thực email, phiên dùng chung giữa các subdomain, phân quyền (RBAC), admin cơ bản, nhật ký thao tác.
-- Mới (giai đoạn 3):
-  - Game Shell: âm thanh đọc to (giọng Anh-Anh hoặc Anh-Mỹ), hiệu ứng, đồng hồ, chế độ đội, toàn màn hình (phím F), chơi lại, màn kết quả có sao.
-  - 6 template: bingo, picture-match, quiz, hidden-picture, bubble-spelling, spelling.
-  - 6 game tiếng Anh viết lại; 5 game tiếng Việt chuyển sang template mới ("Ghép vần" tạm ẩn chờ giai đoạn 4).
-  - Thư viện lọc theo cấp độ, danh mục và loại miễn phí/trả phí; tìm kiếm không dấu.
-  - Lưu kết quả chơi, game gần đây, game yêu thích; SEO gồm metadata, JSON-LD, sitemap và robots theo tên miền.
+- Đã có (giai đoạn 3):
+  - Game Shell: đọc to, hiệu ứng, đồng hồ, chế độ đội, toàn màn hình, chơi lại, màn kết quả có sao.
+  - 6 template đầu tiên; 6 game tiếng Anh; thư viện lọc, tìm kiếm không dấu; lưu kết quả, game gần đây, yêu thích; SEO.
+- Mới (giai đoạn 4):
+  - Lõi tiếng Việt (`packages/game-core/src/vi`): tách tiếng thành âm đầu + vần + thanh, ghép tiếng với dấu đặt đúng chỗ, so sánh không phân biệt kiểu đặt dấu cũ/mới (hoà = hòa), quy tắc c/k, g/gh, ng/ngh, đánh vần giọng Bắc.
+  - 4 template mới: `syllable-builder` (ghép tiếng), `tone-finder` (tìm dấu thanh), `word-sort` (xếp từ vào nhóm), `sentence-order` (sắp xếp câu).
+  - 23 game tiếng Việt từ lớp 1 đến lớp 5, soạn mới theo mạch chủ đề Kết nối tri thức (không chép sách giáo khoa). "Ghép vần" được phát hành lại bằng template ghép tiếng.
+  - Quy trình giáo viên duyệt: mọi nội dung mới ở trạng thái **chờ duyệt** và có ghi chú trên trang game; vai trò `content_reviewer` duyệt hoặc yêu cầu sửa trong admin (mục *Nội dung game*); mỗi phiên bản nội dung mới phải duyệt lại.
 - Chưa có:
-  - Vietnamese Games lớp 1–5 (giai đoạn 4);
   - Game Builder (giai đoạn 5);
   - membership và thanh toán (giai đoạn 6);
   - trường học và Offline Player (giai đoạn 7).
 
 ## Thêm game mới
 
-- **Cùng kiểu chơi (template có sẵn):** thêm một gói vào `apps/api/src/cli/content/english.ts` hoặc `vietnamese.ts`. Mỗi gói gồm slug, tiêu đề, template, danh mục, cấp độ, `revision` và dữ liệu.
+- **Cùng kiểu chơi (template có sẵn):** thêm một gói vào `apps/api/src/cli/content/english.ts`, hoặc vào file theo lớp trong `apps/api/src/cli/content/vi/` cho tiếng Việt. Mỗi gói gồm slug, tiêu đề, template, danh mục, cấp độ, `revision` và dữ liệu.
   - Dữ liệu được kiểm tra bằng schema trong `packages/game-core/src/templates.ts`. Seed từ chối gói sai và báo rõ vị trí lỗi.
   - Muốn phát hành nội dung mới cho một game đã có: tăng `revision`. Seed tạo phiên bản mới và giữ bản cũ; game đã được admin sửa thì seed không đụng tới.
+  - Với `syllable-builder` và `tone-finder`, mỗi từ phải là một tiếng hợp lệ và đúng quy tắc c/k, g/gh, ng/ngh; seed báo lỗi nếu sai.
+  - Nội dung mới hoặc đổi `revision` sẽ ở trạng thái chờ giáo viên duyệt.
   - Trên máy chủ: `sudo git pull && sudo bash ops/deploy-test.sh`.
 - **Kiểu chơi mới:** thêm schema vào `game-core/src/templates.ts` và component vào `apps/web/src/games/templates/`, rồi đăng ký trong `apps/web/src/games/registry.ts`. Không cần sửa Game Shell.
 - **Từ giai đoạn 5:** admin tạo game trong Game Builder, dùng chính các schema trên.
@@ -55,7 +58,7 @@ apps/
     src/app/api/[...path]    proxy cùng origin tới API
     src/app/[product]        trang English / Vietnamese
     src/app/admin            trang quản trị
-    src/games                Game Shell + 6 template game
+    src/games                Game Shell + 10 template game
     e2e/                     Playwright: đăng nhập dùng chung giữa subdomain
 docker-compose.yml           môi trường chạy thử cách ly trên DL380
 .github/workflows/ci.yml     build, test, e2e, build Docker image
@@ -85,6 +88,7 @@ sudo git clone https://github.com/thebonz/education-platform.git /data/education
 cd /data/education-games-platform/source
 sudo bash ops/deploy-test.sh      # tạo .env (mật khẩu ngẫu nhiên), build, migrate, seed, chạy, kiểm tra
 sudo bash ops/create-admin.sh     # tạo Super Admin (mật khẩu nhập ẩn)
+sudo bash ops/create-admin.sh --role content_reviewer   # tạo tài khoản giáo viên duyệt nội dung
 ```
 
 Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`. Script tự sao lưu database trước khi áp migration.
@@ -92,7 +96,7 @@ Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`
 | Script | Việc làm |
 | --- | --- |
 | `ops/deploy-test.sh` | Triển khai/cập nhật, idempotent; tạo `.env` nếu chưa có (không ghi đè); kiểm tra cổng, health, các trang chính |
-| `ops/create-admin.sh` | Tạo Super Admin đầu tiên |
+| `ops/create-admin.sh` | Tạo Super Admin hoặc tài khoản nhân sự (`--role content_reviewer`, `--promote`) |
 | `ops/enable-domain.sh` | Chuyển sang chế độ tên miền (sao lưu `.env`), bật Cloudflare Tunnel riêng của HappyClass |
 | `ops/backup-db.sh [nhãn]` | `pg_dump` vào `/data/education-games-platform/backups`, kèm SHA-256, giữ 14 bản |
 
@@ -126,7 +130,7 @@ DATABASE_URL=postgresql://.../happyclass_test npm run test:api
 | Auth | `POST /api/auth/register`, `verify-email`, `resend-verification`, `login`, `logout`, `logout-all`, `forgot-password`, `reset-password`, `change-password`; `GET /api/auth/me` |
 | Tài khoản | `GET/PATCH /api/account/profile`, `GET /api/account/sessions`, `DELETE /api/account/sessions/:id` |
 | Thư viện | `GET /api/catalog/products[/:slug[/games[/:game[/play]]]]` |
-| Admin | `GET /api/admin/stats`, `GET /api/admin/users`, `GET /api/admin/users/:id`, `POST …/lock`, `…/unlock`, `…/revoke-sessions`, `PUT …/roles`, `GET/PATCH /api/admin/products`, `POST /api/admin/products/:id/domains`, `DELETE /api/admin/domains/:id`, `GET /api/admin/audit-logs` |
+| Admin | `GET /api/admin/stats`, `GET /api/admin/users`, `GET /api/admin/users/:id`, `POST …/lock`, `…/unlock`, `…/revoke-sessions`, `PUT …/roles`, `GET/PATCH /api/admin/products`, `POST /api/admin/products/:id/domains`, `DELETE /api/admin/domains/:id`, `GET /api/admin/audit-logs`, `GET /api/admin/games[/:id]`, `POST /api/admin/games/:id/review` |
 | Hệ thống | `GET /api/health` |
 
 ## Vai trò
@@ -136,7 +140,8 @@ DATABASE_URL=postgresql://.../happyclass_test npm run test:api
 | `member` | Tự quản lý tài khoản (Free Member; Premium = member + entitlement, từ giai đoạn 6) |
 | `teacher`, `school_admin` | Như member; quyền lớp/trường bổ sung ở giai đoạn 7 |
 | `support` | Xem và khóa người dùng, thu hồi phiên |
-| `content_editor`, `content_reviewer` | Vào admin, xem trước game trả phí |
+| `content_editor` | Vào admin, xem nội dung game, xem trước game trả phí |
+| `content_reviewer` | Như trên, và duyệt / yêu cầu sửa nội dung game |
 | `product_manager` | Sửa sản phẩm, theme, tên miền |
 | `accountant` | Xem thống kê (doanh thu từ giai đoạn 6) |
 | `super_admin` | Toàn quyền, gán vai trò, xem nhật ký thao tác |

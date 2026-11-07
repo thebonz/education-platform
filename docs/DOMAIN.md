@@ -22,15 +22,18 @@ Người dùng ──HTTPS──▶ Cloudflare (DNS, HTTPS, Access) ──Tunnel
 
 Trong tunnel `happyclass`, mục **Public hostnames** (giao diện mới gọi là *Published application routes*), thêm 3 dòng:
 
-| Subdomain | Domain | Service type | URL |
+| Subdomain | Domain | Path | Service URL |
 | --- | --- | --- | --- |
-| `english` | happyclass.asia | HTTP | `web:3000` |
-| `tiengviet` | happyclass.asia | HTTP | `web:3000` |
-| `admin` | happyclass.asia | HTTP | `web:3000` |
+| `english` | happyclass.asia | (để trống) | `http://web:3000` |
+| `tiengviet` | happyclass.asia | (để trống) | `http://web:3000` |
+| `admin` | happyclass.asia | (để trống) | `http://web:3000` |
 
-Có thể thêm dòng thứ 4 cho trang giới thiệu chung: để trống Subdomain, Domain `happyclass.asia`, URL `web:3000`.
+Giao diện cũ tách riêng ô *Type* (chọn `HTTP`) và ô *URL* (`web:3000`); giao diện mới chỉ có một ô *Service URL*, phải ghi đủ `http://web:3000`.
+Dùng `http` (không phải `https`): chặng tunnel → web nằm trong mạng nội bộ Docker; HTTPS cho người dùng do Cloudflare đảm nhận.
 
-`web:3000` là tên container trong mạng nội bộ Docker của HappyClass; cổng này không mở ra máy chủ.
+Có thể thêm dòng thứ 4 cho trang giới thiệu chung: để trống Subdomain, Domain `happyclass.asia`, Service URL `http://web:3000`.
+
+`web` là tên container trong mạng nội bộ Docker của HappyClass; cổng 3000 không mở ra máy chủ.
 
 ## Bước 3 – Chặn truy cập bằng Cloudflare Access (thử nội bộ)
 

@@ -12,6 +12,9 @@ const en = {
   pickWord: 'Tap a word, then its picture.', matched: 'Matched', hiddenGuess: 'What is the hidden picture?',
   chooseUnit: 'Choose a unit', words: 'words', typeAnswer: 'Type your answer', fillBlanks: 'Fill in the missing letters',
   soundUnavailable: 'Read-aloud is not available in this browser.',
+  onset: 'Onset', rhyme: 'Rhyme', toneLabel: 'Tone', noOnset: 'none', buildSyllable: 'Build the word: onset + rhyme + tone',
+  pickTone: 'Which tone mark does this word need?', sortInto: 'Pick the right group.', orderWords: 'Tap the words in the right order.',
+  clear: 'Clear', spelling: 'Spell it',
 };
 
 const vi: typeof en = {
@@ -26,6 +29,9 @@ const vi: typeof en = {
   pickWord: 'Chạm vào một từ, rồi chạm vào hình phù hợp.', matched: 'Đã ghép', hiddenGuess: 'Bức tranh bí mật là gì?',
   chooseUnit: 'Chọn bài', words: 'từ', typeAnswer: 'Nhập đáp án', fillBlanks: 'Điền chữ còn thiếu',
   soundUnavailable: 'Trình duyệt này chưa hỗ trợ đọc to.',
+  onset: 'Âm đầu', rhyme: 'Vần', toneLabel: 'Thanh', noOnset: 'không có', buildSyllable: 'Ghép tiếng: âm đầu + vần + thanh',
+  pickTone: 'Tiếng này mang dấu thanh nào?', sortInto: 'Chạm vào nhóm phù hợp.', orderWords: 'Chạm vào các từ theo đúng thứ tự để tạo thành câu.',
+  clear: 'Xếp lại', spelling: 'Đánh vần',
 };
 
 export type GameStrings = typeof en;

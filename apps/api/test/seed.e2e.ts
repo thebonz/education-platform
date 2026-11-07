@@ -10,24 +10,29 @@ describe('Seed nội dung game', () => {
   });
   afterAll(async () => { await prisma.$disconnect(); });
 
-  it('tạo đủ 12 game, cấp độ và danh mục; chạy lại không tạo trùng', async () => {
-    expect(await prisma.game.count()).toBe(12);
+  it('tạo đủ 29 game, cấp độ và danh mục; chạy lại không tạo trùng', async () => {
+    expect(await prisma.game.count()).toBe(29);
     expect(await prisma.level.count()).toBe(12);
     expect(await prisma.gameCategory.count({ where: { product: { slug: 'english' } } })).toBe(20);
     const again = await seed(prisma);
-    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 12 });
-    expect(await prisma.gameVersion.count()).toBe(12);
+    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 29 });
+    expect(await prisma.gameVersion.count()).toBe(29);
   });
 
   it('nâng cấp game cũ lên phiên bản nội dung mới, giữ bản cũ', async () => {
     const game = await prisma.game.findFirstOrThrow({ where: { slug: 'alphabet-bingo' } });
-    await prisma.game.update({ where: { id: game.id }, data: { seedRevision: 1, templateKey: 'bingo-cu' } });
+    await prisma.game.update({
+      where: { id: game.id },
+      data: { seedRevision: 1, templateKey: 'bingo-cu', reviewStatus: 'APPROVED', reviewedAt: new Date(), reviewNote: 'ok' },
+    });
     const report = await seed(prisma);
     expect(report.gamesUpdated).toBe(1);
     const versions = await prisma.gameVersion.findMany({ where: { gameId: game.id }, orderBy: { versionNumber: 'asc' } });
     expect(versions.map((v) => [v.versionNumber, v.isPublished])).toEqual([[1, false], [2, true]]);
     const updated = await prisma.game.findUniqueOrThrow({ where: { id: game.id } });
     expect(updated).toMatchObject({ templateKey: 'bingo', seedRevision: 2 });
+    // Nội dung đổi → phải duyệt lại
+    expect(updated).toMatchObject({ reviewStatus: 'PENDING', reviewedAt: null, reviewNote: null });
     expect(await prisma.auditLog.count({ where: { action: 'seed.game_version_published', entityId: game.id } })).toBe(1);
   });
 

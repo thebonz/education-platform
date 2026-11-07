@@ -9,6 +9,7 @@ export type CatalogGame = {
   difficulty: string | null;
   accessLevel: 'FREE' | 'PREMIUM';
   thumbnail: string | null;
+  reviewStatus: 'PENDING' | 'APPROVED' | 'CHANGES_REQUESTED';
   category: { slug: string; name: string } | null;
   level: { slug: string; name: string; sortOrder: number } | null;
   access: Access;
@@ -26,4 +27,5 @@ export type PlayPayload = {
 
 export const TEMPLATE_EMOJI: Record<string, string> = {
   bingo: '🎯', 'picture-match': '🧩', 'hidden-picture': '🖼️', 'bubble-spelling': '🫧', spelling: '✍️', quiz: '⚡',
+  'syllable-builder': '🔤', 'tone-finder': '🎵', 'word-sort': '🗂️', 'sentence-order': '🧱',
 };

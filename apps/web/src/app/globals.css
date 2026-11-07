@@ -186,3 +186,46 @@ label.check input{margin-top:3px;width:18px;height:18px}
   .quiz-prompt{font-size:1.3em}
   .match-columns{gap:12px}
 }
+/* Tiếng Việt: ghép tiếng, dấu thanh, xếp nhóm, sắp xếp câu */
+.syl-preview{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;font-size:1.4em;font-weight:800}
+.syl-slot{min-width:56px;height:56px;padding:0 10px;display:grid;place-items:center;border-radius:14px;background:#f3f4f8;border:2px dashed #d6dbe5}
+.syl-plus{color:var(--muted)}
+.syl-word{font-size:1.8em;min-width:120px;text-align:center;color:var(--accent)}
+.syl-row{display:flex;align-items:center;gap:10px;flex-wrap:wrap;justify-content:center;width:100%;max-width:820px}
+.syl-label{min-width:72px;font-weight:800;color:var(--muted);text-align:right}
+.syl-choice{min-width:76px;min-height:56px;font-size:1.3em}
+.choice.picked{border-color:var(--accent);box-shadow:0 0 0 4px color-mix(in srgb,var(--accent) 22%,transparent)}
+.syl-tone{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-width:76px}
+.syl-tone small{font-size:.55em;font-weight:700;color:var(--muted)}
+.tone-mark{font-size:1.5em;line-height:1}
+.tone-word{font-size:3.4em;font-weight:900;margin:0;color:var(--accent);letter-spacing:.02em}
+.tone-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;width:100%;max-width:520px}
+.sort-current{min-height:96px;display:grid;place-items:center}
+.sort-card{display:flex;align-items:center;gap:12px;padding:16px 26px;border-radius:20px;border:2px solid var(--accent);background:#fff;font-size:1.6em;font-weight:800;box-shadow:var(--shadow)}
+.sort-groups{display:grid;gap:12px;width:100%;max-width:900px}
+.sort-group{display:flex;flex-direction:column;gap:8px;min-width:0}
+.sort-target{display:flex;flex-direction:column;gap:4px}
+.sort-target small{font-size:.7em;color:var(--muted);font-weight:600}
+.sort-list{list-style:none;margin:0;padding:8px;min-height:60px;border-radius:14px;background:#f7f8fb;display:flex;flex-wrap:wrap;gap:6px;align-content:flex-start}
+.sort-list li{background:#dcfce7;border-radius:10px;padding:4px 10px;font-weight:700}
+.sort-list li.retried{background:#fef3c7}
+.sentence-line{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:center;min-height:72px;width:100%;max-width:860px;padding:12px;border-radius:18px;border:2px dashed #d6dbe5;background:#fbfcfe}
+.sentence-line.right{border-color:#16a34a;background:#f0fdf4}.sentence-line.wrong{border-color:#dc2626;background:#fef2f2}
+.sentence-bank{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;width:100%;max-width:860px}
+.chunk{border:2px solid #e3e3ee;background:#fff;border-radius:14px;padding:10px 16px;font-size:1.25em;font-weight:700}
+.chunk:disabled{opacity:.35}
+.chunk.placed{border-color:var(--accent);opacity:1}
+.chunk-gap,.sentence-punct{font-size:1.4em;font-weight:800;color:var(--muted)}
+.tpl-syllable .choice:disabled,.tpl-tone .choice:disabled{color:var(--ink)}
+.tpl-syllable .choice:disabled:not(.right):not(.wrong),.tpl-tone .choice:disabled:not(.right):not(.wrong){opacity:.5}
+@media (max-width:640px){.syl-label{min-width:100%;text-align:center}.sort-groups{grid-template-columns:repeat(2,minmax(0,1fr))!important}.sort-card{font-size:1.25em;padding:12px 16px}.tone-word{font-size:2.6em}}
+.review-note{display:inline-block;margin:4px 0 10px;padding:8px 12px;border-radius:12px;background:#fff7e6;color:#8a5a00;font-size:12px;font-weight:700}
+.admin-filters{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:0 0 14px}
+.admin-filters a{padding:6px 10px;border-radius:10px;background:#f3f4f8;font-size:12px;font-weight:700;color:#596579}
+.admin-filters a.active{background:#263044;color:#fff}
+.admin-filters .sep{width:1px;height:20px;background:#dde2ea;margin:0 4px}
+.review-tag{display:inline-block;padding:3px 8px;border-radius:8px;font-size:11px;font-weight:800}
+.review-tag.pending{background:#fff7e6;color:#8a5a00}.review-tag.approved{background:#dcfce7;color:#166534}.review-tag.changes_requested{background:#fee2e2;color:#991b1b}
+.content-json{max-height:520px;overflow:auto;background:#f7f8fb;border-radius:12px;padding:14px;font-size:12px;white-space:pre-wrap;word-break:break-word}
+.actions-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:10px}
+.review-note-admin{background:#fef2f2;border-radius:10px;padding:8px 12px}
