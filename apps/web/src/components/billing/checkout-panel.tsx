@@ -86,6 +86,7 @@ export function CheckoutPanel({ product, base, initial, qrSvg }: { product: Prod
                 const res = await apiSend('POST', `/billing/orders/${order.code}/cancel`);
                 if (res.ok) setOrder({ ...order, status: 'CANCELLED', transfer: null });
               }}>{t.cancel}</button>
+              {order.contact?.zalo && <a className="link-button" href={order.contact.zalo} target="_blank" rel="noreferrer" data-testid="zalo-help">💬 {t.help}</a>}
             </div>
           </div>
         </>

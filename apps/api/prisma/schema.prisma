@@ -30,6 +30,7 @@ model Product {
   games       Game[]
   plans       Plan[]
   entitlements Entitlement[]
+  classrooms  Classroom[]
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 
@@ -122,6 +123,7 @@ model Game {
   versions    GameVersion[]
   sessions    GameSession[]
   favorites   GameFavorite[]
+  classGames  ClassGame[]
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
@@ -292,6 +294,83 @@ model BankTransaction {
   @@map("bank_transactions")
 }
 
+// ---------------------------------------------------------------------------
+// Lớp học của giáo viên (giai đoạn 7). Học sinh KHÔNG có tài khoản: chỉ biệt danh do giáo viên đặt.
+// ---------------------------------------------------------------------------
+
+model Classroom {
+  id         String         @id @default(uuid()) @db.Uuid
+  ownerId    String         @map("owner_id") @db.Uuid
+  productId  String         @map("product_id") @db.Uuid
+  name       String
+  gradeLabel String?        @map("grade_label")
+  /// Mã vào lớp cho học sinh (6 ký tự, không dễ nhầm). Đổi được khi lộ.
+  joinCode   String         @unique @map("join_code")
+  isArchived Boolean        @default(false) @map("is_archived")
+  owner      User           @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  product    Product        @relation(fields: [productId], references: [id], onDelete: Restrict)
+  games      ClassGame[]
+  students   ClassStudent[]
+  createdAt  DateTime       @default(now()) @map("created_at")
+  updatedAt  DateTime       @updatedAt @map("updated_at")
+
+  @@index([ownerId, isArchived])
+  @@map("classrooms")
+}
+
+/// Bản sao game của lớp: giáo viên sửa nội dung cho lớp mình, không ảnh hưởng game gốc.
+model ClassGame {
+  id           String     @id @default(uuid()) @db.Uuid
+  classroomId  String     @map("classroom_id") @db.Uuid
+  sourceGameId String?    @map("source_game_id") @db.Uuid
+  title        String
+  templateKey  String     @map("template_key")
+  accessLevel  AccessLevel @map("access_level")
+  content      Json
+  isActive     Boolean    @default(true) @map("is_active")
+  sortOrder    Int        @default(0) @map("sort_order")
+  classroom    Classroom  @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  sourceGame   Game?      @relation(fields: [sourceGameId], references: [id], onDelete: SetNull)
+  plays        ClassPlay[]
+  createdAt    DateTime   @default(now()) @map("created_at")
+  updatedAt    DateTime   @updatedAt @map("updated_at")
+
+  @@index([classroomId, sortOrder])
+  @@map("class_games")
+}
+
+model ClassStudent {
+  id          String      @id @default(uuid()) @db.Uuid
+  classroomId String      @map("classroom_id") @db.Uuid
+  nickname    String
+  avatar      String      @default("🙂")
+  isActive    Boolean     @default(true) @map("is_active")
+  classroom   Classroom   @relation(fields: [classroomId], references: [id], onDelete: Cascade)
+  plays       ClassPlay[]
+  createdAt   DateTime    @default(now()) @map("created_at")
+
+  @@index([classroomId])
+  @@map("class_students")
+}
+
+model ClassPlay {
+  id          String        @id @default(uuid()) @db.Uuid
+  classGameId String        @map("class_game_id") @db.Uuid
+  studentId   String?       @map("student_id") @db.Uuid
+  score       Int
+  maxScore    Int           @map("max_score")
+  mistakes    Int           @default(0)
+  stars       Int
+  durationMs  Int           @map("duration_ms")
+  classGame   ClassGame     @relation(fields: [classGameId], references: [id], onDelete: Cascade)
+  student     ClassStudent? @relation(fields: [studentId], references: [id], onDelete: SetNull)
+  createdAt   DateTime      @default(now()) @map("created_at")
+
+  @@index([classGameId, createdAt])
+  @@index([studentId, createdAt])
+  @@map("class_plays")
+}
+
 enum MediaKind {
   IMAGE
   AUDIO
@@ -339,6 +418,7 @@ model User {
   favorites       GameFavorite[]
   orders          Order[]
   entitlements    Entitlement[]
+  classrooms      Classroom[]
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
 

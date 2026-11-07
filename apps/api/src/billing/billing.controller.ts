@@ -8,6 +8,7 @@ import { CurrentAuth, RequireAuth } from '../common/decorators';
 import type { AppRequest, AuthContext } from '../common/request';
 import { clientInfo } from '../common/request';
 import { parse } from '../common/validation';
+import { zaloUrl } from '../config/env';
 import { PrismaService } from '../prisma/prisma.service';
 import { BillingService } from './billing.service';
 
@@ -37,7 +38,7 @@ export class BillingController {
       orderBy: { sortOrder: 'asc' },
       select: { id: true, code: true, name: true, period: true, months: true, priceVnd: true },
     });
-    return { paymentsEnabled: this.billing.paymentsEnabled(), plans };
+    return { paymentsEnabled: this.billing.paymentsEnabled(), plans, contact: { zalo: zaloUrl() } };
   }
 
   @Post('orders')
@@ -71,7 +72,7 @@ export class BillingController {
     const membership = order.status === 'PAID'
       ? await this.prisma.entitlement.findUnique({ where: { orderId: order.id }, select: { startsAt: true, endsAt: true } })
       : null;
-    return { ...view, membership, transfer: view.status === 'PENDING' && this.billing.paymentsEnabled() ? this.billing.transferInfo(order) : null };
+    return { ...view, membership, contact: { zalo: zaloUrl() }, transfer: view.status === 'PENDING' && this.billing.paymentsEnabled() ? this.billing.transferInfo(order) : null };
   }
 
   @Post('orders/:code/cancel')

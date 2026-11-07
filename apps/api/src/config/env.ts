@@ -53,6 +53,9 @@ const schema = z.object({
   // Khóa API SePay gửi kèm webhook (header Authorization: Apikey <khóa>)
   SEPAY_WEBHOOK_KEY: z.string().default(''),
   ORDER_TTL_HOURS: z.coerce.number().int().min(1).max(168).default(24),
+
+  // Liên hệ hỗ trợ qua Zalo: số điện thoại hoặc link https://zalo.me/... (đặt bằng ops/set-contact.sh)
+  CONTACT_ZALO: z.string().regex(/^$|^0\d{9,10}$|^https:\/\/zalo\.me\/[A-Za-z0-9._-]{3,64}$/, 'CONTACT_ZALO phải là số điện thoại hoặc https://zalo.me/...').default(''),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -75,6 +78,13 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     if (env.MAIL_TRANSPORT !== 'smtp') throw new Error('MAIL_TRANSPORT phải là smtp ở production');
   }
   return env;
+}
+
+/** Link Zalo để khách liên hệ (null nếu chưa cấu hình). */
+export function zaloUrl(): string | null {
+  const v = env().CONTACT_ZALO;
+  if (!v) return null;
+  return v.startsWith('https://') ? v : `https://zalo.me/${v}`;
 }
 
 export function env(): Env {

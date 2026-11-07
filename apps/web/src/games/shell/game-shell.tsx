@@ -26,6 +26,10 @@ export type GameShellProps = {
   loginHref: string;
   /** Xem trước trong Game Builder: không lưu kết quả, không mời đăng nhập, không có nút về thư viện. */
   preview?: boolean;
+  /** Lưu kết quả theo cách riêng (lớp học: gửi về cho giáo viên). Có hàm này thì không lưu vào tài khoản. */
+  onResult?: (r: { score: number; maxScore: number; mistakes: number; stars: 1 | 2 | 3; durationMs: number }) => Promise<boolean>;
+  /** Chữ hiện khi onResult lưu xong. */
+  savedLabel?: string;
 };
 
 const ACCENT_KEY = 'hc.accent';
@@ -113,12 +117,15 @@ export function GameShell(props: GameShellProps) {
     setResult({ ...p, stars, durationMs });
     setPhase('finished');
     audio.sfx('win');
-    if (props.loggedIn && !props.preview) {
+    const payload = { score: correct, maxScore: p.maxScore, mistakes: p.mistakes, stars, durationMs: Math.min(durationMs, 6 * 3_600_000) };
+    if (props.onResult && !props.preview) {
+      props.onResult(payload).then((ok) => setSaveState(ok ? 'saved' : 'failed'));
+    } else if (props.loggedIn && !props.preview) {
       apiSend('POST', `/catalog/products/${props.product}/games/${props.slug}/sessions`, {
         score: correct, maxScore: p.maxScore, mistakes: p.mistakes, stars, durationMs: Math.min(durationMs, 6 * 3_600_000),
       }).then((res) => setSaveState(res.ok ? 'saved' : 'failed'));
     }
-  }, [audio, props.loggedIn, props.preview, props.product, props.slug, startedAt]);
+  }, [audio, props, startedAt]);
 
   async function toggleFullscreen() {
     try {
@@ -190,7 +197,8 @@ export function GameShell(props: GameShellProps) {
           <h2>{t.greatJob}</h2>
           <p data-testid="result-score">{t.youScored} {Math.min(result.score, result.maxScore)}/{result.maxScore} {t.points} · {t.mistakes}: {result.mistakes} · {t.time}: {formatTime(result.durationMs)}</p>
           {result.summary}
-          {props.preview ? null : props.loggedIn ? (saveState === 'saved' && <p className="form-success" data-testid="result-saved">{t.saved}</p>)
+          {props.preview ? null : props.onResult ? (saveState === 'saved' && <p className="form-success" data-testid="result-saved">{props.savedLabel ?? t.saved}</p>)
+            : props.loggedIn ? (saveState === 'saved' && <p className="form-success" data-testid="result-saved">{t.saved}</p>)
             : <p className="muted"><Link href={props.loginHref}>{t.loginToSave}</Link></p>}
           <div className="result-actions">
             <button type="button" className="primary-button" onClick={start} data-testid="play-again">↻ {t.playAgain}</button>
