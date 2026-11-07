@@ -48,6 +48,14 @@
     "./vi": {
       "types": "./dist/vi/index.d.ts",
       "default": "./dist/vi/index.js"
+    },
+    "./starters": {
+      "types": "./dist/starters.d.ts",
+      "default": "./dist/starters.js"
+    },
+    "./describe": {
+      "types": "./dist/describe.d.ts",
+      "default": "./dist/describe.js"
     }
   }
 }

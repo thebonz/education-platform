@@ -96,6 +96,10 @@ services:
       <<: *api-env
       PORT: 4000
       NODE_ENV: ${API_NODE_ENV:-development}
+      MEDIA_DIR: /data/media
+    volumes:
+      # Ảnh/âm thanh của Game Builder (chủ sở hữu uid 1000 = user node trong container)
+      - ${HC_DATA_DIR:-/data/education-games-platform}/media/assets:/data/media
     depends_on: { postgres: { condition: service_healthy } }
     ports: ["127.0.0.1:${HC_API_HOST_PORT:-3101}:4000"]
     healthcheck:

@@ -20,6 +20,9 @@ export const PERMISSIONS = [
   'games.read_all',
   'games.play_premium_preview',
   'games.review',
+  'games.edit',
+  'games.publish',
+  'media.upload',
   'audit.read',
 ] as const;
 
@@ -35,7 +38,7 @@ export const ROLES = {
   },
   content_editor: {
     name: 'Biên tập nội dung',
-    permissions: ['account.self', 'admin.access', 'games.read_all', 'games.play_premium_preview'],
+    permissions: ['account.self', 'admin.access', 'games.read_all', 'games.play_premium_preview', 'games.edit', 'games.publish', 'media.upload'],
   },
   content_reviewer: {
     name: 'Duyệt nội dung',

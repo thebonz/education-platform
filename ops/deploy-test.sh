@@ -21,8 +21,11 @@ BEFORE="$(snapshot_other_projects)"
 ok "Đã ghi trạng thái CMMS/Airdrop trước khi triển khai ($(printf '%s\n' "$BEFORE" | grep -c . || true) container)"
 
 log "Thư mục dữ liệu: $DATA_DIR"
-mkdir -p "$DATA_DIR"/{database/postgres,backups,logs,media/english,media/vietnamese}
+mkdir -p "$DATA_DIR"/{database/postgres,backups,logs,media/english,media/vietnamese,media/assets}
 chmod 700 "$DATA_DIR/backups"
+# API chạy bằng user node (uid 1000) và ghi file tải lên vào đây; chỉ đổi quyền đúng thư mục này.
+chown 1000:1000 "$DATA_DIR/media/assets"
+chmod 750 "$DATA_DIR/media/assets"
 ok "Đã có thư mục database, backups, logs, media"
 
 log "File cấu hình .env"
