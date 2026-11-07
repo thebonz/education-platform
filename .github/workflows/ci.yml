@@ -118,10 +118,17 @@ jobs:
           MAIL_TRANSPORT: log
           TRUST_PROXY_HOPS: '1'
           AUTH_RATE_LIMIT_PER_MINUTE: '50'
+          # Thanh toán chế độ thử nghiệm với số tài khoản GIẢ
+          PAYMENT_MODE: sandbox
+          PAYMENT_BANK_ACCOUNT: '100000000001'
+          PAYMENT_BANK_ACCOUNT_NAME: NGUYEN VAN TEST
         run: |
           ADMIN_PW="$(openssl rand -base64 24)"
           echo "::add-mask::$ADMIN_PW"
           echo "E2E_ADMIN_PASSWORD=$ADMIN_PW" >> "$GITHUB_ENV"
+          export SEPAY_WEBHOOK_KEY="$(openssl rand -hex 24)"
+          echo "::add-mask::$SEPAY_WEBHOOK_KEY"
+          echo "E2E_SEPAY_KEY=$SEPAY_WEBHOOK_KEY" >> "$GITHUB_ENV"
           node apps/api/dist/cli/seed.js
           printf '%s' "$ADMIN_PW" | node apps/api/dist/cli/create-admin.js admin@happyclass.test "CI Admin"
           (cd apps/api && PORT=4000 nohup node dist/main.js > /tmp/api.log 2>&1 &)
@@ -226,6 +233,24 @@ jobs:
           grep -qi '^x-content-type-options: nosniff' /tmp/h.txt
           test "$(sudo find "$HC_DATA_DIR/media/assets" -type f -name '*.png' | wc -l)" = 1
           echo "::notice title=Deploy smoke::Tải ảnh lên qua Web, file nằm ở HC_DATA_DIR/media/assets và tải về đúng nội dung"
+
+      - name: Thanh toán sandbox – tạo đơn, webhook SePay đi qua Web, cấp gói (số tài khoản GIẢ)
+        run: |
+          sudo PAYMENT_BANK_ACCOUNT=100000000001 PAYMENT_BANK_ACCOUNT_NAME="nguyen van test" bash ops/configure-payments.sh </dev/null > /tmp/pay.log 2>&1 || { cat /tmp/pay.log; exit 1; }
+          key="$(sudo grep '^SEPAY_WEBHOOK_KEY=' .env | cut -d= -f2-)"; echo "::add-mask::$key"
+          test "${#key}" -ge 24
+          sudo grep -q '^PAYMENT_BANK_ACCOUNT_NAME=NGUYEN VAN TEST$' .env
+          W=http://127.0.0.1:3100
+          plan="$(curl -fsS "$W/api/billing/plans?product=english" | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>{const r=JSON.parse(s);if(!r.paymentsEnabled)process.exit(1);console.log(r.plans.find(p=>p.code==='english-month').id)})")"
+          code="$(curl -fsS -b /tmp/cookies.txt -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' -d "{\"planId\":\"$plan\"}" "$W/api/billing/orders" | node -p "JSON.parse(require('fs').readFileSync(0,'utf8')).code")"
+          curl -fsS -b /tmp/cookies.txt "$W/api/billing/orders/$code" | grep -q '"qrPayload":"000201'
+          # Sai khóa → 401; đúng khóa (qua proxy của Web) → khớp đơn
+          test "$(curl -s -o /dev/null -w '%{http_code}' -X POST -H 'Authorization: Apikey sai' -H 'Content-Type: application/json' -d '{}' "$W/api/webhooks/sepay")" = 401
+          body="{\"id\":424242,\"gateway\":\"VietinBank\",\"transactionDate\":\"2026-11-08 10:00:00\",\"accountNumber\":\"100000000001\",\"content\":\"CT $code\",\"transferType\":\"in\",\"transferAmount\":55000}"
+          curl -fsS -X POST -H "Authorization: Apikey $key" -H 'Content-Type: application/json' -d "$body" "$W/api/webhooks/sepay" | grep -q '"result":"matched"'
+          curl -fsS -b /tmp/cookies.txt "$W/api/billing/orders/$code" | grep -q '"status":"PAID"'
+          curl -fsS -b /tmp/cookies.txt "$W/api/billing/me" | grep -q '"slug":"english"'
+          echo "::notice title=Deploy smoke::Thanh toán sandbox qua Docker: tạo đơn, VietQR, webhook SePay qua proxy Web, cấp gói"
 
       - name: Tạo tài khoản giáo viên duyệt nội dung bằng script
         run: |

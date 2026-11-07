@@ -28,6 +28,8 @@ model Product {
   categories  GameCategory[]
   levels      Level[]
   games       Game[]
+  plans       Plan[]
+  entitlements Entitlement[]
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
 
@@ -177,6 +179,119 @@ model GameVersion {
   @@map("game_versions")
 }
 
+// ---------------------------------------------------------------------------
+// Gói thành viên, đơn hàng, thanh toán (giai đoạn 6)
+// ---------------------------------------------------------------------------
+
+enum BillingPeriod {
+  MONTH
+  YEAR
+}
+
+/// Gói bán cho từng sản phẩm. Giá do quản trị sửa được; đơn hàng lưu lại giá lúc đặt.
+model Plan {
+  id        String        @id @default(uuid()) @db.Uuid
+  productId String        @map("product_id") @db.Uuid
+  code      String        @unique
+  name      String
+  period    BillingPeriod
+  months    Int
+  priceVnd  Int           @map("price_vnd")
+  isActive  Boolean       @default(true) @map("is_active")
+  sortOrder Int           @default(0) @map("sort_order")
+  product   Product       @relation(fields: [productId], references: [id], onDelete: Restrict)
+  orders    Order[]
+  createdAt DateTime      @default(now()) @map("created_at")
+  updatedAt DateTime      @updatedAt @map("updated_at")
+
+  @@index([productId, isActive, sortOrder])
+  @@map("plans")
+}
+
+enum OrderStatus {
+  PENDING
+  PAID
+  CANCELLED
+}
+
+/// Đơn mua gói. Mã đơn (code) là nội dung chuyển khoản để đối soát tự động.
+model Order {
+  id            String      @id @default(uuid()) @db.Uuid
+  code          String      @unique
+  userId        String      @map("user_id") @db.Uuid
+  planId        String      @map("plan_id") @db.Uuid
+  productId     String      @map("product_id") @db.Uuid
+  planName      String      @map("plan_name")
+  months        Int
+  amountVnd     Int         @map("amount_vnd")
+  status        OrderStatus @default(PENDING)
+  expiresAt     DateTime    @map("expires_at")
+  paidAt        DateTime?   @map("paid_at")
+  paidAmountVnd Int?        @map("paid_amount_vnd")
+  /// sepay | manual
+  paymentMethod String?     @map("payment_method")
+  confirmedById String?     @map("confirmed_by_id") @db.Uuid
+  note          String?
+  user          User        @relation(fields: [userId], references: [id], onDelete: Restrict)
+  plan          Plan        @relation(fields: [planId], references: [id], onDelete: Restrict)
+  entitlement   Entitlement?
+  transactions  BankTransaction[]
+  createdAt     DateTime    @default(now()) @map("created_at")
+  updatedAt     DateTime    @updatedAt @map("updated_at")
+
+  @@index([userId, createdAt])
+  @@index([status, createdAt])
+  @@map("orders")
+}
+
+/// Quyền dùng nội dung trả phí của một sản phẩm trong một khoảng thời gian.
+model Entitlement {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  startsAt  DateTime @map("starts_at")
+  endsAt    DateTime @map("ends_at")
+  /// order | manual
+  source    String
+  orderId   String?  @unique @map("order_id") @db.Uuid
+  grantedById String? @map("granted_by_id") @db.Uuid
+  note      String?
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Restrict)
+  order     Order?   @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@index([userId, productId, endsAt])
+  @@map("entitlements")
+}
+
+enum BankTransactionStatus {
+  MATCHED
+  UNMATCHED
+  AMOUNT_MISMATCH
+  IGNORED
+}
+
+/// Giao dịch ngân hàng nhận qua webhook (SePay). Lưu tất cả để đối soát, kể cả giao dịch không khớp đơn.
+model BankTransaction {
+  id              String                @id @default(uuid()) @db.Uuid
+  provider        String
+  providerTxId    String                @map("provider_tx_id")
+  amountVnd       Int                   @map("amount_vnd")
+  content         String
+  referenceCode   String?               @map("reference_code")
+  transactionDate DateTime?             @map("transaction_date")
+  status          BankTransactionStatus
+  orderId         String?               @map("order_id") @db.Uuid
+  raw             Json
+  order           Order?                @relation(fields: [orderId], references: [id], onDelete: SetNull)
+  createdAt       DateTime              @default(now()) @map("created_at")
+
+  @@unique([provider, providerTxId])
+  @@index([status, createdAt])
+  @@map("bank_transactions")
+}
+
 enum MediaKind {
   IMAGE
   AUDIO
@@ -222,6 +337,8 @@ model User {
   consents        Consent[]
   gameSessions    GameSession[]
   favorites       GameFavorite[]
+  orders          Order[]
+  entitlements    Entitlement[]
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
 

@@ -44,3 +44,14 @@ port_free_or_ours() { # port_free_or_ours <port>
       || die "Cổng $port đang bị tiến trình khác dùng. Đổi HC_WEB_HOST_PORT/HC_API_HOST_PORT trong .env."
   fi
 }
+
+set_env() { # set_env KEY VALUE – thay hoặc thêm một dòng trong .env, không in giá trị bí mật
+  local key="$1" value="$2" tmp
+  tmp="$(mktemp)"
+  if grep -qE "^${key}=" .env; then
+    awk -v k="$key" -v v="$value" 'BEGIN{FS=OFS="="} $1==k {print k "=" v; next} {print}' .env > "$tmp"
+  else
+    cat .env > "$tmp"; printf '%s=%s\n' "$key" "$value" >> "$tmp"
+  fi
+  cat "$tmp" > .env; rm -f "$tmp"
+}

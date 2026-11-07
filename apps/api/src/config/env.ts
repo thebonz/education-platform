@@ -42,6 +42,17 @@ const schema = z.object({
   MEDIA_DIR: z.string().min(1).default('./data/media'),
   MEDIA_MAX_IMAGE_BYTES: z.coerce.number().int().min(10_000).max(20_000_000).default(3_000_000),
   MEDIA_MAX_AUDIO_BYTES: z.coerce.number().int().min(10_000).max(50_000_000).default(5_000_000),
+
+  // Thanh toán: disabled (chưa bán) | sandbox (chạy thử, có nhãn thử nghiệm) | live (thật)
+  PAYMENT_MODE: z.enum(['disabled', 'sandbox', 'live']).default('disabled'),
+  // Tài khoản nhận tiền – CHỈ đặt trong .env trên máy chủ, không đưa vào Git.
+  PAYMENT_BANK_BIN: z.string().regex(/^\d{6}$/).default('970415'), // VietinBank
+  PAYMENT_BANK_NAME: z.string().default('VietinBank'),
+  PAYMENT_BANK_ACCOUNT: z.string().regex(/^\d{6,19}$/).or(z.literal('')).default(''),
+  PAYMENT_BANK_ACCOUNT_NAME: z.string().max(60).default(''),
+  // Khóa API SePay gửi kèm webhook (header Authorization: Apikey <khóa>)
+  SEPAY_WEBHOOK_KEY: z.string().default(''),
+  ORDER_TTL_HOURS: z.coerce.number().int().min(1).max(168).default(24),
 });
 
 export type Env = z.infer<typeof schema>;
@@ -55,6 +66,10 @@ export function loadEnv(source: NodeJS.ProcessEnv = process.env): Env {
     throw new Error(`Cấu hình môi trường không hợp lệ: ${names}`);
   }
   const env = parsed.data;
+  if (env.PAYMENT_MODE !== 'disabled') {
+    if (!env.PAYMENT_BANK_ACCOUNT || !env.PAYMENT_BANK_ACCOUNT_NAME) throw new Error('Bật thanh toán cần PAYMENT_BANK_ACCOUNT và PAYMENT_BANK_ACCOUNT_NAME');
+    if (env.SEPAY_WEBHOOK_KEY.length < 24) throw new Error('Bật thanh toán cần SEPAY_WEBHOOK_KEY (ít nhất 24 ký tự)');
+  }
   if (env.NODE_ENV === 'production') {
     if (!env.COOKIE_SECURE) throw new Error('COOKIE_SECURE phải là true ở production');
     if (env.MAIL_TRANSPORT !== 'smtp') throw new Error('MAIL_TRANSPORT phải là smtp ở production');
