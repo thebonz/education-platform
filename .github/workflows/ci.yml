@@ -242,6 +242,30 @@ jobs:
           done
           exit $fail
 
+      - name: Chế độ tên miền (ops/enable-domain.sh --no-tunnel) và image cloudflared
+        run: |
+          sudo docker pull -q cloudflare/cloudflared:2026.8.1
+          sudo docker run --rm cloudflare/cloudflared:2026.8.1 --version
+          sudo --preserve-env=HC_DATA_DIR bash ops/enable-domain.sh --no-tunnel 2>&1 | tee /tmp/domain.log
+          sudo docker compose --profile tunnel config --quiet
+          # Đăng nhập qua tên miền: cookie Secure, Domain=.happyclass.asia; dùng được ở subdomain khác
+          curl -s -D /tmp/h.txt -o /dev/null -H 'Host: english.happyclass.asia' -H 'Origin: https://english.happyclass.asia' \
+            -H 'Content-Type: application/json' -d '{"email":"admin@happyclass.test","password":"Ci-Admin-Password-2026"}' \
+            http://127.0.0.1:3100/api/auth/login
+          grep -i '^set-cookie: hc_session=' /tmp/h.txt | tee /tmp/cookie.txt
+          grep -qi 'Domain=\.\?happyclass\.asia' /tmp/cookie.txt
+          grep -qi 'Secure' /tmp/cookie.txt
+          grep -qi 'HttpOnly' /tmp/cookie.txt
+          token="$(sed -E 's/^[Ss]et-[Cc]ookie: hc_session=([^;]+).*/\1/' /tmp/cookie.txt | tr -d '\r')"
+          curl -fsS -H 'Host: tiengviet.happyclass.asia' -H "Cookie: hc_session=$token" http://127.0.0.1:3100/api/auth/me | grep -q admin@happyclass.test
+          # Origin cũ (localhost) bị từ chối sau khi chuyển sang tên miền
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:3100/api/auth/login)
+          test "$code" = 403
+          # Link trên trang chung trỏ đúng subdomain
+          curl -fsS -H 'Host: happyclass.asia' http://127.0.0.1:3100/ | grep -q 'https://tiengviet.happyclass.asia'
+          curl -fsS -H 'Host: tiengviet.happyclass.asia' http://127.0.0.1:3100/robots.txt | grep -q 'Sitemap: https://tiengviet.happyclass.asia/sitemap.xml'
+          echo "::notice title=Domain mode::Cookie .happyclass.asia (Secure, HttpOnly) dùng chung english↔tiengviet; origin localhost bị chặn; cloudflared 2026.8.1 có sẵn"
+
       - name: Gỡ môi trường, dữ liệu vẫn còn
         run: |
           sudo docker compose down
@@ -276,6 +300,9 @@ jobs:
           printf '%s' 'Ci-Admin-Password-2026' | sudo ADMIN_EMAIL=admin@happyclass.test ADMIN_NAME="CI Admin" bash ops/create-admin.sh
           curl -fsS -c /tmp/c.txt -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' \
             -d '{"email":"admin@happyclass.test","password":"Ci-Admin-Password-2026"}' http://127.0.0.1:3100/api/auth/login > /dev/null
+          q() { sudo docker compose exec -T postgres sh -c "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -tAc \"$1\""; }
+          echo "GAMES_BEFORE=$(q 'SELECT count(*) FROM games')" >> "$GITHUB_ENV"
+          echo "VERSIONS_BEFORE=$(q 'SELECT count(*) FROM game_versions')" >> "$GITHUB_ENV"
 
       - name: Nâng cấp lên commit của PR
         run: |
@@ -289,14 +316,17 @@ jobs:
           q() { sudo docker compose exec -T postgres sh -c "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -tAc \"$1\""; }
           test "$(q "SELECT count(*) FROM users WHERE email='admin@happyclass.test'")" = 1
           test "$(q "SELECT count(*) FROM user_sessions WHERE revoked_at IS NULL")" -ge 1
-          test "$(q "SELECT count(*) FROM games")" = 12
-          test "$(q "SELECT count(*) FROM game_versions")" = 24
-          test "$(q "SELECT count(*) FROM games WHERE seed_revision = 2 AND level_id IS NOT NULL")" = 12
-          test "$(q "SELECT count(*) FROM games WHERE is_published")" = 11
+          games="$(q "SELECT count(*) FROM games")"; versions="$(q "SELECT count(*) FROM game_versions")"
+          # Không mất game hay phiên bản nào; game mới (nếu có) đã được thêm
+          test "$games" -ge "$GAMES_BEFORE"
+          test "$versions" -ge "$VERSIONS_BEFORE"
+          # Mỗi game có đúng một phiên bản đang phát hành và đã gắn cấp độ
+          test "$(q "SELECT count(*) FROM games g WHERE (SELECT count(*) FROM game_versions v WHERE v.game_id = g.id AND v.is_published) <> 1")" = 0
+          test "$(q "SELECT count(*) FROM games WHERE level_id IS NULL")" = 0
           # Phiên đăng nhập tạo ở bản cũ vẫn dùng được sau nâng cấp
           curl -fsS -b /tmp/c.txt http://127.0.0.1:3100/api/auth/me | grep -q admin@happyclass.test
           curl -fsS http://127.0.0.1:3100/api/catalog/products/english/games/team-quiz/play | grep -q '"mode":"teams"'
-          echo "::notice title=Upgrade smoke::Nâng cấp giữ tài khoản và phiên; 12 game có phiên bản 2; 11 game đang xuất bản"
+          echo "::notice title=Upgrade smoke::Nâng cấp giữ tài khoản và phiên; game $GAMES_BEFORE → $games, phiên bản $VERSIONS_BEFORE → $versions"
 
       - name: Log khi lỗi (annotation)
         if: failure()
