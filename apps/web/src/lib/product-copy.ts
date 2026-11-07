@@ -10,7 +10,7 @@ export const productCopy = {
   vietnamese: {
     eyebrow: 'MỖI NGÀY HỌC MỘT ĐIỀU HAY',
     headline: 'Cùng bé khám phá\nthế giới tiếng Việt.',
-    description: 'Học chữ cái, dấu thanh, ghép vần và chính tả qua những trò chơi gần gũi.',
+    description: 'Từ chữ cái, ghép vần lớp 1 đến luyện từ và câu lớp 5, qua những trò chơi gần gũi.',
     button: 'Khám phá trò chơi',
     badge: 'SÂN CHƠI TIẾNG VIỆT',
     icon: '✿',

@@ -108,7 +108,8 @@ export async function seed(prisma: PrismaClient, packs: GamePack[] = ALL_PACKS):
     await prisma.$transaction([
       prisma.gameVersion.updateMany({ where: { gameId: existing.id }, data: { isPublished: false } }),
       prisma.gameVersion.create({ data: { gameId: existing.id, versionNumber: next, content, isPublished: true } }),
-      prisma.game.update({ where: { id: existing.id }, data: meta }),
+      // Nội dung đổi → cần giáo viên duyệt lại.
+      prisma.game.update({ where: { id: existing.id }, data: { ...meta, reviewStatus: 'PENDING', reviewedAt: null, reviewedById: null, reviewNote: null } }),
       prisma.auditLog.create({
         data: { action: 'seed.game_version_published', entityType: 'game', entityId: existing.id, metadata: { slug: pack.slug, version: next, revision: pack.revision } },
       }),

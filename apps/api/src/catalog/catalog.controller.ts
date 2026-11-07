@@ -22,6 +22,8 @@ const gameSelect = {
   accessLevel: true,
   thumbnail: true,
   sortOrder: true,
+  /** Hiển thị nhãn "chờ giáo viên duyệt" khi chưa APPROVED. */
+  reviewStatus: true,
   category: { select: { slug: true, name: true } },
   level: { select: { slug: true, name: true, sortOrder: true } },
 } as const;

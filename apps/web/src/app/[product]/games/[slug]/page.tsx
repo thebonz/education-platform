@@ -59,6 +59,7 @@ export default async function GamePage({ params }: { params: Params }) {
         <span className="eyebrow">{[game.category?.name, game.level?.name].filter(Boolean).join(' · ')}</span>
         <h1>{game.title}</h1>
         <p>{game.summary}</p>
+        {game.reviewStatus !== 'APPROVED' && <p className="review-note" data-testid="review-note">📝 {t.game.pendingReview}</p>}
         {me && <FavoriteButton gameId={game.id} initial={!!game.favorite} labels={lang === 'en' ? { add: 'Add to favourites', remove: 'Favourite' } : { add: 'Thêm vào yêu thích', remove: 'Đã yêu thích' }} />}
       </section>
       <section className="player-wrap">

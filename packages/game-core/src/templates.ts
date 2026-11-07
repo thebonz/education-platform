@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { isNfc } from './text';
+import { ONSETS, parseSyllable, spellingIssues } from './vi/syllable';
 
 /**
  * Mỗi template = một kiểu chơi. Dữ liệu của một game được kiểm tra bằng schema của template đó
@@ -180,6 +181,123 @@ export const spellingSchema = z
   });
 
 // ---------------------------------------------------------------------------
+// Tiếng Việt: kiểm tra chung
+// ---------------------------------------------------------------------------
+/** Một tiếng tiếng Việt hợp lệ (tách được âm đầu + vần + thanh, đúng quy tắc c/k, g/gh, ng/ngh). */
+const viSyllable = text(12).superRefine((w, ctx) => {
+  if (!parseSyllable(w)) ctx.addIssue({ code: z.ZodIssueCode.custom, message: `Không tách được tiếng: ${w}` });
+  else spellingIssues(w).forEach((i) => ctx.addIssue({ code: z.ZodIssueCode.custom, message: `${w}: ${i.message}` }));
+});
+const viOnset = z.string().refine((o) => o === '' || (ONSETS as readonly string[]).includes(o), 'Âm đầu không hợp lệ');
+const viRhyme = text(6).refine((r) => {
+  const p = parseSyllable(r);
+  return !!p && p.onset === '' && p.tone === 'ngang';
+}, 'Vần không hợp lệ (viết thường, không dấu thanh)');
+
+// ---------------------------------------------------------------------------
+// syllable-builder (Ghép tiếng: âm đầu + vần + thanh)
+// ---------------------------------------------------------------------------
+export const syllableBuilderSchema = z
+  .object({
+    instructions: optionalText(300),
+    /** Số lựa chọn hiện ra cho mỗi bước (gồm cả đáp án đúng). */
+    choicesPerStep: z.number().int().min(2).max(6).default(4),
+    /** Bỏ bước chọn thanh khi bài chỉ học tiếng thanh ngang. */
+    includeTone: z.boolean().default(true),
+    distractors: z
+      .object({ onsets: z.array(viOnset).max(20).optional(), rhymes: z.array(viRhyme).max(20).optional() })
+      .default({}),
+    items: z
+      .array(z.object({ id, word: viSyllable, picture: pictureSchema.optional(), hint: optionalText(80), say: optionalText(80) }))
+      .min(3)
+      .max(30),
+  })
+  .superRefine((d, ctx) => {
+    uniqueBy(d.items, (x) => x.id, ctx, 'items', 'id');
+    uniqueBy(d.items, (x) => x.word, ctx, 'items', 'Tiếng');
+    d.items.forEach((item, i) => {
+      if (!item.picture && !item.hint && !item.say) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['items', i], message: 'Cần ít nhất một gợi ý: picture, hint hoặc say' });
+    });
+  });
+
+// ---------------------------------------------------------------------------
+// tone-finder (Tìm dấu thanh)
+// ---------------------------------------------------------------------------
+export const toneFinderSchema = z
+  .object({
+    instructions: optionalText(300),
+    items: z
+      .array(z.object({ id, word: viSyllable, picture: pictureSchema.optional(), hint: optionalText(80), say: optionalText(80) }))
+      .min(3)
+      .max(30),
+  })
+  .superRefine((d, ctx) => {
+    uniqueBy(d.items, (x) => x.id, ctx, 'items', 'id');
+    d.items.forEach((item, i) => {
+      if (!item.picture && !item.hint && !item.say) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['items', i], message: 'Cần ít nhất một gợi ý: picture, hint hoặc say' });
+    });
+  });
+
+// ---------------------------------------------------------------------------
+// word-sort (Xếp từ vào nhóm)
+// ---------------------------------------------------------------------------
+export const wordSortSchema = z
+  .object({
+    instructions: optionalText(300),
+    groups: z.array(z.object({ id, label: text(40), hint: optionalText(120) })).min(2).max(4),
+    items: z
+      .array(z.object({ id, text: text(40), group: id, picture: pictureSchema.optional(), explain: optionalText(160) }))
+      .min(4)
+      .max(24),
+  })
+  .superRefine((d, ctx) => {
+    uniqueBy(d.groups, (x) => x.id, ctx, 'groups', 'id');
+    uniqueBy(d.items, (x) => x.id, ctx, 'items', 'id');
+    uniqueBy(d.items, (x) => x.text, ctx, 'items', 'Từ');
+    const groups = new Set(d.groups.map((g) => g.id));
+    d.items.forEach((item, i) => {
+      if (!groups.has(item.group)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['items', i, 'group'], message: `Nhóm không tồn tại: ${item.group}` });
+    });
+    d.groups.forEach((g, i) => {
+      if (!d.items.some((x) => x.group === g.id)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['groups', i], message: `Nhóm ${g.label} chưa có từ nào` });
+    });
+  });
+
+// ---------------------------------------------------------------------------
+// sentence-order (Sắp xếp thành câu)
+// ---------------------------------------------------------------------------
+const sentenceItem = z
+  .object({
+    id,
+    sentence: text(160),
+    /** Các mảnh theo đúng thứ tự. Bỏ trống = tách theo khoảng trắng (dấu câu cuối câu giữ cố định). */
+    chunks: z.array(text(40)).min(2).max(12).optional(),
+    /** Câu khác cũng được chấp nhận (cùng các mảnh, khác thứ tự). */
+    alternatives: z.array(text(160)).max(4).optional(),
+    picture: pictureSchema.optional(),
+    say: optionalText(200),
+  })
+  .superRefine((item, ctx) => {
+    if (item.chunks && item.chunks.join(' ') !== stripEndPunctuation(item.sentence)) {
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['chunks'], message: 'Ghép các mảnh (cách nhau 1 khoảng trắng) phải ra đúng câu, không kể dấu câu cuối' });
+    }
+    const n = (item.chunks ?? stripEndPunctuation(item.sentence).split(' ')).length;
+    if (n < 2 || n > 12) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['sentence'], message: 'Câu cần 2–12 mảnh' });
+  });
+
+/** Bỏ dấu câu ở cuối (. ! ? …) để xếp mảnh; dấu câu được hiển thị cố định ở cuối. */
+export function stripEndPunctuation(sentence: string): string {
+  return sentence.normalize('NFC').trim().replace(/\s+/g, ' ').replace(/\s*[.!?…]+$/u, '');
+}
+
+export const sentenceOrderSchema = z
+  .object({
+    instructions: optionalText(300),
+    items: z.array(sentenceItem).min(3).max(20),
+  })
+  .superRefine((d, ctx) => uniqueBy(d.items, (x) => x.id, ctx, 'items', 'id'));
+
+// ---------------------------------------------------------------------------
 // Registry
 // ---------------------------------------------------------------------------
 export const TEMPLATES = {
@@ -189,6 +307,10 @@ export const TEMPLATES = {
   'hidden-picture': { name: { en: 'Hidden Picture', vi: 'Bức tranh bí mật' }, schema: hiddenPictureSchema, languages: ['en', 'vi'] },
   'bubble-spelling': { name: { en: 'Bubble Spelling', vi: 'Bong bóng đánh vần' }, schema: bubbleSpellingSchema, languages: ['en', 'vi'] },
   spelling: { name: { en: 'Spelling', vi: 'Chính tả' }, schema: spellingSchema, languages: ['en', 'vi'] },
+  'syllable-builder': { name: { en: 'Syllable Builder', vi: 'Ghép tiếng' }, schema: syllableBuilderSchema, languages: ['vi'] },
+  'tone-finder': { name: { en: 'Tone Finder', vi: 'Tìm dấu thanh' }, schema: toneFinderSchema, languages: ['vi'] },
+  'word-sort': { name: { en: 'Word Sort', vi: 'Xếp từ vào nhóm' }, schema: wordSortSchema, languages: ['en', 'vi'] },
+  'sentence-order': { name: { en: 'Sentence Order', vi: 'Sắp xếp câu' }, schema: sentenceOrderSchema, languages: ['en', 'vi'] },
 } as const;
 
 export type TemplateKey = keyof typeof TEMPLATES;
@@ -201,6 +323,10 @@ export type QuizQuestion = QuizData['questions'][number];
 export type HiddenPictureData = z.infer<typeof hiddenPictureSchema>;
 export type BubbleSpellingData = z.infer<typeof bubbleSpellingSchema>;
 export type SpellingData = z.infer<typeof spellingSchema>;
+export type SyllableBuilderData = z.infer<typeof syllableBuilderSchema>;
+export type ToneFinderData = z.infer<typeof toneFinderSchema>;
+export type WordSortData = z.infer<typeof wordSortSchema>;
+export type SentenceOrderData = z.infer<typeof sentenceOrderSchema>;
 
 export type TemplateDataMap = {
   bingo: BingoData;
@@ -209,6 +335,10 @@ export type TemplateDataMap = {
   'hidden-picture': HiddenPictureData;
   'bubble-spelling': BubbleSpellingData;
   spelling: SpellingData;
+  'syllable-builder': SyllableBuilderData;
+  'tone-finder': ToneFinderData;
+  'word-sort': WordSortData;
+  'sentence-order': SentenceOrderData;
 };
 
 export function isTemplateKey(value: string): value is TemplateKey {

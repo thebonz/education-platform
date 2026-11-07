@@ -222,8 +222,11 @@ jobs:
           sudo --preserve-env=HC_DATA_DIR bash ops/deploy-test.sh 2>&1 | tee /tmp/deploy2.log
           grep -q 'Sao lưu database trước khi áp migration' /tmp/deploy2.log
           test "$(sudo sh -c 'ls /tmp/hc-data/backups/*.dump | wc -l')" -ge 2
-          sudo docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM games"' | grep -qx 12
-          echo "::notice title=Deploy smoke::Triển khai lần 2 idempotent; vẫn 12 game; có bản sao lưu trước migrate"
+          # Lần 2 không tạo/cập nhật game nào; số game khớp số gói nội dung trong mã nguồn
+          grep -q 'game mới 0, cập nhật 0' /tmp/deploy2.log
+          games="$(sudo docker compose exec -T postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -tAc "SELECT count(*) FROM games"')"
+          grep -q "giữ nguyên ${games}\." /tmp/deploy2.log
+          echo "::notice title=Deploy smoke::Triển khai lần 2 idempotent; vẫn ${games} game; có bản sao lưu trước migrate"
 
       - name: Container chạy user không phải root, cổng chỉ bind 127.0.0.1, Postgres không publish
         run: |

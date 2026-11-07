@@ -1,10 +1,10 @@
 import { emoji, GamePack } from './types';
+import { LOP_1 } from './vi/lop-1';
+import { LOP_2, LOP_3 } from './vi/lop-2-3';
+import { LOP_4, LOP_5 } from './vi/lop-4-5';
 
-/**
- * Game tiếng Việt chuyển từ Sprint 1 sang template mới. Nội dung đầy đủ cho lớp 1–5
- * (bám chương trình Kết nối tri thức với cuộc sống) sẽ có ở giai đoạn 4, sau khi giáo viên duyệt.
- */
-export const VIETNAMESE_GAMES: GamePack[] = [
+/** Game tiếng Việt chuyển từ Sprint 1 (giai đoạn 2). */
+const SPRINT_1_GAMES: GamePack[] = [
   {
     product: 'vietnamese', slug: 'bingo-chu-cai', title: 'Bingo chữ cái', templateKey: 'bingo',
     summary: 'Nghe gọi chữ cái, tìm trên bảng và hoàn thành một hàng để thắng.',
@@ -49,16 +49,6 @@ export const VIETNAMESE_GAMES: GamePack[] = [
     },
   },
   {
-    product: 'vietnamese', slug: 'ghep-van', title: 'Ghép vần', templateKey: 'bubble-spelling',
-    summary: 'Ghép âm đầu với vần để tạo thành tiếng.',
-    category: 'van-va-tieng', level: 'lop-1', difficulty: 'easy', accessLevel: 'FREE', sortOrder: 4, revision: 2,
-    // Tạm ẩn: cần template ghép vần đúng phương pháp (âm đầu + vần + thanh) ở giai đoạn 4.
-    published: false,
-    data: {
-      units: [{ id: 'van-eo', title: 'Vần eo', words: [{ id: 'meo', word: 'mèo', segments: ['m', 'èo'], picture: emoji('🐱') }] }],
-    },
-  },
-  {
     product: 'vietnamese', slug: 'tro-choi-chinh-ta', title: 'Trò chơi chính tả', templateKey: 'quiz',
     summary: 'Chọn cách viết đúng chính tả.',
     category: 'chinh-ta', level: 'lop-2', difficulty: 'medium', accessLevel: 'FREE', sortOrder: 5, revision: 2, published: true,
@@ -93,3 +83,9 @@ export const VIETNAMESE_GAMES: GamePack[] = [
     },
   },
 ];
+
+/**
+ * Toàn bộ game tiếng Việt: game cũ + nội dung lớp 1–5 của giai đoạn 4 (thư mục vi/).
+ * Tất cả ở trạng thái chờ giáo viên duyệt cho đến khi được duyệt trong trang quản trị.
+ */
+export const VIETNAMESE_GAMES: GamePack[] = [...SPRINT_1_GAMES, ...LOP_1, ...LOP_2, ...LOP_3, ...LOP_4, ...LOP_5];

@@ -61,6 +61,7 @@ const vi = {
     locked: 'Game này dành cho thành viên trả phí.',
     loginToPlay: 'Đăng nhập để tiếp tục.',
     membershipSoon: 'Gói thành viên sẽ mở bán trong giai đoạn tiếp theo.',
+    pendingReview: 'Nội dung đang chờ giáo viên duyệt. Nếu thấy chỗ chưa đúng, thầy cô vui lòng báo cho HappyClass.',
   },
 };
 
@@ -127,6 +128,7 @@ const en: Dict = {
     locked: 'This game is for paid members.',
     loginToPlay: 'Log in to continue.',
     membershipSoon: 'Memberships will be available in the next phase.',
+    pendingReview: 'This content is awaiting teacher review. If you spot a mistake, please let HappyClass know.',
   },
 };
 
