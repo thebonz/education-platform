@@ -92,7 +92,7 @@ export function toneCarrierIndex(rhyme: string): number {
 
 /** Ghép âm đầu + vần + thanh thành chữ viết (NFC). */
 export function composeSyllable(onset: string, rhyme: string, tone: Tone): string {
-  let r = stripTone(rhyme.normalize('NFC').toLocaleLowerCase('vi'));
+  const r = stripTone(rhyme.normalize('NFC').toLocaleLowerCase('vi'));
   const o = onset.normalize('NFC').toLocaleLowerCase('vi');
   // gi + i → gi, gi + in → gin, gi + iêng → giêng: chữ i viết một lần
   const shared = o === 'gi' && r.startsWith('i') && (!isVowel(r[1]) || r[1] === 'ê');
