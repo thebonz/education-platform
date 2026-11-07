@@ -118,10 +118,17 @@ jobs:
           MAIL_TRANSPORT: log
           TRUST_PROXY_HOPS: '1'
           AUTH_RATE_LIMIT_PER_MINUTE: '50'
+          # Thanh toán chế độ thử nghiệm với số tài khoản GIẢ
+          PAYMENT_MODE: sandbox
+          PAYMENT_BANK_ACCOUNT: '100000000001'
+          PAYMENT_BANK_ACCOUNT_NAME: NGUYEN VAN TEST
         run: |
           ADMIN_PW="$(openssl rand -base64 24)"
           echo "::add-mask::$ADMIN_PW"
           echo "E2E_ADMIN_PASSWORD=$ADMIN_PW" >> "$GITHUB_ENV"
+          export SEPAY_WEBHOOK_KEY="$(openssl rand -hex 24)"
+          echo "::add-mask::$SEPAY_WEBHOOK_KEY"
+          echo "E2E_SEPAY_KEY=$SEPAY_WEBHOOK_KEY" >> "$GITHUB_ENV"
           node apps/api/dist/cli/seed.js
           printf '%s' "$ADMIN_PW" | node apps/api/dist/cli/create-admin.js admin@happyclass.test "CI Admin"
           (cd apps/api && PORT=4000 nohup node dist/main.js > /tmp/api.log 2>&1 &)

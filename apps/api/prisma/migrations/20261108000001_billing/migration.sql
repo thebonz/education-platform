@@ -1,3 +1,4 @@
+-- Giai đoạn 6: gói, đơn hàng, quyền theo gói, giao dịch ngân hàng. Chỉ thêm bảng mới (sinh bằng prisma migrate diff).
 -- CreateEnum
 CREATE TYPE "BillingPeriod" AS ENUM ('MONTH', 'YEAR');
 
