@@ -242,6 +242,30 @@ jobs:
           done
           exit $fail
 
+      - name: Chế độ tên miền (ops/enable-domain.sh --no-tunnel) và image cloudflared
+        run: |
+          sudo docker pull -q cloudflare/cloudflared:2026.8.1
+          sudo docker run --rm cloudflare/cloudflared:2026.8.1 --version
+          sudo --preserve-env=HC_DATA_DIR bash ops/enable-domain.sh --no-tunnel 2>&1 | tee /tmp/domain.log
+          sudo docker compose --profile tunnel config --quiet
+          # Đăng nhập qua tên miền: cookie Secure, Domain=.happyclass.asia; dùng được ở subdomain khác
+          curl -s -D /tmp/h.txt -o /dev/null -H 'Host: english.happyclass.asia' -H 'Origin: https://english.happyclass.asia' \
+            -H 'Content-Type: application/json' -d '{"email":"admin@happyclass.test","password":"Ci-Admin-Password-2026"}' \
+            http://127.0.0.1:3100/api/auth/login
+          grep -i '^set-cookie: hc_session=' /tmp/h.txt | tee /tmp/cookie.txt
+          grep -qi 'Domain=\.\?happyclass\.asia' /tmp/cookie.txt
+          grep -qi 'Secure' /tmp/cookie.txt
+          grep -qi 'HttpOnly' /tmp/cookie.txt
+          token="$(sed -E 's/^[Ss]et-[Cc]ookie: hc_session=([^;]+).*/\1/' /tmp/cookie.txt | tr -d '\r')"
+          curl -fsS -H 'Host: tiengviet.happyclass.asia' -H "Cookie: hc_session=$token" http://127.0.0.1:3100/api/auth/me | grep -q admin@happyclass.test
+          # Origin cũ (localhost) bị từ chối sau khi chuyển sang tên miền
+          code=$(curl -s -o /dev/null -w '%{http_code}' -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' -d '{}' http://127.0.0.1:3100/api/auth/login)
+          test "$code" = 403
+          # Link trên trang chung trỏ đúng subdomain
+          curl -fsS -H 'Host: happyclass.asia' http://127.0.0.1:3100/ | grep -q 'https://tiengviet.happyclass.asia'
+          curl -fsS -H 'Host: tiengviet.happyclass.asia' http://127.0.0.1:3100/robots.txt | grep -q 'Sitemap: https://tiengviet.happyclass.asia/sitemap.xml'
+          echo "::notice title=Domain mode::Cookie .happyclass.asia (Secure, HttpOnly) dùng chung english↔tiengviet; origin localhost bị chặn; cloudflared 2026.8.1 có sẵn"
+
       - name: Gỡ môi trường, dữ liệu vẫn còn
         run: |
           sudo docker compose down

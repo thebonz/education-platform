@@ -93,7 +93,10 @@ Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`
 | --- | --- |
 | `ops/deploy-test.sh` | Triển khai/cập nhật, idempotent; tạo `.env` nếu chưa có (không ghi đè); kiểm tra cổng, health, các trang chính |
 | `ops/create-admin.sh` | Tạo Super Admin đầu tiên |
+| `ops/enable-domain.sh` | Chuyển sang chế độ tên miền (sao lưu `.env`), bật Cloudflare Tunnel riêng của HappyClass |
 | `ops/backup-db.sh [nhãn]` | `pg_dump` vào `/data/education-games-platform/backups`, kèm SHA-256, giữ 14 bản |
+
+Gắn tên miền `happyclass.asia` qua Cloudflare Tunnel riêng, có Cloudflare Access chặn để thử nội bộ: xem [docs/DOMAIN.md](docs/DOMAIN.md) và chạy `sudo bash ops/enable-domain.sh`.
 
 Mở thử từ máy tính cá nhân qua SSH tunnel (không mở cổng ra Internet): `ssh -L 3100:127.0.0.1:3100 rootx@<IP-máy-chủ>`, rồi vào `http://localhost:3100`.
 

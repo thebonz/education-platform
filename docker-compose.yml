@@ -133,6 +133,24 @@ services:
     logging: *default-logging
     <<: *hardening
 
+  # Cloudflare Tunnel RIÊNG của HappyClass (không dùng chung cloudflared đang chạy trên máy chủ).
+  # Chỉ chạy khi bật profile: sudo docker compose --profile tunnel up -d tunnel
+  # Tunnel đi ra ngoài, không mở cổng nào trên máy chủ; Cloudflare chuyển tiếp vào http://web:3000.
+  tunnel:
+    image: cloudflare/cloudflared:2026.8.1
+    profiles: ["tunnel"]
+    restart: unless-stopped
+    command: ["tunnel", "--no-autoupdate", "run"]
+    environment:
+      TUNNEL_TOKEN: ${CLOUDFLARE_TUNNEL_TOKEN:-}
+    depends_on: { web: { condition: service_healthy } }
+    networks: [hc_net]
+    read_only: true
+    mem_limit: 256m
+    cpus: 0.5
+    logging: *default-logging
+    <<: *hardening
+
 networks:
   hc_net:
     name: happyclass_net
