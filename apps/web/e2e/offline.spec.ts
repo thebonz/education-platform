@@ -1,3 +1,6 @@
+import { mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { join } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
 
 /**
@@ -9,19 +12,22 @@ const PW = 'Correct-Horse-Battery-42';
 
 test('tải game offline, tắt mạng, mở lại trang vẫn chơi được', async () => {
   test.setTimeout(120_000);
-  const browser = await chromium.launch({
+  // Cờ "coi origin là an toàn" chỉ có hiệu lực với profile riêng và chế độ headless mới (channel chromium).
+  const profile = mkdtempSync(join(tmpdir(), 'hc-offline-'));
+  const context = await chromium.launchPersistentContext(profile, {
+    channel: 'chromium',
     args: ['--host-resolver-rules=MAP *.happyclass.test 127.0.0.1', `--unsafely-treat-insecure-origin-as-secure=${VI}`],
   });
   try {
-    const context = await browser.newContext();
-    const page = await context.newPage();
+    const page = context.pages()[0] ?? await context.newPage();
     const email = `offline-${Date.now()}@example.com`;
     expect((await page.request.post(`${VI}/api/auth/register`, { headers: { Origin: VI }, data: { displayName: 'Cô Hoa', email, password: PW, acceptTerms: true, confirmAdult: true, site: 'vietnamese' } })).ok()).toBeTruthy();
     expect((await page.request.post(`${VI}/api/auth/login`, { headers: { Origin: VI }, data: { email, password: PW } })).ok()).toBeTruthy();
 
     await page.goto(`${VI}/offline`);
     await expect(page.getByTestId('offline-none')).toBeVisible();
-    await page.waitForFunction(() => navigator.serviceWorker.ready.then(() => true));
+    expect(await page.evaluate(() => window.isSecureContext && 'serviceWorker' in navigator)).toBe(true);
+    await page.evaluate(() => navigator.serviceWorker.ready.then(() => true));
     await page.getByTestId('offline-download').click();
     await expect(page.getByTestId('offline-message')).toContainText('Đã tải');
     await expect(page.getByTestId('offline-player')).toHaveAttribute('data-status', 'ok');
@@ -41,6 +47,7 @@ test('tải game offline, tắt mạng, mở lại trang vẫn chơi được', 
     await page.getByTestId('shell-start').click();
     await expect(page.locator('.tpl-tone')).toBeVisible();
   } finally {
-    await browser.close();
+    await context.close();
+    rmSync(profile, { recursive: true, force: true });
   }
 });
