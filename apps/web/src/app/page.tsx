@@ -1,4 +1,12 @@
-import Link from 'next/link';
+import { siteUrl } from '@/lib/sites';
+
+export const dynamic = 'force-dynamic';
+
+/** Link tới từng site theo cấu hình SITE_*_URL (subdomain hoặc đường dẫn). */
+function siteHref(site: 'english' | 'vietnamese') {
+  const url = siteUrl(site);
+  return `${url.origin}${url.pathname.replace(/\/$/, '')}` || '/';
+}
 
 export default function LandingPage() {
   return (
@@ -10,14 +18,14 @@ export default function LandingPage() {
         <p>Chọn thư viện trò chơi phù hợp với hành trình học tập của bạn.</p>
       </section>
       <section className="product-choice">
-        <Link href="/english" className="choice-card choice-english">
+        <a href={siteHref('english')} className="choice-card choice-english">
           <div className="choice-art">Aa<span>✦</span></div>
           <div className="choice-content"><span className="choice-kicker">FOR ENGLISH LEARNERS</span><h2>English Games</h2><p>Phonics, vocabulary, spelling and classroom games.</p><span className="choice-link">Explore English Games <b>↗</b></span></div>
-        </Link>
-        <Link href="/vietnamese" className="choice-card choice-vietnamese">
+        </a>
+        <a href={siteHref('vietnamese')} className="choice-card choice-vietnamese">
           <div className="choice-art">Ăă<span>✿</span></div>
           <div className="choice-content"><span className="choice-kicker">DÀNH CHO BÉ HỌC TIẾNG VIỆT</span><h2>Vietnamese Games</h2><p>Chữ cái, dấu thanh, ghép vần và chính tả.</p><span className="choice-link">Khám phá trò chơi <b>↗</b></span></div>
-        </Link>
+        </a>
       </section>
       <footer className="landing-footer">A shared learning platform, designed for curious minds.</footer>
     </main>

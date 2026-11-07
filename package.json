@@ -2,14 +2,24 @@
   "name": "happyclass-platform",
   "private": true,
   "description": "HappyClass – English Games & Vietnamese Games trên một nền tảng dùng chung",
-  "workspaces": ["apps/api", "apps/web"],
+  "workspaces": ["packages/game-core", "apps/api", "apps/web"],
   "engines": { "node": ">=22" },
   "scripts": {
     "dev:api": "npm run start:dev -w @happyclass/api",
     "dev:web": "npm run dev -w @happyclass/web",
-    "build": "npm run build -w @happyclass/api && npm run build -w @happyclass/web",
-    "typecheck": "npm run typecheck -w @happyclass/api && npm run typecheck -w @happyclass/web",
+    "build:core": "npm run build -w @happyclass/game-core",
+    "build": "npm run build:core && npm run build -w @happyclass/api && npm run build -w @happyclass/web",
+    "typecheck": "npm run build:core && npm run typecheck -w @happyclass/api && npm run typecheck -w @happyclass/web",
+    "lint": "eslint .",
+    "test:core": "npm test -w @happyclass/game-core",
     "test:api": "npm test -w @happyclass/api",
     "test:e2e": "npm run test:e2e -w @happyclass/web"
+  },
+  "devDependencies": {
+    "@next/eslint-plugin-next": "^15.5.0",
+    "eslint": "^9.30.0",
+    "eslint-plugin-react-hooks": "^5.2.0",
+    "typescript": "^5.7.3",
+    "typescript-eslint": "^8.35.0"
   }
 }

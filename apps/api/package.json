@@ -1,6 +1,6 @@
 {
   "name": "@happyclass/api",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "build": "nest build -p tsconfig.build.json",
@@ -15,6 +15,7 @@
     "admin:create": "ts-node src/cli/create-admin.ts"
   },
   "dependencies": {
+    "@happyclass/game-core": "0.3.0",
     "@nestjs/common": "^11.1.0",
     "@nestjs/core": "^11.1.0",
     "@nestjs/platform-express": "^11.1.0",

@@ -52,15 +52,16 @@ test('sai mật khẩu hiển thị lỗi, không lộ thông tin', async ({ pag
   await expect(page.locator('.form-error')).toHaveText('Email hoặc mật khẩu không đúng.');
 });
 
-test('tên miền riêng không hiện tiền tố đường dẫn và thư viện có 6 game @mobile', async ({ page }) => {
+test('tên miền riêng không hiện tiền tố đường dẫn và thư viện có 5 game @mobile', async ({ page }) => {
   await page.goto(`${VI}/games`);
-  await expect(page.locator('.game-card')).toHaveCount(6);
+  await expect(page.getByTestId('game-card')).toHaveCount(5);
   await page.getByPlaceholder('Tìm trò chơi, kỹ năng...').fill('chinh ta');
-  await expect(page.locator('.game-card')).toHaveCount(1);
-  await page.locator('.game-card').first().click();
+  await expect(page.getByTestId('game-card')).toHaveCount(1);
+  await page.getByTestId('game-card').first().click();
   await expect(page).toHaveURL(`${VI}/games/tro-choi-chinh-ta`);
+  await page.getByTestId('shell-start').click();
   await page.getByRole('button', { name: 'chăm chỉ', exact: true }).click();
-  await expect(page.locator('.feedback-line')).toContainText('Chính xác');
+  await expect(page.getByTestId('tpl-feedback')).toContainText('Chính xác');
   const overflow = await page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
   expect(overflow).toBeLessThanOrEqual(0);
 });

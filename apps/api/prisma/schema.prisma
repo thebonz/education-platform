@@ -26,6 +26,7 @@ model Product {
   isActive    Boolean         @default(true) @map("is_active")
   domains     ProductDomain[]
   categories  GameCategory[]
+  levels      Level[]
   games       Game[]
   createdAt   DateTime        @default(now()) @map("created_at")
   updatedAt   DateTime        @updatedAt @map("updated_at")
@@ -68,29 +69,82 @@ model GameCategory {
   @@map("game_categories")
 }
 
+model Level {
+  id        String   @id @default(uuid()) @db.Uuid
+  productId String   @map("product_id") @db.Uuid
+  slug      String
+  name      String
+  sortOrder Int      @default(0) @map("sort_order")
+  product   Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  games     Game[]
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@unique([productId, slug])
+  @@map("levels")
+}
+
 model Game {
   id          String        @id @default(uuid()) @db.Uuid
   productId   String        @map("product_id") @db.Uuid
   categoryId  String?       @map("category_id") @db.Uuid
+  levelId     String?       @map("level_id") @db.Uuid
   slug        String
   title       String
   summary     String
   templateKey String        @map("template_key")
+  // Cột cũ từ giai đoạn 2, thay bằng levelId; giữ lại để migration không mất dữ liệu.
   gradeLevel  String?       @map("grade_level")
   difficulty  String?
   accessLevel AccessLevel   @default(PREMIUM) @map("access_level")
   thumbnail   String?
   isPublished Boolean       @default(false) @map("is_published")
   sortOrder   Int           @default(0) @map("sort_order")
+  // Seed chỉ cập nhật game còn do seed quản lý; Game Builder (giai đoạn 5) đặt false khi admin sửa.
+  managedBySeed Boolean     @default(true) @map("managed_by_seed")
+  seedRevision  Int         @default(0) @map("seed_revision")
   product     Product       @relation(fields: [productId], references: [id], onDelete: Cascade)
   category    GameCategory? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  level       Level?        @relation(fields: [levelId], references: [id], onDelete: SetNull)
   versions    GameVersion[]
+  sessions    GameSession[]
+  favorites   GameFavorite[]
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
 
   @@unique([productId, slug])
   @@index([productId, isPublished, sortOrder])
+  @@index([levelId])
   @@map("games")
+}
+
+/** Kết quả một lần chơi của người dùng đã đăng nhập (không lưu kết quả của khách). */
+model GameSession {
+  id         String   @id @default(uuid()) @db.Uuid
+  userId     String   @map("user_id") @db.Uuid
+  gameId     String   @map("game_id") @db.Uuid
+  score      Int
+  maxScore   Int      @map("max_score")
+  mistakes   Int      @default(0)
+  stars      Int
+  durationMs Int      @map("duration_ms")
+  user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([userId, createdAt])
+  @@index([gameId, createdAt])
+  @@map("game_sessions")
+}
+
+model GameFavorite {
+  userId    String   @map("user_id") @db.Uuid
+  gameId    String   @map("game_id") @db.Uuid
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  game      Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now()) @map("created_at")
+
+  @@id([userId, gameId])
+  @@map("game_favorites")
 }
 
 model GameVersion {
@@ -123,6 +177,8 @@ model User {
   sessions        UserSession[]
   tokens          AuthToken[]
   consents        Consent[]
+  gameSessions    GameSession[]
+  favorites       GameFavorite[]
   createdAt       DateTime     @default(now()) @map("created_at")
   updatedAt       DateTime     @updatedAt @map("updated_at")
 
