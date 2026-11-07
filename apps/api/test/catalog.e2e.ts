@@ -32,7 +32,7 @@ describe('Thư viện game và kiểm tra quyền chơi ở backend', () => {
   });
   afterAll(async () => { await t.close(); });
 
-  it('6 game English và 5 game Vietnamese đang xuất bản (Ghép vần tạm ẩn)', async () => {
+  it('6 game English và 23 game Vietnamese (lớp 1–5) đang xuất bản', async () => {
     const en = await t.http().get('/api/catalog/products/english/games').expect(200);
     expect(en.body.map((g: { slug: string }) => g.slug)).toEqual([
       'alphabet-bingo', 'vocabulary-matching', 'hidden-picture', 'bubble-word-garden', 'spelling-challenge', 'team-quiz',
@@ -40,8 +40,12 @@ describe('Thư viện game và kiểm tra quyền chơi ở backend', () => {
     expect(en.body[0].level).toMatchObject({ slug: 'kindergarten', name: 'Kindergarten' });
     const vi = await t.http().get('/api/catalog/products/vietnamese/games').expect(200);
     const seeded = vi.body.filter((g: { slug: string }) => !g.slug.startsWith('game-'));
-    expect(seeded).toHaveLength(5);
-    expect(seeded.map((g: { slug: string }) => g.slug)).not.toContain('ghep-van');
+    expect(seeded).toHaveLength(23);
+    expect(seeded.map((g: { slug: string }) => g.slug)).toContain('ghep-van');
+    const levels = new Set(seeded.map((g: { level: { slug: string } }) => g.level.slug));
+    expect([...levels].sort()).toEqual(['lop-1', 'lop-2', 'lop-3', 'lop-4', 'lop-5']);
+    // Nội dung mới seed luôn ở trạng thái chờ giáo viên duyệt
+    expect(seeded.every((g: { reviewStatus: string }) => g.reviewStatus === 'PENDING')).toBe(true);
   });
 
   it('taxonomy chỉ liệt kê danh mục và cấp độ có game', async () => {

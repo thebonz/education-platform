@@ -103,3 +103,27 @@ export function DomainEditor({ productId, domains }: { productId: string; domain
     </div>
   );
 }
+
+export function ReviewActions({ gameId }: { gameId: string }) {
+  const { run, busy, view } = useAction();
+  const [note, setNote] = useState('');
+  return (
+    <form className="panel" data-testid="review-actions" onSubmit={(e) => e.preventDefault()}>
+      <h2>Duyệt nội dung</h2>
+      <label>Ghi chú cho người soạn (bắt buộc khi yêu cầu sửa)
+        <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} rows={3} data-testid="review-note-input" />
+      </label>
+      <div className="actions-row">
+        <button type="button" className="primary-button" disabled={busy} data-testid="review-approve"
+          onClick={() => run(() => apiSend('POST', `/admin/games/${gameId}/review`, { status: 'APPROVED', ...(note.trim() ? { note } : {}) }), 'Đã duyệt nội dung.')}>
+          Duyệt
+        </button>
+        <button type="button" className="danger-button" disabled={busy || !note.trim()} data-testid="review-request-changes"
+          onClick={() => run(() => apiSend('POST', `/admin/games/${gameId}/review`, { status: 'CHANGES_REQUESTED', note }), 'Đã gửi yêu cầu sửa.')}>
+          Yêu cầu sửa
+        </button>
+      </div>
+      {view}
+    </form>
+  );
+}
