@@ -23,6 +23,9 @@ export const PERMISSIONS = [
   'games.edit',
   'games.publish',
   'media.upload',
+  'billing.read',
+  'billing.manage',
+  'plans.manage',
   'audit.read',
 ] as const;
 
@@ -34,7 +37,7 @@ export const ROLES = {
   school_admin: { name: 'Quản trị trường', permissions: ['account.self'] },
   support: {
     name: 'Hỗ trợ khách hàng',
-    permissions: ['account.self', 'admin.access', 'stats.read', 'users.read', 'users.lock', 'users.sessions.revoke'],
+    permissions: ['account.self', 'admin.access', 'stats.read', 'users.read', 'users.lock', 'users.sessions.revoke', 'billing.read'],
   },
   content_editor: {
     name: 'Biên tập nội dung',
@@ -46,9 +49,9 @@ export const ROLES = {
   },
   product_manager: {
     name: 'Quản lý sản phẩm',
-    permissions: ['account.self', 'admin.access', 'stats.read', 'products.read', 'products.update', 'games.read_all', 'games.play_premium_preview'],
+    permissions: ['account.self', 'admin.access', 'stats.read', 'products.read', 'products.update', 'games.read_all', 'games.play_premium_preview', 'billing.read', 'plans.manage'],
   },
-  accountant: { name: 'Kế toán', permissions: ['account.self', 'admin.access', 'stats.read'] },
+  accountant: { name: 'Kế toán', permissions: ['account.self', 'admin.access', 'stats.read', 'billing.read', 'billing.manage'] },
   super_admin: { name: 'Super Admin', permissions: [...PERMISSIONS] },
 } satisfies Record<string, { name: string; permissions: readonly Permission[] }>;
 

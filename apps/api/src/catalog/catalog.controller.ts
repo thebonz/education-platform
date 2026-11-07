@@ -20,6 +20,7 @@ const gameSelect = {
   templateKey: true,
   difficulty: true,
   accessLevel: true,
+  productId: true,
   thumbnail: true,
   sortOrder: true,
   /** Hiển thị nhãn "chờ giáo viên duyệt" khi chưa APPROVED. */

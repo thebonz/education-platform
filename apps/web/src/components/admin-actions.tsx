@@ -127,3 +127,73 @@ export function ReviewActions({ gameId }: { gameId: string }) {
     </form>
   );
 }
+
+export function OrderActions({ orderId, status }: { orderId: string; status: string }) {
+  const { run, busy, view } = useAction();
+  const [note, setNote] = useState('');
+  if (status === 'PAID') return null;
+  return (
+    <div className="order-actions" data-testid="order-actions">
+      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ghi chú (bắt buộc)" maxLength={300} data-testid="order-note" />
+      <button type="button" className="primary-button small" disabled={busy || note.trim().length < 3} data-testid="order-confirm"
+        onClick={() => run(() => apiSend('POST', `/admin/billing/orders/${orderId}/confirm`, { note: note.trim() }), 'Đã xác nhận thanh toán và cấp gói.')}>Xác nhận đã nhận tiền</button>
+      {status === 'PENDING' && (
+        <button type="button" className="secondary-button small" disabled={busy || note.trim().length < 3}
+          onClick={() => run(() => apiSend('POST', `/admin/billing/orders/${orderId}/cancel`, { note: note.trim() }), 'Đã huỷ đơn.')}>Huỷ đơn</button>
+      )}
+      {view}
+    </div>
+  );
+}
+
+export function MatchTransaction({ txId }: { txId: string }) {
+  const { run, busy, view } = useAction();
+  const [code, setCode] = useState('');
+  const [note, setNote] = useState('');
+  return (
+    <form className="order-actions" onSubmit={(e) => { e.preventDefault(); run(() => apiSend('POST', `/admin/billing/transactions/${txId}/match`, { orderCode: code.trim().toUpperCase(), note: note.trim() }), 'Đã gán giao dịch vào đơn.'); }}>
+      <input value={code} onChange={(e) => setCode(e.target.value)} placeholder="Mã đơn HC…" maxLength={10} required pattern="[Hh][Cc][2-9A-Za-z]{8}" />
+      <input value={note} onChange={(e) => setNote(e.target.value)} placeholder="Ghi chú (bắt buộc)" maxLength={300} required minLength={3} />
+      <button className="primary-button small" disabled={busy}>Gán vào đơn</button>
+      {view}
+    </form>
+  );
+}
+
+export function PlanEditor({ plan, canEdit }: { plan: { id: string; name: string; priceVnd: number; isActive: boolean }; canEdit: boolean }) {
+  const { run, busy, view } = useAction();
+  const [name, setName] = useState(plan.name);
+  const [price, setPrice] = useState(String(plan.priceVnd));
+  const [active, setActive] = useState(plan.isActive);
+  return (
+    <form className="plan-editor" data-testid="plan-editor" onSubmit={(e: FormEvent) => {
+      e.preventDefault();
+      run(() => apiSend('PATCH', `/admin/billing/plans/${plan.id}`, { name: name.trim().normalize('NFC'), priceVnd: Number(price), isActive: active }), 'Đã lưu. Đơn đã tạo trước đó giữ giá cũ.');
+    }}>
+      <fieldset disabled={!canEdit || busy}>
+        <label>Tên gói<input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} required /></label>
+        <label>Giá (đồng)<input type="number" min={1000} max={100000000} step={1000} value={price} onChange={(e) => setPrice(e.target.value)} required data-testid="plan-price" /></label>
+        <label className="check"><input type="checkbox" checked={active} onChange={(e) => setActive(e.target.checked)} /> Đang bán</label>
+        {canEdit && <button className="primary-button small" data-testid="plan-save">Lưu</button>}
+      </fieldset>
+      {view}
+    </form>
+  );
+}
+
+export function GrantMembership({ userId }: { userId: string }) {
+  const { run, busy, view } = useAction();
+  const [product, setProduct] = useState('vietnamese');
+  const [months, setMonths] = useState('1');
+  const [note, setNote] = useState('');
+  return (
+    <form className="panel" onSubmit={(e) => { e.preventDefault(); run(() => apiSend('POST', `/admin/billing/users/${userId}/grant`, { product, months: Number(months), note: note.trim() }), 'Đã cấp gói.'); }}>
+      <h2>Tặng gói</h2>
+      <label>Sản phẩm<select value={product} onChange={(e) => setProduct(e.target.value)}><option value="english">English Games</option><option value="vietnamese">Vietnamese Games</option></select></label>
+      <label>Số tháng<input type="number" min={1} max={36} value={months} onChange={(e) => setMonths(e.target.value)} required /></label>
+      <label>Lý do (bắt buộc)<input value={note} onChange={(e) => setNote(e.target.value)} minLength={3} maxLength={300} required placeholder="ví dụ: giáo viên dùng thử" /></label>
+      <button className="primary-button" disabled={busy}>Cấp gói</button>
+      {view}
+    </form>
+  );
+}

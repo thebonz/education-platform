@@ -33,6 +33,14 @@ const PRODUCTS = [
   },
 ] as const;
 
+/** Giá nạp sẵn lần đầu (docs/PRICING.md). Sau đó giá do quản trị sửa trong admin – seed KHÔNG ghi đè. */
+const PLANS = [
+  { product: 'english', code: 'english-year', name: 'English Games – 12 tháng', period: 'YEAR', months: 12, priceVnd: 599_000, sortOrder: 1 },
+  { product: 'english', code: 'english-month', name: 'English Games – 1 tháng', period: 'MONTH', months: 1, priceVnd: 55_000, sortOrder: 2 },
+  { product: 'vietnamese', code: 'vietnamese-year', name: 'Vietnamese Games – 12 tháng', period: 'YEAR', months: 12, priceVnd: 599_000, sortOrder: 1 },
+  { product: 'vietnamese', code: 'vietnamese-month', name: 'Vietnamese Games – 1 tháng', period: 'MONTH', months: 1, priceVnd: 55_000, sortOrder: 2 },
+] as const;
+
 export type SeedReport = { roles: number; products: number; gamesCreated: number; gamesUpdated: number; gamesSkipped: number };
 
 /** Kiểm tra mọi gói nội dung; ném lỗi kèm vị trí nếu có gói sai. */
@@ -70,6 +78,11 @@ export async function seed(prisma: PrismaClient, packs: GamePack[] = ALL_PACKS):
     for (const [i, [slug, name]] of tax.categories.entries()) {
       await prisma.gameCategory.upsert({ where: { productId_slug: { productId: row.id, slug } }, update: {}, create: { productId: row.id, slug, name, sortOrder: i + 1 } });
     }
+  }
+
+  for (const plan of PLANS) {
+    const { product, ...data } = plan;
+    await prisma.plan.upsert({ where: { code: plan.code }, update: {}, create: { ...data, productId: productIds[product] } });
   }
 
   const report: SeedReport = { roles: Object.keys(ROLES).length, products: PRODUCTS.length, gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 0 };

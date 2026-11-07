@@ -26,7 +26,14 @@ export class SessionService {
     if (!token || token.length > 200) return null;
     const session = await this.prisma.userSession.findUnique({
       where: { tokenHash: hashToken(token) },
-      include: { user: { include: { roles: { include: { role: true } } } } },
+      include: {
+        user: {
+          include: {
+            roles: { include: { role: true } },
+            entitlements: { where: { endsAt: { gt: new Date() } }, select: { productId: true } },
+          },
+        },
+      },
     });
     const now = new Date();
     if (!session || session.revokedAt || session.expiresAt <= now || !session.user.isActive) return null;
@@ -43,6 +50,7 @@ export class SessionService {
       emailVerified: !!session.user.emailVerifiedAt,
       roles,
       permissions: permissionsFor(roles),
+      premiumProductIds: [...new Set(session.user.entitlements.map((e) => e.productId))],
     };
   }
 

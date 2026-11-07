@@ -34,17 +34,6 @@ EN_URL="https://english.${DOMAIN}"
 VI_URL="https://${VI_SUB}.${DOMAIN}"
 ADMIN_URL="https://admin.${DOMAIN}"
 
-set_env() { # set_env KEY VALUE – thay hoặc thêm một dòng trong .env, không in giá trị bí mật
-  local key="$1" value="$2" tmp
-  tmp="$(mktemp)"
-  if grep -qE "^${key}=" .env; then
-    awk -v k="$key" -v v="$value" 'BEGIN{FS=OFS="="} $1==k {print k "=" v; next} {print}' .env > "$tmp"
-  else
-    cat .env > "$tmp"; printf '%s=%s\n' "$key" "$value" >> "$tmp"
-  fi
-  cat "$tmp" > .env; rm -f "$tmp"
-}
-
 log "Sao lưu .env"
 backup=".env.bak-$(date +%Y%m%d-%H%M%S)"
 cp -p .env "$backup"; chmod 600 "$backup"

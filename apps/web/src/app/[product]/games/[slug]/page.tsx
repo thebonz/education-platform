@@ -81,7 +81,7 @@ export default async function GamePage({ params }: { params: Params }) {
             <h3>{t.game.locked}</h3>
             {game.access.reason === 'login_required'
               ? <Link className="primary-button" href={`${base}/login?next=${encodeURIComponent(`${base}/games/${game.slug}`)}`}>{t.game.loginToPlay}</Link>
-              : <p>{t.game.membershipSoon}</p>}
+              : <Link className="primary-button" href={`${base}/pricing`} data-testid="locked-pricing">{t.billing.viewPricing}</Link>}
           </div>
         )}
       </section>

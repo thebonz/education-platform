@@ -9,6 +9,8 @@ export type AuthContext = {
   emailVerified: boolean;
   roles: string[];
   permissions: Permission[];
+  /** Sản phẩm người dùng đang có gói trả phí còn hạn (giai đoạn 6). */
+  premiumProductIds: string[];
 };
 
 export type AppRequest = Request & { auth?: AuthContext | null };

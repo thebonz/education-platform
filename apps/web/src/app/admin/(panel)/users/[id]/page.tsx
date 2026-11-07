@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { RolesEditor, UserStatusActions } from '@/components/admin-actions';
+import { GrantMembership, RolesEditor, UserStatusActions } from '@/components/admin-actions';
 import { adminContext } from '@/lib/admin-context';
 import { apiGet } from '@/lib/server-api';
 
@@ -22,12 +22,17 @@ type Detail = {
   consents: { kind: string; version: string; acceptedAt: string }[]; activeSessions: number;
 };
 
+type Membership = { product: { name: string }; startsAt: string; endsAt: string; source: string; note: string | null; orderCode: string | null; active: boolean };
+
 export default async function UserDetail({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { base, can } = await adminContext();
   const res = await apiGet<Detail>(`/admin/users/${encodeURIComponent(id)}`);
   if (!res.ok) notFound();
   const u = res.data;
+  const ms = can('billing.read') ? await apiGet<Membership[]>(`/admin/billing/users/${u.id}/memberships`) : null;
+  const memberships = ms?.ok ? ms.data : [];
+  const fmtDate = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' });
   const fmt = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' });
   return (
     <>
@@ -44,6 +49,17 @@ export default async function UserDetail({ params }: { params: Promise<{ id: str
       <div className="account-grid">
         <UserStatusActions userId={u.id} isActive={u.isActive} canLock={can('users.lock')} canRevoke={can('users.sessions.revoke')} />
         {can('roles.assign') && <RolesEditor userId={u.id} current={u.roles.map((r) => r.key)} all={ALL_ROLES} />}
+        {can('billing.read') && (
+          <div className="panel" data-testid="user-memberships">
+            <h2>Gói thành viên</h2>
+            {memberships.length ? (
+              <ul className="session-list">{memberships.map((m, i) => (
+                <li key={i}><strong>{m.product.name}</strong><small>{fmtDate.format(new Date(m.startsAt))} → {fmtDate.format(new Date(m.endsAt))} · {m.source === 'order' ? `đơn ${m.orderCode}` : `tặng: ${m.note ?? ''}`}{m.active ? ' · đang hiệu lực' : ''}</small></li>
+              ))}</ul>
+            ) : <p className="muted">Chưa có gói nào.</p>}
+          </div>
+        )}
+        {can('billing.manage') && <GrantMembership userId={u.id} />}
       </div>
     </>
   );

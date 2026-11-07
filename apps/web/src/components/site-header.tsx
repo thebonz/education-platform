@@ -16,6 +16,7 @@ export function SiteHeader({ product, base, me }: { product: Product; base: stri
       <nav className="site-nav">
         <Link href={base || '/'}>{t.home}</Link>
         <Link href={`${base}/games`}>{t.library}</Link>
+        <Link href={`${base}/pricing`} data-testid="pricing-link">{t.pricing}</Link>
         {me ? (
           <>
             <Link href={`${base}/account`} data-testid="account-link">{me.displayName}</Link>

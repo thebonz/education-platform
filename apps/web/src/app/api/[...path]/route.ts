@@ -7,7 +7,8 @@ import { NextRequest } from 'next/server';
  */
 export const dynamic = 'force-dynamic';
 
-const FORWARD_REQUEST_HEADERS = ['accept', 'accept-language', 'content-type', 'cookie', 'origin', 'referer', 'user-agent', 'x-forwarded-for'];
+// authorization: chỉ webhook thanh toán dùng (khóa API của SePay); API tự kiểm tra.
+const FORWARD_REQUEST_HEADERS = ['accept', 'accept-language', 'authorization', 'content-type', 'cookie', 'origin', 'referer', 'user-agent', 'x-forwarded-for'];
 const DROP_RESPONSE_HEADERS = new Set(['connection', 'keep-alive', 'transfer-encoding', 'content-encoding', 'content-length', 'set-cookie']);
 
 async function proxy(request: NextRequest, context: { params: Promise<{ path: string[] }> }) {
