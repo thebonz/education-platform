@@ -18,8 +18,9 @@ export function vietQrPayload(opts: { bankBin: string; account: string; amountVn
   if (!/^\d{6}$/.test(opts.bankBin)) throw new Error('BIN ngân hàng không hợp lệ');
   if (!/^\d{6,19}$/.test(opts.account)) throw new Error('Số tài khoản không hợp lệ');
   if (!Number.isInteger(opts.amountVnd) || opts.amountVnd <= 0) throw new Error('Số tiền không hợp lệ');
-  // Nội dung chỉ dùng chữ không dấu, số và khoảng trắng để mọi ngân hàng giữ nguyên.
-  const content = opts.content.replace(/[^A-Za-z0-9 ]/g, '').slice(0, 25);
+  // Nội dung chỉ dùng chữ không dấu, số và khoảng trắng (bỏ dấu tiếng Việt) để mọi ngân hàng giữ nguyên.
+  const content = opts.content.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
+    .replace(/[^A-Za-z0-9 ]/g, '').slice(0, 25);
   const merchant = field('00', 'A000000727') + field('01', field('00', opts.bankBin) + field('01', opts.account)) + field('02', 'QRIBFTTA');
   const body =
     field('00', '01') + field('01', '12') + field('38', merchant) + field('53', '704') +

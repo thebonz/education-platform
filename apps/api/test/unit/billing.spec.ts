@@ -16,7 +16,7 @@ describe('VietQR', () => {
     expect(p).toContain('62140810HC2345ABCD');
     expect(p.slice(-8, -4)).toBe('6304');
     expect(crc16(p.slice(0, -4))).toBe(p.slice(-4));
-    expect(vietQrPayload({ bankBin: '970415', account: '1234567890', amountVnd: 1000, content: 'Thanh toán HC2345ABCD!' })).toContain('0819Thanh ton HC2345ABCD');
+    expect(vietQrPayload({ bankBin: '970415', account: '1234567890', amountVnd: 1000, content: 'Thanh toán HC2345ABCD!' })).toContain('0821Thanh toan HC2345ABCD');
     expect(() => vietQrPayload({ bankBin: '97041', account: '1234567890', amountVnd: 1, content: 'x' })).toThrow();
     expect(() => vietQrPayload({ bankBin: '970415', account: '12ab', amountVnd: 1, content: 'x' })).toThrow();
     expect(() => vietQrPayload({ bankBin: '970415', account: '1234567890', amountVnd: 0, content: 'x' })).toThrow();
