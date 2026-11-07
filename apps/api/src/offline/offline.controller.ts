@@ -1,4 +1,4 @@
-import { createPrivateKey, createPublicKey, generateKeyPairSync, KeyObject, sign } from 'node:crypto';
+import { createPrivateKey, createPublicKey, generateKeyPairSync, type JsonWebKey, KeyObject, sign } from 'node:crypto';
 import { Controller, Get, Logger, Query, Req } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { validateGameData } from '@happyclass/game-core';

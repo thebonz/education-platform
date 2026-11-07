@@ -1,4 +1,4 @@
-import { createPublicKey, verify } from 'node:crypto';
+import { createPublicKey, type JsonWebKey, verify } from 'node:crypto';
 import { createTestApp, createUser, login, ORIGIN_EN, TestApp } from './helpers';
 
 const PW = 'Correct-Horse-42';
