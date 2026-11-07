@@ -37,6 +37,16 @@ const mediaDir = () => resolve(env().MEDIA_DIR);
 const filePath = (sha256: string, ext: string) => join(mediaDir(), sha256.slice(0, 2), `${sha256}.${ext}`);
 const EXT: Record<string, string> = { 'image/png': 'png', 'image/jpeg': 'jpg', 'image/webp': 'webp', 'image/gif': 'gif', 'audio/wav': 'wav', 'audio/ogg': 'ogg', 'audio/mpeg': 'mp3' };
 
+/**
+ * Multer/busboy đọc tên file theo latin1; trình duyệt gửi UTF-8 ("mèo.png" thành "mÃ¨o.png").
+ * Đọc lại theo UTF-8; nếu ra ký tự lỗi thì giữ nguyên.
+ */
+export function decodeFilename(name: string): string {
+  if (!/[\u0080-\u00ff]/.test(name) || [...name].some((c) => c.codePointAt(0)! > 0xff)) return name;
+  const utf8 = Buffer.from(name, 'latin1').toString('utf8');
+  return utf8.includes('\uFFFD') ? name : utf8;
+}
+
 /** Đường dẫn công khai dùng trong nội dung game (picture.src). */
 export const mediaUrl = (id: string) => `/api/media/${id}`;
 
@@ -72,7 +82,7 @@ export class MediaController {
     await writeFile(tmp, file.buffer, { mode: 0o640 });
     await rename(tmp, target);
 
-    const originalName = (file.originalname || 'file').normalize('NFC').replace(/[^\p{L}\p{N} ._-]/gu, '_').slice(0, 120);
+    const originalName = decodeFilename(file.originalname || 'file').normalize('NFC').replace(/[^\p{L}\p{N} ._-]/gu, '_').slice(0, 120);
     try {
       const row = await this.prisma.mediaAsset.create({
         data: {

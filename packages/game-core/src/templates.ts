@@ -14,7 +14,7 @@ const optionalText = (max: number) => text(max).optional();
 
 export const pictureSchema = z.discriminatedUnion('kind', [
   z.object({ kind: z.literal('emoji'), value: z.string().min(1).max(16) }),
-  z.object({ kind: z.literal('image'), src: z.string().max(500).regex(/^(https:\/\/|\/)/), alt: text(120) }),
+  z.object({ kind: z.literal('image'), src: z.string().max(500).regex(/^(https:\/\/|\/)/, 'Ảnh phải là ảnh trong thư viện (/api/media/…) hoặc đường dẫn https://'), alt: text(120) }),
 ]);
 export type Picture = z.infer<typeof pictureSchema>;
 

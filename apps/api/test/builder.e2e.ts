@@ -173,7 +173,7 @@ describe('Game Builder và thư viện media', () => {
       expect(Buffer.compare(res.body as Buffer, PNG)).toBe(0);
       await t.http().get('/api/media/00000000-0000-4000-8000-000000000000').expect(404);
 
-      const list = await as(reviewer).get('/api/admin/media?kind=IMAGE&q=mèo').expect(200);
+      const list = await as(reviewer).get(`/api/admin/media?kind=IMAGE&q=${encodeURIComponent('mèo')}`).expect(200);
       expect(list.body.total).toBe(1);
       await as(member).get('/api/admin/media').expect(403);
       await as(editor).patch(`/api/admin/media/${mediaId}`, { alt: 'chú mèo con' }).expect(200);
