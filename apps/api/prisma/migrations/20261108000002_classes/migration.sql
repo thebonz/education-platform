@@ -1,3 +1,4 @@
+-- Giai đoạn 7: lớp học (lớp, bản sao game của lớp, học sinh theo biệt danh, kết quả). Chỉ thêm bảng mới.
 -- CreateTable
 CREATE TABLE "classrooms" (
     "id" UUID NOT NULL,
