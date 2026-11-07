@@ -211,6 +211,19 @@ jobs:
           curl -fsS -b /tmp/cookies.txt http://127.0.0.1:3100/api/admin/stats | grep -q '"publishedGames":6'
           echo "::notice title=Deploy smoke::Đăng nhập Super Admin qua Web và đọc /api/admin/stats thành công"
 
+      - name: Tạo tài khoản giáo viên duyệt nội dung bằng script
+        run: |
+          printf '%s' 'Ci-Reviewer-Password-2026' | sudo ADMIN_EMAIL=reviewer@happyclass.test ADMIN_NAME="Cô Giáo CI" bash ops/create-admin.sh --role content_reviewer
+          curl -fsS -c /tmp/rev.txt -o /dev/null -H 'Origin: http://localhost:3100' -H 'Content-Type: application/json' \
+            -d '{"email":"reviewer@happyclass.test","password":"Ci-Reviewer-Password-2026"}' http://127.0.0.1:3100/api/auth/login
+          curl -fsS -b /tmp/rev.txt http://127.0.0.1:3100/api/auth/me | grep -q '"games.review"'
+          # Giáo viên duyệt xem được nội dung nhưng không quản lý người dùng
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/rev.txt 'http://127.0.0.1:3100/api/admin/games?review=PENDING')" = 200
+          test "$(curl -s -o /dev/null -w '%{http_code}' -b /tmp/rev.txt http://127.0.0.1:3100/api/admin/users)" = 403
+          # Vai trò sai bị từ chối
+          if printf '%s' 'Ci-Reviewer-Password-2026' | sudo ADMIN_EMAIL=x@happyclass.test bash ops/create-admin.sh --role member; then exit 1; fi
+          echo "::notice title=Deploy smoke::Tạo tài khoản content_reviewer bằng ops/create-admin.sh --role, đăng nhập và đúng quyền"
+
       - name: Sao lưu database
         run: |
           sudo --preserve-env=HC_DATA_DIR bash ops/backup-db.sh ci

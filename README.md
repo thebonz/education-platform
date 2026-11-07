@@ -88,6 +88,7 @@ sudo git clone https://github.com/thebonz/education-platform.git /data/education
 cd /data/education-games-platform/source
 sudo bash ops/deploy-test.sh      # tạo .env (mật khẩu ngẫu nhiên), build, migrate, seed, chạy, kiểm tra
 sudo bash ops/create-admin.sh     # tạo Super Admin (mật khẩu nhập ẩn)
+sudo bash ops/create-admin.sh --role content_reviewer   # tạo tài khoản giáo viên duyệt nội dung
 ```
 
 Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`. Script tự sao lưu database trước khi áp migration.
@@ -95,7 +96,7 @@ Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`
 | Script | Việc làm |
 | --- | --- |
 | `ops/deploy-test.sh` | Triển khai/cập nhật, idempotent; tạo `.env` nếu chưa có (không ghi đè); kiểm tra cổng, health, các trang chính |
-| `ops/create-admin.sh` | Tạo Super Admin đầu tiên |
+| `ops/create-admin.sh` | Tạo Super Admin hoặc tài khoản nhân sự (`--role content_reviewer`, `--promote`) |
 | `ops/enable-domain.sh` | Chuyển sang chế độ tên miền (sao lưu `.env`), bật Cloudflare Tunnel riêng của HappyClass |
 | `ops/backup-db.sh [nhãn]` | `pg_dump` vào `/data/education-games-platform/backups`, kèm SHA-256, giữ 14 bản |
 
