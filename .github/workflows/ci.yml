@@ -214,6 +214,19 @@ jobs:
           curl -fsS -b /tmp/cookies.txt http://127.0.0.1:3100/api/admin/stats | grep -q '"publishedGames":6'
           echo "::notice title=Deploy smoke::Đăng nhập Super Admin qua Web và đọc /api/admin/stats thành công"
 
+      - name: Tải ảnh lên thư viện media qua Web (container API ghi được vào HC_DATA_DIR/media/assets)
+        run: |
+          printf '%s' 'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=' | base64 -d > /tmp/dot.png
+          code=$(curl -s -o /tmp/upload.json -w '%{http_code}' -b /tmp/cookies.txt -H 'Origin: http://localhost:3100' \
+            -F 'file=@/tmp/dot.png;filename=chấm.png' -F 'alt=chấm đen' http://127.0.0.1:3100/api/admin/media)
+          test "$code" = "201" || { echo "::error title=media::HTTP $code $(cat /tmp/upload.json)"; exit 1; }
+          url=$(node -p "require('/tmp/upload.json').url")
+          curl -fsS -D /tmp/h.txt -o /tmp/got.png "http://127.0.0.1:3100$url"
+          cmp /tmp/dot.png /tmp/got.png
+          grep -qi '^x-content-type-options: nosniff' /tmp/h.txt
+          test "$(sudo find "$HC_DATA_DIR/media/assets" -type f -name '*.png' | wc -l)" = 1
+          echo "::notice title=Deploy smoke::Tải ảnh lên qua Web, file nằm ở HC_DATA_DIR/media/assets và tải về đúng nội dung"
+
       - name: Tạo tài khoản giáo viên duyệt nội dung bằng script
         run: |
           printf '%s' 'Ci-Reviewer-Password-2026' | sudo ADMIN_EMAIL=reviewer@happyclass.test ADMIN_NAME="Cô Giáo CI" bash ops/create-admin.sh --role content_reviewer

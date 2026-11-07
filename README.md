@@ -12,25 +12,31 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
 
 ## Trạng thái
 
-**Giai đoạn 4 – Vietnamese Games lớp 1–5.**
+**Giai đoạn 5 – Game Builder và thư viện media.**
 
 - Đã có (giai đoạn 2): tài khoản dùng chung, đăng ký tự do + xác thực email, phiên dùng chung giữa các subdomain, phân quyền (RBAC), admin cơ bản, nhật ký thao tác.
 - Đã có (giai đoạn 3):
   - Game Shell: đọc to, hiệu ứng, đồng hồ, chế độ đội, toàn màn hình, chơi lại, màn kết quả có sao.
   - 6 template đầu tiên; 6 game tiếng Anh; thư viện lọc, tìm kiếm không dấu; lưu kết quả, game gần đây, yêu thích; SEO.
-- Mới (giai đoạn 4):
+- Đã có (giai đoạn 4):
   - Lõi tiếng Việt (`packages/game-core/src/vi`): tách tiếng thành âm đầu + vần + thanh, ghép tiếng với dấu đặt đúng chỗ, so sánh không phân biệt kiểu đặt dấu cũ/mới (hoà = hòa), quy tắc c/k, g/gh, ng/ngh, đánh vần giọng Bắc.
   - 4 template mới: `syllable-builder` (ghép tiếng), `tone-finder` (tìm dấu thanh), `word-sort` (xếp từ vào nhóm), `sentence-order` (sắp xếp câu).
   - 23 game tiếng Việt từ lớp 1 đến lớp 5, soạn mới theo mạch chủ đề Kết nối tri thức (không chép sách giáo khoa). "Ghép vần" được phát hành lại bằng template ghép tiếng.
   - Quy trình giáo viên duyệt: mọi nội dung mới ở trạng thái **chờ duyệt** và có ghi chú trên trang game; vai trò `content_reviewer` duyệt hoặc yêu cầu sửa trong admin (mục *Nội dung game*); mỗi phiên bản nội dung mới phải duyệt lại.
+- Mới (giai đoạn 5):
+  - Admin → *Nội dung game* → **+ Tạo game**: chọn sản phẩm và template, game bắt đầu bằng nội dung mẫu hợp lệ.
+  - Trình soạn: form dựng tự động từ schema của template (lỗi hiện ngay tại ô nhập), chế độ JSON nâng cao, xem trước trực tiếp.
+  - Phiên bản: lưu nháp → phát hành; mở lại phiên bản cũ; nhân bản game. Game đã sửa tay không bị seed ghi đè.
+  - Admin → *Thư viện media*: tải ảnh (PNG/JPEG/WebP/GIF) và âm thanh (MP3/OGG/WAV), nhận dạng theo nội dung file, chặn SVG/HTML; chọn ảnh ngay trong form soạn game; đánh dấu file do AI tạo.
+  - Quyền: `content_editor` tạo/sửa/phát hành game và tải media; `content_reviewer` xem và duyệt.
 - Chưa có:
-  - Game Builder (giai đoạn 5);
   - membership và thanh toán (giai đoạn 6);
   - trường học và Offline Player (giai đoạn 7).
 
 ## Thêm game mới
 
-- **Cùng kiểu chơi (template có sẵn):** thêm một gói vào `apps/api/src/cli/content/english.ts`, hoặc vào file theo lớp trong `apps/api/src/cli/content/vi/` cho tiếng Việt. Mỗi gói gồm slug, tiêu đề, template, danh mục, cấp độ, `revision` và dữ liệu.
+- **Cách nhanh nhất (không cần code):** Admin → *Nội dung game* → **+ Tạo game** (Game Builder).
+- **Cùng kiểu chơi, nạp sẵn bằng code:** thêm một gói vào `apps/api/src/cli/content/english.ts`, hoặc vào file theo lớp trong `apps/api/src/cli/content/vi/` cho tiếng Việt. Mỗi gói gồm slug, tiêu đề, template, danh mục, cấp độ, `revision` và dữ liệu.
   - Dữ liệu được kiểm tra bằng schema trong `packages/game-core/src/templates.ts`. Seed từ chối gói sai và báo rõ vị trí lỗi.
   - Muốn phát hành nội dung mới cho một game đã có: tăng `revision`. Seed tạo phiên bản mới và giữ bản cũ; game đã được admin sửa thì seed không đụng tới.
   - Với `syllable-builder` và `tone-finder`, mỗi từ phải là một tiếng hợp lệ và đúng quy tắc c/k, g/gh, ng/ngh; seed báo lỗi nếu sai.
