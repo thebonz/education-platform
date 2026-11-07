@@ -49,7 +49,7 @@ type Tx = Prisma.TransactionClient;
  * Game Builder: tạo game, sửa thông tin, lưu phiên bản nháp, phát hành phiên bản, nhân bản.
  * Mọi thay đổi của người soạn đặt managedBySeed = false để seed sau này không ghi đè.
  */
-@Controller('admin/games')
+@Controller('admin')
 export class AdminBuilderController {
   constructor(private readonly prisma: PrismaService, private readonly audit: AuditService) {}
 
@@ -104,7 +104,28 @@ export class AdminBuilderController {
     return game;
   }
 
-  @Post()
+  /** Sản phẩm, toàn bộ cấp độ/danh mục và template dùng được – cho form tạo/sửa game. */
+  @Get('builder/options')
+  @RequirePermissions('admin.access', 'games.read_all')
+  async options() {
+    const products = await this.prisma.product.findMany({
+      orderBy: { slug: 'asc' },
+      select: {
+        slug: true, name: true, locale: true,
+        levels: { select: { slug: true, name: true }, orderBy: { sortOrder: 'asc' } },
+        categories: { select: { slug: true, name: true }, orderBy: { sortOrder: 'asc' } },
+      },
+    });
+    return {
+      products: products.map((p) => ({
+        ...p,
+        templates: TEMPLATE_KEYS.filter((k) => (TEMPLATES[k].languages as readonly string[]).includes(p.locale))
+          .map((k) => ({ key: k, name: TEMPLATES[k].name.vi })),
+      })),
+    };
+  }
+
+  @Post('games')
   @HttpCode(201)
   @RequirePermissions('admin.access', 'games.edit')
   async create(@Body() body: unknown, @CurrentAuth() auth: AuthContext, @Req() req: AppRequest) {
@@ -140,7 +161,7 @@ export class AdminBuilderController {
     }
   }
 
-  @Patch(':id')
+  @Patch('games/:id')
   @RequirePermissions('admin.access', 'games.edit')
   async update(@Param('id', ParseUUIDPipe) id: string, @Body() body: unknown, @CurrentAuth() auth: AuthContext, @Req() req: AppRequest) {
     const input = parse(patchBody, body);
@@ -168,7 +189,7 @@ export class AdminBuilderController {
     return updated;
   }
 
-  @Get(':id/versions')
+  @Get('games/:id/versions')
   @RequirePermissions('admin.access', 'games.read_all')
   async versions(@Param('id', ParseUUIDPipe) id: string) {
     await this.loadGame(id);
@@ -181,7 +202,7 @@ export class AdminBuilderController {
     return { versions: rows.map(({ createdById, ...r }) => ({ ...r, createdBy: createdById ? users.get(createdById) ?? null : null })) };
   }
 
-  @Get(':id/versions/:n')
+  @Get('games/:id/versions/:n')
   @RequirePermissions('admin.access', 'games.read_all')
   async version(@Param('id', ParseUUIDPipe) id: string, @Param('n', ParseIntPipe) n: number) {
     const row = await this.prisma.gameVersion.findUnique({ where: { gameId_versionNumber: { gameId: id, versionNumber: n } } });
@@ -190,7 +211,7 @@ export class AdminBuilderController {
   }
 
   /** Lưu nội dung thành phiên bản nháp mới (chưa phát hành). */
-  @Post(':id/versions')
+  @Post('games/:id/versions')
   @HttpCode(201)
   @RequirePermissions('admin.access', 'games.edit')
   async saveVersion(@Param('id', ParseUUIDPipe) id: string, @Body() body: unknown, @CurrentAuth() auth: AuthContext, @Req() req: AppRequest) {
@@ -219,7 +240,7 @@ export class AdminBuilderController {
   }
 
   /** Phát hành một phiên bản: thay phiên bản đang chạy; nội dung đổi → chờ giáo viên duyệt lại. */
-  @Post(':id/versions/:n/publish')
+  @Post('games/:id/versions/:n/publish')
   @HttpCode(200)
   @RequirePermissions('admin.access', 'games.publish')
   async publish(@Param('id', ParseUUIDPipe) id: string, @Param('n', ParseIntPipe) n: number, @CurrentAuth() auth: AuthContext, @Req() req: AppRequest) {
@@ -246,7 +267,7 @@ export class AdminBuilderController {
   }
 
   /** Nhân bản thành game mới (chưa xuất bản) trong cùng sản phẩm, từ phiên bản đang phát hành hoặc bản mới nhất. */
-  @Post(':id/duplicate')
+  @Post('games/:id/duplicate')
   @HttpCode(201)
   @RequirePermissions('admin.access', 'games.edit')
   async duplicate(@Param('id', ParseUUIDPipe) id: string, @Body() body: unknown, @CurrentAuth() auth: AuthContext, @Req() req: AppRequest) {

@@ -35,7 +35,10 @@ export default async function GameAdminDetail({ params }: { params: Promise<{ id
         <h2>Trạng thái duyệt: <span className={`review-tag ${g.reviewStatus.toLowerCase()}`}>{REVIEW_LABEL[g.reviewStatus]}</span></h2>
         {g.reviewedAt && <p className="muted">Lần duyệt gần nhất: {fmt.format(new Date(g.reviewedAt))}{g.reviewer ? ` – ${g.reviewer.displayName}` : ''}</p>}
         {g.reviewNote && <p className="review-note-admin">Ghi chú: {g.reviewNote}</p>}
-        <p><a className="secondary-button" href={playHref} target="_blank" rel="noreferrer">Chơi thử ↗</a></p>
+        <p className="actions-row">
+          <Link className="primary-button" href={`${base}/games/${g.id}/edit`} data-testid="open-builder">Soạn nội dung</Link>
+          {g.isPublished && <a className="secondary-button" href={playHref} target="_blank" rel="noreferrer">Chơi thử ↗</a>}
+        </p>
       </div>
       {can('games.review') && g.version && <ReviewActions gameId={g.id} />}
       <div className="panel">

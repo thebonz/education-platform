@@ -24,6 +24,8 @@ export type GameShellProps = {
   loggedIn: boolean;
   libraryHref: string;
   loginHref: string;
+  /** Xem trước trong Game Builder: không lưu kết quả, không mời đăng nhập, không có nút về thư viện. */
+  preview?: boolean;
 };
 
 const ACCENT_KEY = 'hc.accent';
@@ -111,12 +113,12 @@ export function GameShell(props: GameShellProps) {
     setResult({ ...p, stars, durationMs });
     setPhase('finished');
     audio.sfx('win');
-    if (props.loggedIn) {
+    if (props.loggedIn && !props.preview) {
       apiSend('POST', `/catalog/products/${props.product}/games/${props.slug}/sessions`, {
         score: correct, maxScore: p.maxScore, mistakes: p.mistakes, stars, durationMs: Math.min(durationMs, 6 * 3_600_000),
       }).then((res) => setSaveState(res.ok ? 'saved' : 'failed'));
     }
-  }, [audio, props.loggedIn, props.product, props.slug, startedAt]);
+  }, [audio, props.loggedIn, props.preview, props.product, props.slug, startedAt]);
 
   async function toggleFullscreen() {
     try {
@@ -188,11 +190,11 @@ export function GameShell(props: GameShellProps) {
           <h2>{t.greatJob}</h2>
           <p data-testid="result-score">{t.youScored} {Math.min(result.score, result.maxScore)}/{result.maxScore} {t.points} · {t.mistakes}: {result.mistakes} · {t.time}: {formatTime(result.durationMs)}</p>
           {result.summary}
-          {props.loggedIn ? (saveState === 'saved' && <p className="form-success" data-testid="result-saved">{t.saved}</p>)
+          {props.preview ? null : props.loggedIn ? (saveState === 'saved' && <p className="form-success" data-testid="result-saved">{t.saved}</p>)
             : <p className="muted"><Link href={props.loginHref}>{t.loginToSave}</Link></p>}
           <div className="result-actions">
             <button type="button" className="primary-button" onClick={start} data-testid="play-again">↻ {t.playAgain}</button>
-            <Link className="secondary-button" href={props.libraryHref}>{t.backToLibrary}</Link>
+            {!props.preview && <Link className="secondary-button" href={props.libraryHref}>{t.backToLibrary}</Link>}
           </div>
         </div>
       )}

@@ -100,8 +100,11 @@ jobs:
 
       - name: Test API (unit + e2e với PostgreSQL thật)
         run: |
+          set +e
           npm test -w @happyclass/api -- --ci --json --outputFile=/tmp/jest.json
-          node -e "const r=require('/tmp/jest.json'); console.log('::notice title=Jest::suites ' + r.numPassedTestSuites + '/' + r.numTotalTestSuites + ', tests passed ' + r.numPassedTests + ', failed ' + r.numFailedTests + ', total ' + r.numTotalTests)"
+          code=$?
+          node .github/scripts/jest-annotate.mjs /tmp/jest.json
+          exit $code
 
       - name: Build Web
         run: npm run build -w @happyclass/web
