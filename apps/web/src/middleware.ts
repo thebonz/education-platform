@@ -14,5 +14,5 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   runtime: 'nodejs',
-  matcher: ['/((?!api/|_next/|favicon.ico|robots.txt|sitemap.xml).*)'],
+  matcher: ['/((?!api/|_next/|favicon.ico|robots.txt|sitemap.xml|sw.js).*)'],
 };

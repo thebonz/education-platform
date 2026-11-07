@@ -55,6 +55,10 @@ const schema = z.object({
   ORDER_TTL_HOURS: z.coerce.number().int().min(1).max(168).default(24),
 
   // Liên hệ hỗ trợ qua Zalo: số điện thoại hoặc link https://zalo.me/... (đặt bằng ops/set-contact.sh)
+  // Khóa ký giấy phép chơi offline: ECDSA P-256, PKCS#8 DER dạng base64 (một dòng). deploy-test.sh tự tạo.
+  OFFLINE_SIGNING_KEY: z.string().regex(/^$|^[A-Za-z0-9+/=]{100,400}$/).default(''),
+  OFFLINE_LICENSE_DAYS: z.coerce.number().int().min(1).max(90).default(30),
+
   CONTACT_ZALO: z.string().regex(/^$|^0\d{9,10}$|^https:\/\/zalo\.me\/[A-Za-z0-9._-]{3,64}$/, 'CONTACT_ZALO phải là số điện thoại hoặc https://zalo.me/...').default(''),
 });
 

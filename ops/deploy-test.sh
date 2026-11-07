@@ -42,6 +42,12 @@ else
   ok "Đã tạo .env với mật khẩu PostgreSQL ngẫu nhiên (quyền 600, không in ra màn hình)"
 fi
 grep -q '^POSTGRES_PASSWORD=change-me$' .env && die ".env còn mật khẩu mặc định change-me. Hãy đổi trước."
+# Khóa ký giấy phép chơi offline (giai đoạn 7): tạo một lần, giữ nguyên các lần sau.
+if [ -z "$(env_value OFFLINE_SIGNING_KEY || true)" ]; then
+  set_env OFFLINE_SIGNING_KEY "$(openssl ecparam -name prime256v1 -genkey -noout | openssl pkcs8 -topk8 -nocrypt -outform DER | base64 -w0)"
+  chmod 600 .env
+  ok "Đã tạo khóa ký giấy phép offline (lưu trong .env, không in ra màn hình)"
+fi
 port_free_or_ours "$(env_value HC_WEB_HOST_PORT || echo 3100)"
 port_free_or_ours "$(env_value HC_API_HOST_PORT || echo 3101)"
 compose config --quiet

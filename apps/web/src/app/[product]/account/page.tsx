@@ -44,6 +44,7 @@ export default async function AccountPage({ params }: { params: Promise<{ produc
                 <li key={m.product.slug}><strong>{m.product.name}</strong><small>{fill(t.billing.until, { date: formatDate(m.endsAt, lang) })}</small></li>
               ))}</ul>
             ) : <p className="muted">{t.billing.noPlans} <Link href={`${base}/pricing`}>{t.billing.viewPricing}</Link></p>}
+            <p><Link href={`${base}/offline`} data-testid="offline-link">📥 {isEn ? 'Play offline' : 'Chơi offline'}</Link></p>
             {billing.ok && billing.data.orders.length > 0 && (
               <>
                 <h3>{t.billing.orders}</h3>
