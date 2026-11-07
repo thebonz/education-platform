@@ -12,7 +12,7 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
 
 ## Trạng thái
 
-**Giai đoạn 5 – Game Builder và thư viện media.**
+**Giai đoạn 6 – Gói thành viên và thanh toán.**
 
 - Đã có (giai đoạn 2): tài khoản dùng chung, đăng ký tự do + xác thực email, phiên dùng chung giữa các subdomain, phân quyền (RBAC), admin cơ bản, nhật ký thao tác.
 - Đã có (giai đoạn 3):
@@ -23,14 +23,19 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
   - 4 template mới: `syllable-builder` (ghép tiếng), `tone-finder` (tìm dấu thanh), `word-sort` (xếp từ vào nhóm), `sentence-order` (sắp xếp câu).
   - 23 game tiếng Việt từ lớp 1 đến lớp 5, soạn mới theo mạch chủ đề Kết nối tri thức (không chép sách giáo khoa). "Ghép vần" được phát hành lại bằng template ghép tiếng.
   - Quy trình giáo viên duyệt: mọi nội dung mới ở trạng thái **chờ duyệt** và có ghi chú trên trang game; vai trò `content_reviewer` duyệt hoặc yêu cầu sửa trong admin (mục *Nội dung game*); mỗi phiên bản nội dung mới phải duyệt lại.
-- Mới (giai đoạn 5):
+- Đã có (giai đoạn 5):
   - Admin → *Nội dung game* → **+ Tạo game**: chọn sản phẩm và template, game bắt đầu bằng nội dung mẫu hợp lệ.
   - Trình soạn: form dựng tự động từ schema của template (lỗi hiện ngay tại ô nhập), chế độ JSON nâng cao, xem trước trực tiếp.
   - Phiên bản: lưu nháp → phát hành; mở lại phiên bản cũ; nhân bản game. Game đã sửa tay không bị seed ghi đè.
   - Admin → *Thư viện media*: tải ảnh (PNG/JPEG/WebP/GIF) và âm thanh (MP3/OGG/WAV), nhận dạng theo nội dung file, chặn SVG/HTML; chọn ảnh ngay trong form soạn game; đánh dấu file do AI tạo.
   - Quyền: `content_editor` tạo/sửa/phát hành game và tải media; `content_reviewer` xem và duyệt.
+- Mới (giai đoạn 6):
+  - Gói theo từng sản phẩm (năm/tháng), giá sửa được trong admin; đơn hàng giữ giá lúc đặt.
+  - Thanh toán chuyển khoản: VietQR tự tạo, SePay báo tiền về qua webhook (khóa API), cấp gói tự động, gia hạn nối tiếp.
+  - Game PREMIUM chỉ mở cho người có gói còn hạn của đúng sản phẩm.
+  - Admin → *Thanh toán*: tổng quan, đơn hàng (xác nhận/huỷ tay), giao dịch ngân hàng (gán vào đơn), gói và giá, tặng gói.
+  - Chế độ `disabled` → `sandbox` → `live` bằng `ops/configure-payments.sh` (xem `docs/PAYMENTS.md`).
 - Chưa có:
-  - membership và thanh toán (giai đoạn 6);
   - trường học và Offline Player (giai đoạn 7).
 
 ## Thêm game mới
@@ -102,6 +107,7 @@ Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`
 | Script | Việc làm |
 | --- | --- |
 | `ops/deploy-test.sh` | Triển khai/cập nhật, idempotent; tạo `.env` nếu chưa có (không ghi đè); kiểm tra cổng, health, các trang chính |
+| `ops/configure-payments.sh` | Bật/tắt thanh toán (sandbox → live), đặt tài khoản nhận tiền và khóa webhook trong `.env` |
 | `ops/create-admin.sh` | Tạo Super Admin hoặc tài khoản nhân sự (`--role content_reviewer`, `--promote`) |
 | `ops/enable-domain.sh` | Chuyển sang chế độ tên miền (sao lưu `.env`), bật Cloudflare Tunnel riêng của HappyClass |
 | `ops/backup-db.sh [nhãn]` | `pg_dump` vào `/data/education-games-platform/backups`, kèm SHA-256, giữ 14 bản |

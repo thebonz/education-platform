@@ -42,7 +42,7 @@ Có thể thêm dòng thứ 4 cho trang giới thiệu chung: để trống Subd
 3. Policy: Action **Allow**, Include **Emails**, nhập email của anh/chị và các giáo viên thử.
 4. Lưu. Từ giờ, người mở trang phải nhập email và mã gửi qua email mới vào được.
 
-Từ giai đoạn 6, đường dẫn webhook thanh toán (`/api/webhooks/*`) sẽ cần policy **Bypass** riêng, để SePay gọi vào được. Phần này sẽ làm cùng giai đoạn thanh toán.
+Khi bật thanh toán, đường dẫn webhook `/api/webhooks/` cần một ứng dụng Access riêng với policy **Bypass** để SePay gọi vào được – xem `docs/PAYMENTS.md`, bước 4.
 
 ## Bước 4 – Bật trên máy chủ
 
