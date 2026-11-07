@@ -19,6 +19,7 @@ export function SiteHeader({ product, base, me }: { product: Product; base: stri
         <Link href={`${base}/pricing`} data-testid="pricing-link">{t.pricing}</Link>
         {me ? (
           <>
+            <Link href={`${base}/classes`} data-testid="classes-link">{t.classes.nav}</Link>
             <Link href={`${base}/account`} data-testid="account-link">{me.displayName}</Link>
             <LogoutButton label={t.logout} redirectTo={base || '/'} />
           </>

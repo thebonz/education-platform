@@ -1,5 +1,5 @@
 export type Plan = { id: string; code: string; name: string; period: 'MONTH' | 'YEAR'; months: number; priceVnd: number };
-export type PlansResult = { paymentsEnabled: boolean; plans: Plan[] };
+export type PlansResult = { paymentsEnabled: boolean; plans: Plan[]; contact?: { zalo: string | null } };
 export type OrderStatus = 'PENDING' | 'PAID' | 'CANCELLED' | 'EXPIRED';
 export type Transfer = {
   mode: 'sandbox' | 'live'; bankName: string; bankBin: string; accountNumber: string; accountName: string;
@@ -10,6 +10,7 @@ export type OrderView = {
   product?: { slug: 'english' | 'vietnamese'; name: string };
   membership?: { startsAt: string; endsAt: string } | null;
   transfer?: Transfer | null;
+  contact?: { zalo: string | null };
 };
 export type BillingMe = {
   memberships: { product: { id: string; slug: 'english' | 'vietnamese'; name: string }; endsAt: string }[];

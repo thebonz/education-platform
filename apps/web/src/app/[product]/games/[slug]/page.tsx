@@ -4,6 +4,7 @@ import { notFound } from 'next/navigation';
 import type { TemplateKey } from '@happyclass/game-core/templates';
 import { FavoriteButton } from '@/components/favorite-button';
 import { SiteHeader } from '@/components/site-header';
+import { AddToClass } from '@/components/classes/class-forms';
 import { GameShell } from '@/games/shell/game-shell';
 import type { CatalogGame, PlayPayload } from '@/lib/catalog';
 import { dict } from '@/lib/i18n';
@@ -60,6 +61,7 @@ export default async function GamePage({ params }: { params: Params }) {
         <h1>{game.title}</h1>
         <p>{game.summary}</p>
         {game.reviewStatus !== 'APPROVED' && <p className="review-note" data-testid="review-note">📝 {t.game.pendingReview}</p>}
+        {me && <AddToClass product={product} base={base} gameId={game.id} />}
         {me && <FavoriteButton gameId={game.id} initial={!!game.favorite} labels={lang === 'en' ? { add: 'Add to favourites', remove: 'Favourite' } : { add: 'Thêm vào yêu thích', remove: 'Đã yêu thích' }} />}
       </section>
       <section className="player-wrap">

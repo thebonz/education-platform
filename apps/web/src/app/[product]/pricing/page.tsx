@@ -49,6 +49,13 @@ export default async function PricingPage({ params }: { params: Promise<{ produc
             })}
           </div>
         )}
+        <div className="panel plan-card school" data-testid="school-plan">
+          <h2>{t.billing.school}</h2>
+          <p className="muted">{t.billing.schoolLead}</p>
+          {plans.ok && plans.data.contact?.zalo
+            ? <a className="secondary-button" href={plans.data.contact.zalo} target="_blank" rel="noreferrer" data-testid="zalo-link">💬 {t.billing.contactZalo}</a>
+            : null}
+        </div>
       </section>
     </main>
   );
