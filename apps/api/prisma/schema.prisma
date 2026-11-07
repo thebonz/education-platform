@@ -166,11 +166,41 @@ model GameVersion {
   versionNumber Int      @map("version_number")
   content       Json
   isPublished   Boolean  @default(false) @map("is_published")
+  /// Người tạo phiên bản (null = seed). Không đặt khóa ngoại, lịch sử nằm ở audit_logs.
+  createdById   String?  @map("created_by_id") @db.Uuid
+  /// Ghi chú ngắn của người soạn cho phiên bản này.
+  note          String?
   game          Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   createdAt     DateTime @default(now()) @map("created_at")
 
   @@unique([gameId, versionNumber])
   @@map("game_versions")
+}
+
+enum MediaKind {
+  IMAGE
+  AUDIO
+}
+
+/// Ảnh/âm thanh dùng trong game. File lưu trên đĩa theo SHA-256 (trùng nội dung = dùng chung một file).
+model MediaAsset {
+  id           String    @id @default(uuid()) @db.Uuid
+  kind         MediaKind
+  mimeType     String    @map("mime_type")
+  byteSize     Int       @map("byte_size")
+  sha256       String    @unique
+  width        Int?
+  height       Int?
+  originalName String    @map("original_name")
+  /// Mô tả ảnh cho trình đọc màn hình; gợi ý điền sẵn khi chọn ảnh trong Game Builder.
+  alt          String?
+  /// upload | ai – nguồn gốc file, để biết nội dung nào do AI tạo.
+  source       String    @default("upload")
+  createdById  String?   @map("created_by_id") @db.Uuid
+  createdAt    DateTime  @default(now()) @map("created_at")
+
+  @@index([kind, createdAt])
+  @@map("media_assets")
 }
 
 // ---------------------------------------------------------------------------

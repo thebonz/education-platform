@@ -37,6 +37,11 @@ const schema = z.object({
   SMTP_SECURE: bool.default('false'),
 
   TERMS_VERSION: z.string().default('2026-11-01'),
+
+  // Thư mục lưu ảnh/âm thanh (trong container: /data/media, gắn ra HC_DATA_DIR/media)
+  MEDIA_DIR: z.string().min(1).default('./data/media'),
+  MEDIA_MAX_IMAGE_BYTES: z.coerce.number().int().min(10_000).max(20_000_000).default(3_000_000),
+  MEDIA_MAX_AUDIO_BYTES: z.coerce.number().int().min(10_000).max(50_000_000).default(5_000_000),
 });
 
 export type Env = z.infer<typeof schema>;

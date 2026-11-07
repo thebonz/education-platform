@@ -49,7 +49,7 @@ export class AdminContentController {
           product: { select: { slug: true, name: true } },
           level: { select: { slug: true, name: true, sortOrder: true } },
           category: { select: { slug: true, name: true } },
-          versions: { where: { isPublished: true }, select: { versionNumber: true }, take: 1 },
+          versions: { orderBy: { versionNumber: 'desc' }, select: { versionNumber: true, isPublished: true }, take: 1 },
         },
         orderBy: [{ product: { slug: 'asc' } }, { level: { sortOrder: 'asc' } }, { sortOrder: 'asc' }],
         skip: (page - 1) * pageSize,
@@ -57,10 +57,15 @@ export class AdminContentController {
       }),
       this.prisma.game.groupBy({ by: ['reviewStatus'], where: f.product ? { product: { slug: f.product } } : {}, _count: { _all: true }, orderBy: { reviewStatus: 'asc' } }),
     ]);
+    // Số phiên bản đang phát hành của các game trên trang (bản mới nhất có thể là nháp).
+    const published = new Map(
+      (await this.prisma.gameVersion.findMany({ where: { gameId: { in: games.map((g) => g.id) }, isPublished: true }, select: { gameId: true, versionNumber: true } }))
+        .map((v) => [v.gameId, v.versionNumber]),
+    );
     return {
       total, page, pageSize,
       reviewCounts: Object.fromEntries(counts.map((c) => [c.reviewStatus, (c._count as { _all: number })._all])),
-      games: games.map(({ versions, ...g }) => ({ ...g, version: versions[0]?.versionNumber ?? null })),
+      games: games.map(({ versions, ...g }) => ({ ...g, version: published.get(g.id) ?? null, latestVersion: versions[0]?.versionNumber ?? null })),
     };
   }
 
@@ -78,11 +83,12 @@ export class AdminContentController {
       },
     });
     if (!game) throw new NotFoundException();
+    const latest = await this.prisma.gameVersion.findFirst({ where: { gameId: id }, orderBy: { versionNumber: 'desc' }, select: { versionNumber: true } });
     const reviewer = game.reviewedById
       ? await this.prisma.user.findUnique({ where: { id: game.reviewedById }, select: { id: true, displayName: true, email: true } })
       : null;
     const { versions, ...rest } = game;
-    return { ...rest, reviewer, version: versions[0] ?? null };
+    return { ...rest, reviewer, version: versions[0] ?? null, latestVersion: latest?.versionNumber ?? null };
   }
 
   @Post(':id/review')

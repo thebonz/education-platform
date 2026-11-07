@@ -5,3 +5,5 @@ export * from './scoring';
 export * from './templates';
 export * from './vi/syllable';
 export * from './vi/rounds';
+export * from './starters';
+export * from './describe';

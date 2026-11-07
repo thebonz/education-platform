@@ -5,7 +5,7 @@ import { apiGet } from '@/lib/server-api';
 
 type Row = {
   id: string; slug: string; title: string; templateKey: string; accessLevel: 'FREE' | 'PREMIUM'; isPublished: boolean;
-  reviewStatus: Review; reviewedAt: string | null; version: number | null;
+  reviewStatus: Review; reviewedAt: string | null; version: number | null; latestVersion: number | null;
   product: { slug: string; name: string }; level: { slug: string; name: string } | null; category: { slug: string; name: string } | null;
 };
 type ListResult = { total: number; page: number; pageSize: number; reviewCounts: Partial<Record<Review, number>>; games: Row[] };
@@ -27,7 +27,10 @@ export default async function GamesAdminPage({ searchParams }: { searchParams: P
   };
   return (
     <>
-      <h1>Nội dung game <small>({total})</small></h1>
+      <div className="page-head">
+        <h1>Nội dung game <small>({total})</small></h1>
+        {can('games.edit') && <Link className="primary-button" href={`${base}/games/new${filters.product ? `?product=${filters.product}` : ''}`} data-testid="new-game">+ Tạo game</Link>}
+      </div>
       <p className="muted">Mỗi phiên bản nội dung mới cần giáo viên duyệt. Game chưa duyệt vẫn chơi được nhưng hiện ghi chú “chờ giáo viên duyệt”.</p>
       <div className="admin-filters" data-testid="content-filters">
         <Link className={!filters.product ? 'active' : ''} href={link({ product: undefined })}>Tất cả</Link>
@@ -44,11 +47,11 @@ export default async function GamesAdminPage({ searchParams }: { searchParams: P
         <tbody>
           {games.map((g) => (
             <tr key={g.id} data-slug={g.slug}>
-              <td><Link href={`${base}/games/${g.id}`}>{g.title}</Link></td>
+              <td><Link href={`${base}/games/${g.id}`}>{g.title}</Link> <Link className="muted" href={`${base}/games/${g.id}/edit`} data-testid="edit-game">Soạn</Link></td>
               <td>{g.product.name}</td>
               <td>{g.level?.name ?? '—'}</td>
               <td><code>{g.templateKey}</code></td>
-              <td>{g.version ?? '—'}</td>
+              <td>{g.version ?? '—'}{g.latestVersion && g.latestVersion !== g.version ? <small className="muted"> (nháp {g.latestVersion})</small> : null}</td>
               <td><span className={`review-tag ${g.reviewStatus.toLowerCase()}`}>{REVIEW_LABEL[g.reviewStatus]}</span></td>
               <td>{g.isPublished ? '✓' : '—'}{g.accessLevel === 'PREMIUM' ? ' · Premium' : ''}</td>
             </tr>
