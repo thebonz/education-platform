@@ -1,6 +1,6 @@
 {
   "name": "@happyclass/game-core",
-  "version": "0.4.0",
+  "version": "0.3.0",
   "private": true,
   "description": "Lõi game dùng chung cho API và Web: schema template, RNG có seed, logic chấm điểm",
   "main": "dist/index.js",
