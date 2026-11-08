@@ -19,6 +19,7 @@ import { BillingController } from './billing/billing.controller';
 import { BillingService } from './billing/billing.service';
 import { WebhookController } from './billing/webhook.controller';
 import { ClassesController } from './classes/classes.controller';
+import { OfflineController } from './offline/offline.controller';
 import { PrismaModule } from './prisma/prisma.module';
 
 @Module({
@@ -30,7 +31,7 @@ import { PrismaModule } from './prisma/prisma.module';
     // Giới hạn chung: 300 request/phút/IP. Endpoint đăng nhập có giới hạn riêng chặt hơn.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 300 }]),
   ],
-  controllers: [CatalogController, AccountController, AdminUsersController, AdminSystemController, AdminContentController, AdminBuilderController, MediaController, BillingController, WebhookController, AdminBillingController, ClassesController],
+  controllers: [CatalogController, AccountController, AdminUsersController, AdminSystemController, AdminContentController, AdminBuilderController, MediaController, BillingController, WebhookController, AdminBillingController, ClassesController, OfflineController],
   providers: [
     AccessService,
     BillingService,
