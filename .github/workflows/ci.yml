@@ -289,8 +289,12 @@ jobs:
         env:
           BACKUP_DOCKER_NETWORK: host
         run: |
+          trap 'echo "::error title=backup-step::lỗi ở dòng $LINENO: $BASH_COMMAND"; for f in /tmp/bk*.log /tmp/restore.log; do [ -f "$f" ] && echo "::error title=$(basename $f)::$(tail -n 25 "$f" | sed -e "s/%/%25/g" | awk "BEGIN{ORS=\"%0A\"} {print}")"; done' ERR
+          # Kho S3 thử nghiệm (chỉ dùng trong CI)
+          for img in minio/minio:RELEASE.2025-04-22T22-12-26Z minio/minio:latest; do sudo docker pull -q "$img" > /dev/null 2>&1 && break; done
+          echo "::notice title=Backup::Kho S3 thử nghiệm: $img"
           sudo docker run -d --name hc-minio -p 127.0.0.1:9000:9000 -e MINIO_ROOT_USER=ci-backup -e MINIO_ROOT_PASSWORD=ci-backup-secret-2026 \
-            minio/minio:RELEASE.2024-12-18T13-15-44Z server /data > /dev/null
+            "$img" server /data > /dev/null
           for i in $(seq 1 30); do curl -fsS http://127.0.0.1:9000/minio/health/live && break; sleep 1; done
           keep="HC_DATA_DIR,BACKUP_DOCKER_NETWORK"
           conf() { sudo --preserve-env=$keep BACKUP_PROVIDER=s3 BACKUP_ENDPOINT=http://127.0.0.1:9000 BACKUP_BUCKET=happyclass-ci \
