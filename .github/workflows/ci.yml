@@ -98,6 +98,18 @@ jobs:
       - name: Build API
         run: npm run build -w @happyclass/api
 
+      - name: Lỗ hổng thư viện (npm audit, chỉ dependency chạy production)
+        run: |
+          npm audit --omit=dev --json > /tmp/audit.json 2>/dev/null || true
+          node -e "
+            const r = JSON.parse(require('fs').readFileSync('/tmp/audit.json', 'utf8') || '{}');
+            const v = (r.metadata && r.metadata.vulnerabilities) || {};
+            const list = Object.values(r.vulnerabilities || {}).filter((x) => ['high', 'critical'].includes(x.severity)).map((x) => x.name + ' (' + x.severity + ')');
+            console.log('::notice title=npm audit::critical ' + (v.critical || 0) + ', high ' + (v.high || 0) + ', moderate ' + (v.moderate || 0) + ', low ' + (v.low || 0));
+            if (list.length) console.log('::warning title=npm audit::' + list.join(', '));
+            process.exit(v.critical ? 1 : 0);
+          "
+
       - name: Test API (unit + e2e với PostgreSQL thật)
         run: |
           set +e

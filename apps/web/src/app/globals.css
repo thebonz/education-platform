@@ -375,3 +375,5 @@ label.check input{margin-top:3px;width:18px;height:18px}
 .net-dot{display:inline-block;width:10px;height:10px;border-radius:50%;vertical-align:middle}
 .net-dot.on{background:#16a34a}.net-dot.off{background:#dc2626}
 .license-box{display:block;font-size:14px}
+.danger-panel{border:1px solid #f4c7c3}.danger-panel h2{color:#b42318}
+.legal-doc{max-width:760px;margin:0 auto;line-height:1.65}.legal-doc h2{font-size:1.1rem;margin-top:1.6em}.legal-draft{background:#fff7e6;border:1px solid #f5d48b;border-radius:10px;padding:10px 14px}.legal-links{display:block;margin:-4px 0 6px}

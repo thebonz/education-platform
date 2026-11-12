@@ -80,6 +80,7 @@ export function RegisterForm({ site, base }: { site: Exclude<Site, 'admin'>; bas
       <label>{t.password}<input name="password" type="password" minLength={10} maxLength={128} autoComplete="new-password" required /><small>{t.passwordHint}</small></label>
       <label className="check"><input name="acceptTerms" type="checkbox" required /> {t.acceptTerms}</label>
       <label className="check"><input name="confirmAdult" type="checkbox" required /> {t.confirmAdult}</label>
+      <small className="legal-links"><Link href={`${base}/terms`} target="_blank">{t.termsLink}</Link> · <Link href={`${base}/privacy`} target="_blank">{t.privacyLink}</Link></small>
       <Message status={status} />
       <button className="primary-button" disabled={status.kind === 'busy'}>{t.register}</button>
       <div className="auth-links"><span>{t.haveAccount} <Link href={`${base}/login`}>{t.login}</Link></span></div>

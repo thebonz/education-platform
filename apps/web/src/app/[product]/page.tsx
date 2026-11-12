@@ -67,7 +67,7 @@ export default async function ProductHome({ params }: { params: Promise<{ produc
         <div className="section-heading"><div><span className="eyebrow">{isEnglish ? 'HOW IT WORKS' : 'CÁCH SỬ DỤNG'}</span><h2>{isEnglish ? 'Three small steps to big fun' : 'Ba bước đơn giản'}</h2></div></div>
         <div className="steps-grid">{steps.map(([icon, title, text], i) => <div key={title} className="step-card"><span>{icon}</span><small>0{i + 1}</small><b>{title}</b><p>{text}</p></div>)}</div>
       </section>
-      <footer className="product-footer"><span>{info.data.name}</span><span>HappyClass</span></footer>
+      <footer className="product-footer"><span>{info.data.name}</span><span><Link href={`${base}/terms`}>{isEnglish ? 'Terms' : 'Điều khoản'}</Link> · <Link href={`${base}/privacy`}>{isEnglish ? 'Privacy' : 'Quyền riêng tư'}</Link> · HappyClass</span></footer>
     </main>
   );
 }
