@@ -250,6 +250,7 @@ jobs:
 
       - name: Đọc tiếng Việt giọng Bắc (dịch vụ tts Piper) qua Web, lưu đệm, không mở cổng
         run: |
+          trap 'echo "::error title=tts-step::lỗi ở dòng $LINENO: $BASH_COMMAND"' ERR
           mkdir -p /tmp/giong-doc
           q() { node -p "encodeURIComponent(process.argv[1])" "$1"; }
           i=0
@@ -271,7 +272,8 @@ jobs:
           cmp /tmp/giong-doc/2.wav /tmp/again.wav
           # ≥ 4: API còn tự tạo sẵn âm thanh cho các game tiếng Việt ở chế độ nền
           n=$(sudo find "$HC_DATA_DIR/media/tts" -name '*.wav' | wc -l); test "$n" -ge 4
-          test -z "$(sudo docker compose port tts 5002 2>/dev/null || true)"
+          # Không publish cổng nào ra máy chủ (docker port in rỗng)
+          test -z "$(sudo docker port "$(sudo docker compose ps -q tts)")"
           test "$(sudo docker compose ps tts --format '{{.Health}}')" = healthy || sudo docker compose ps tts
           echo "::notice title=TTS::Lần hai (lưu đệm) ${ms} ms; $n file trong HC_DATA_DIR/media/tts; dịch vụ tts không mở cổng ra máy chủ"
 
