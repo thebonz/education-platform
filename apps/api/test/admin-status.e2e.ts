@@ -58,6 +58,10 @@ describe('Admin: tình trạng hệ thống', () => {
 
   it('không lộ bí mật trong phản hồi', async () => {
     const text = JSON.stringify((await get(admin).expect(200)).body);
-    for (const k of ['PASSWORD', 'SECRET', 'OFFLINE_SIGNING_KEY', 'SEPAY', 'DATABASE_URL', 'postgresql://']) expect(text).not.toContain(k);
+    expect(text).not.toContain('postgresql://');
+    // Không chứa giá trị của bất kỳ biến môi trường bí mật nào (chỉ được nhắc tên biến trong hướng dẫn)
+    for (const [k, v] of Object.entries(process.env)) {
+      if (/SECRET|PASSWORD|KEY|TOKEN|DATABASE_URL/.test(k) && v && v.length >= 8) expect(text).not.toContain(v);
+    }
   });
 });
