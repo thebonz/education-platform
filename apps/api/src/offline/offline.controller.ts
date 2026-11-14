@@ -1,8 +1,8 @@
 import { createPrivateKey, createPublicKey, generateKeyPairSync, type JsonWebKey, KeyObject, sign } from 'node:crypto';
-import { Controller, Get, Logger, Query, Req } from '@nestjs/common';
+import { Body, Controller, Get, HttpCode, Logger, Post, Query, Req } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import { validateGameData } from '@happyclass/game-core';
-import { AccessLevel } from '@prisma/client';
+import { AccessLevel, Prisma } from '@prisma/client';
 import { z } from 'zod';
 import { AuditService } from '../audit/audit.service';
 import { AccessService } from '../catalog/access.service';
@@ -44,6 +44,21 @@ export function signLicense(payload: Record<string, unknown>): string {
 
 const packQuery = z.object({ product: z.enum(['english', 'vietnamese']) });
 
+const DAY = 86_400_000;
+const syncSchema = z.object({
+  product: z.enum(['english', 'vietnamese']),
+  results: z.array(z.object({
+    id: z.string().uuid(),
+    slug: z.string().regex(/^[a-z0-9-]{1,100}$/),
+    playedAt: z.number().int(),
+    score: z.number().int().min(0).max(10_000),
+    maxScore: z.number().int().min(0).max(10_000),
+    mistakes: z.number().int().min(0).max(10_000).default(0),
+    stars: z.number().int().min(1).max(3),
+    durationMs: z.number().int().min(0).max(6 * 3_600_000),
+  }).refine((r) => r.score <= r.maxScore, { path: ['score'], message: 'score vượt quá maxScore' })).min(1).max(200),
+});
+
 /** Tìm mọi ảnh trong thư viện media mà nội dung game dùng tới, để trình duyệt tải sẵn khi chơi offline. */
 function mediaUrls(data: unknown, out = new Set<string>()): Set<string> {
   if (Array.isArray(data)) data.forEach((x) => mediaUrls(x, out));
@@ -68,6 +83,58 @@ export class OfflineController {
   publicKey() {
     const k = signingKey();
     return { kid: k.kid, alg: 'ES256', jwk: { kty: k.pubJwk.kty, crv: k.pubJwk.crv, x: k.pubJwk.x, y: k.pubJwk.y } };
+  }
+
+  /**
+   * Gửi kết quả đã chơi khi offline. Mỗi kết quả có mã do trình duyệt sinh nên gửi lại nhiều lần không bị trùng.
+   * Chỉ nhận kết quả trong thời hạn giấy phép offline (+5 ngày), không ở tương lai, của game thuộc đúng sản phẩm;
+   * game trả phí phải có gói còn hạn vào lúc chơi.
+   * Trả về: accepted = đã lưu (kể cả đã lưu từ trước) → trình duyệt xoá khỏi hàng đợi; rejected = không bao giờ hợp lệ → cũng xoá.
+   */
+  @Post('sync')
+  @HttpCode(200)
+  @RequireAuth()
+  @Throttle({ default: { limit: 20, ttl: 60_000 } })
+  async sync(@Body() body: unknown, @CurrentAuth() auth: AuthContext) {
+    const { product, results } = parse(syncSchema, body);
+    const prod = await this.prisma.product.findUniqueOrThrow({ where: { slug: product } });
+    const now = Date.now();
+    const oldest = now - (env().OFFLINE_LICENSE_DAYS + 5) * DAY;
+    const games = await this.prisma.game.findMany({
+      where: { productId: prod.id, isPublished: true, slug: { in: [...new Set(results.map((r) => r.slug))] } },
+      select: { id: true, slug: true, accessLevel: true, productId: true },
+    });
+    const bySlug = new Map(games.map((g) => [g.slug, g]));
+    const entitlements = await this.prisma.entitlement.findMany({
+      where: { userId: auth.userId, productId: prod.id }, select: { startsAt: true, endsAt: true },
+    });
+    const hadMembership = (t: number) => entitlements.some((e) => e.startsAt.getTime() - DAY <= t && t <= e.endsAt.getTime());
+    const existing = new Set((await this.prisma.gameSession.findMany({
+      where: { clientId: { in: results.map((r) => r.id) } }, select: { clientId: true },
+    })).map((r) => r.clientId));
+
+    const accepted: string[] = [];
+    const rejected: { id: string; reason: string }[] = [];
+    const rows: Prisma.GameSessionCreateManyInput[] = [];
+    const seen = new Set<string>();
+    for (const r of results) {
+      if (existing.has(r.id) || seen.has(r.id)) { accepted.push(r.id); continue; }
+      const game = bySlug.get(r.slug);
+      let reason: string | null = null;
+      if (!game) reason = 'game_not_found';
+      else if (r.playedAt < oldest) reason = 'too_old';
+      else if (r.playedAt > now + 5 * 60_000) reason = 'in_future';
+      else if (game.accessLevel === AccessLevel.PREMIUM && !this.access.canPlay(auth, game).allowed && !hadMembership(r.playedAt)) reason = 'membership_required';
+      if (reason) { rejected.push({ id: r.id, reason }); continue; }
+      seen.add(r.id);
+      accepted.push(r.id);
+      rows.push({
+        userId: auth.userId, gameId: game!.id, clientId: r.id, offline: true, createdAt: new Date(r.playedAt),
+        score: r.score, maxScore: r.maxScore, mistakes: r.mistakes, stars: r.stars, durationMs: r.durationMs,
+      });
+    }
+    if (rows.length) await this.prisma.gameSession.createMany({ data: rows, skipDuplicates: true });
+    return { accepted, rejected, saved: rows.length };
   }
 
   @Get('pack')

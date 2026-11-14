@@ -2,6 +2,7 @@ import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { chromium, expect, test } from '@playwright/test';
+import { parseSyllable } from '@happyclass/game-core/vi';
 
 /**
  * Chơi offline (PWA): tải gói khi có mạng → tắt mạng → mở lại trang → vẫn thấy và chơi được game.
@@ -10,7 +11,7 @@ import { chromium, expect, test } from '@playwright/test';
 const VI = process.env.E2E_VIETNAMESE_URL ?? 'http://vietnamese.happyclass.test:3100';
 const PW = 'Correct-Horse-Battery-42';
 
-test('tải game offline, tắt mạng, mở lại trang vẫn chơi được', async () => {
+test('tải game offline, tắt mạng, chơi hết một game; có mạng lại thì kết quả tự gửi lên', async () => {
   test.setTimeout(120_000);
   // Cờ "coi origin là an toàn" chỉ có hiệu lực với profile riêng và chế độ headless mới (channel chromium).
   const profile = mkdtempSync(join(tmpdir(), 'hc-offline-'));
@@ -38,6 +39,9 @@ test('tải game offline, tắt mạng, mở lại trang vẫn chơi được', 
     await page.reload();
     await page.waitForFunction(() => !!navigator.serviceWorker.controller);
 
+    const play = await (await page.request.get(`${VI}/api/catalog/products/vietnamese/games/nghe-chon-dau-thanh/play`)).json();
+    const items: { id: string; word: string }[] = play.data.items;
+
     await context.setOffline(true);
     await page.reload();
     await expect(page.getByTestId('offline-player')).toHaveAttribute('data-status', 'ok');
@@ -45,7 +49,22 @@ test('tải game offline, tắt mạng, mở lại trang vẫn chơi được', 
     await expect(page.getByTestId('offline-game')).toHaveCount(count);
     await page.locator('[data-testid=offline-game][data-slug="nghe-chon-dau-thanh"]').click();
     await page.getByTestId('shell-start').click();
-    await expect(page.locator('.tpl-tone')).toBeVisible();
+    for (let i = 0; i < items.length; i++) {
+      const id = await page.locator('.tpl-tone').getAttribute('data-item-id');
+      const item = items.find((x) => x.id === id)!;
+      await page.locator(`[data-testid=tone-choice][data-value="${parseSyllable(item.word)!.tone}"]`).click();
+      await page.getByTestId('quiz-next').click();
+    }
+    await expect(page.getByTestId('result-saved')).toHaveText('Đã lưu kết quả trên máy – sẽ tự gửi khi có mạng.');
+    await page.getByRole('button', { name: 'Về thư viện' }).click();
+    await expect(page.getByTestId('offline-pending')).toHaveAttribute('data-count', '1');
+
+    // Có mạng lại: tự gửi, hàng đợi trống, kết quả xuất hiện trong "game đã chơi"
+    await context.setOffline(false);
+    await expect(page.getByTestId('offline-pending')).toHaveCount(0, { timeout: 15_000 });
+    await expect(page.getByTestId('offline-message')).toContainText('Đã gửi 1 kết quả');
+    const recent = await (await page.request.get(`${VI}/api/account/recent-games`)).json();
+    expect(JSON.stringify(recent)).toContain('nghe-chon-dau-thanh');
   } finally {
     await context.close();
     rmSync(profile, { recursive: true, force: true });
