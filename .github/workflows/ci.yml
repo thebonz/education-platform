@@ -269,10 +269,11 @@ jobs:
           # Lần hai lấy từ bộ nhớ đệm: cùng nội dung, nhanh
           t0=$(date +%s%N); curl -fsS -o /tmp/again.wav "http://127.0.0.1:3100/api/tts?lang=vi&text=$(q "Bé đi học")"; ms=$(( ($(date +%s%N) - t0) / 1000000 ))
           cmp /tmp/giong-doc/2.wav /tmp/again.wav
-          test "$(sudo find "$HC_DATA_DIR/media/tts" -name '*.wav' | wc -l)" = 4
+          # ≥ 4: API còn tự tạo sẵn âm thanh cho các game tiếng Việt ở chế độ nền
+          n=$(sudo find "$HC_DATA_DIR/media/tts" -name '*.wav' | wc -l); test "$n" -ge 4
           test -z "$(sudo docker compose port tts 5002 2>/dev/null || true)"
           test "$(sudo docker compose ps tts --format '{{.Health}}')" = healthy || sudo docker compose ps tts
-          echo "::notice title=TTS::Lần hai (lưu đệm) ${ms} ms; 4 file trong HC_DATA_DIR/media/tts; dịch vụ tts không mở cổng ra máy chủ"
+          echo "::notice title=TTS::Lần hai (lưu đệm) ${ms} ms; $n file trong HC_DATA_DIR/media/tts; dịch vụ tts không mở cổng ra máy chủ"
 
       - name: Lưu file giọng đọc mẫu để nghe thử
         uses: actions/upload-artifact@v4
