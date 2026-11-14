@@ -5,7 +5,7 @@
   "workspaces": ["packages/game-core", "apps/api", "apps/web"],
   "engines": { "node": ">=22" },
   "overrides": {
-    "next": { "postcss": "^8.5.23" },
+    "postcss": "^8.5.23",
     "@prisma/config": { "deepmerge-ts": "^8.0.0" }
   },
   "scripts": {
