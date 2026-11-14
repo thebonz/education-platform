@@ -21,11 +21,11 @@ BEFORE="$(snapshot_other_projects)"
 ok "Đã ghi trạng thái CMMS/Airdrop trước khi triển khai ($(printf '%s\n' "$BEFORE" | grep -c . || true) container)"
 
 log "Thư mục dữ liệu: $DATA_DIR"
-mkdir -p "$DATA_DIR"/{database/postgres,backups,logs,media/english,media/vietnamese,media/assets}
+mkdir -p "$DATA_DIR"/{database/postgres,backups,logs,media/english,media/vietnamese,media/assets,media/tts}
 chmod 700 "$DATA_DIR/backups"
 # API chạy bằng user node (uid 1000) và ghi file tải lên vào đây; chỉ đổi quyền đúng thư mục này.
-chown 1000:1000 "$DATA_DIR/media/assets"
-chmod 750 "$DATA_DIR/media/assets"
+chown 1000:1000 "$DATA_DIR/media/assets" "$DATA_DIR/media/tts"
+chmod 750 "$DATA_DIR/media/assets" "$DATA_DIR/media/tts"
 ok "Đã có thư mục database, backups, logs, media"
 
 log "File cấu hình .env"
@@ -54,7 +54,7 @@ compose config --quiet
 ok "docker-compose.yml hợp lệ"
 
 log "Build image (có thể mất vài phút lần đầu)"
-compose build api web
+compose build api web tts
 ok "Build xong"
 
 log "PostgreSQL riêng của HappyClass"
@@ -73,7 +73,7 @@ log "Nạp dữ liệu nền (idempotent, không ghi đè dữ liệu đã sửa
 compose run --rm seed
 
 log "Khởi động API và Web"
-compose up -d api web
+compose up -d tts api web
 wait_healthy api 120
 wait_healthy web 120
 

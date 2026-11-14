@@ -14,6 +14,7 @@ import { CatalogController } from './catalog/catalog.controller';
 import { OriginGuard } from './common/origin.guard';
 import { HealthModule } from './health/health.module';
 import { MediaController } from './media/media.controller';
+import { TtsController } from './tts/tts.controller';
 import { AdminBillingController } from './billing/admin-billing.controller';
 import { BillingController } from './billing/billing.controller';
 import { BillingService } from './billing/billing.service';
@@ -31,7 +32,7 @@ import { PrismaModule } from './prisma/prisma.module';
     // Giới hạn chung: 300 request/phút/IP. Endpoint đăng nhập có giới hạn riêng chặt hơn.
     ThrottlerModule.forRoot([{ name: 'default', ttl: 60_000, limit: 300 }]),
   ],
-  controllers: [CatalogController, AccountController, AdminUsersController, AdminSystemController, AdminContentController, AdminBuilderController, MediaController, BillingController, WebhookController, AdminBillingController, ClassesController, OfflineController],
+  controllers: [CatalogController, AccountController, AdminUsersController, AdminSystemController, AdminContentController, AdminBuilderController, MediaController, BillingController, WebhookController, AdminBillingController, ClassesController, OfflineController, TtsController],
   providers: [
     AccessService,
     BillingService,

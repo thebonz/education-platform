@@ -2,15 +2,23 @@
 
 /**
  * Âm thanh trong game:
- *  - say(): đọc to bằng Web Speech API. Khi có file ghi âm (giai đoạn 5: thư viện media), ưu tiên file.
+ *  - say(): tiếng Việt → file giọng Bắc do máy chủ tạo (/api/tts, Piper); nếu máy chủ không đọc được thì dùng
+ *    giọng tiếng Việt cài trên máy. KHÔNG BAO GIỜ đọc chữ Việt bằng giọng tiếng Anh (nghe sai hoàn toàn).
+ *    Tiếng Anh → Web Speech API của trình duyệt.
  *  - sfx(): hiệu ứng ngắn tạo bằng WebAudio, không cần tải file.
  */
 export type Sfx = 'correct' | 'wrong' | 'win' | 'pop';
 
+const norm = (lang: string) => lang.replace('_', '-').toLowerCase();
+
 export class GameAudio {
   enabled = true;
   voiceLang: string;
+  /** Gọi khi không có cách nào đọc đúng tiếng Việt (máy chủ lỗi và máy không có giọng Việt). */
+  onUnavailable?: () => void;
   private ctx: AudioContext | null = null;
+  private player: HTMLAudioElement | null = null;
+  private seq = 0;
 
   constructor(voiceLang: string) {
     this.voiceLang = voiceLang;
@@ -20,17 +28,45 @@ export class GameAudio {
     return typeof window !== 'undefined' && 'speechSynthesis' in window;
   }
 
-  say(text: string) {
-    if (!this.enabled || !this.speechAvailable || !text) return;
-    const synth = window.speechSynthesis;
-    synth.cancel();
+  /** Giọng của máy đúng ngôn ngữ (vi-VN, vi_VN…); không lấy giọng ngôn ngữ khác. */
+  private deviceVoice(lang: string): SpeechSynthesisVoice | null {
+    if (!this.speechAvailable) return null;
+    const voices = window.speechSynthesis.getVoices();
+    const want = norm(lang);
+    return voices.find((v) => norm(v.lang) === want) ?? voices.find((v) => norm(v.lang).startsWith(want.slice(0, 2) + '-') || norm(v.lang) === want.slice(0, 2)) ?? null;
+  }
+
+  private speakWithDevice(text: string, requireVoice: boolean): boolean {
+    if (!this.speechAvailable) return false;
+    const voice = this.deviceVoice(this.voiceLang);
+    if (requireVoice && !voice) return false;
     const u = new SpeechSynthesisUtterance(text);
     u.lang = this.voiceLang;
     u.rate = 0.85;
-    const voice = synth.getVoices().find((v) => v.lang.replace('_', '-').toLowerCase() === this.voiceLang.toLowerCase())
-      ?? synth.getVoices().find((v) => v.lang.toLowerCase().startsWith(this.voiceLang.slice(0, 2).toLowerCase()));
     if (voice) u.voice = voice;
-    synth.speak(u);
+    window.speechSynthesis.speak(u);
+    return true;
+  }
+
+  say(text: string) {
+    if (!this.enabled || !text || typeof window === 'undefined') return;
+    this.stop();
+    if (!norm(this.voiceLang).startsWith('vi')) { this.speakWithDevice(text, false); return; }
+    const id = ++this.seq;
+    let fellBack = false;
+    const fallback = () => {
+      if (fellBack || id !== this.seq) return;
+      fellBack = true;
+      if (!this.speakWithDevice(text, true)) this.onUnavailable?.();
+    };
+    const a = new Audio(`/api/tts?lang=vi&text=${encodeURIComponent(text)}`);
+    a.preload = 'auto';
+    a.onerror = fallback;
+    this.player = a;
+    a.play().catch((e: DOMException) => {
+      // Trình duyệt chặn tự phát (chưa có thao tác của người dùng) thì thôi, không đổi sang giọng khác.
+      if (e?.name !== 'NotAllowedError' && e?.name !== 'AbortError') fallback();
+    });
   }
 
   sfx(kind: Sfx) {
@@ -61,6 +97,7 @@ export class GameAudio {
   }
 
   stop() {
+    if (this.player) { this.player.onerror = null; this.player.pause(); this.player = null; }
     if (this.speechAvailable) window.speechSynthesis.cancel();
   }
 }

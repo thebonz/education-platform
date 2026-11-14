@@ -248,6 +248,39 @@ jobs:
           test "$(sudo find "$HC_DATA_DIR/media/assets" -type f -name '*.png' | wc -l)" = 1
           echo "::notice title=Deploy smoke::Tải ảnh lên qua Web, file nằm ở HC_DATA_DIR/media/assets và tải về đúng nội dung"
 
+      - name: Đọc tiếng Việt giọng Bắc (dịch vụ tts Piper) qua Web, lưu đệm, không mở cổng
+        run: |
+          mkdir -p /tmp/giong-doc
+          q() { node -p "encodeURIComponent(process.argv[1])" "$1"; }
+          i=0
+          for s in "Con mèo trèo cây cau" "Bé đi học" "Nghe và chọn dấu thanh đúng" "Thước kẻ, bút chì, quyển vở"; do
+            i=$((i+1)); t0=$(date +%s%N)
+            code=$(curl -s -o /tmp/giong-doc/$i.wav -w '%{http_code}' "http://127.0.0.1:3100/api/tts?lang=vi&text=$(q "$s")")
+            if [ "$code" != 200 ]; then
+              echo "::error title=tts::HTTP $code cho '$s': $(head -c 300 /tmp/giong-doc/$i.wav)"
+              echo "::error title=tts-logs::$(sudo docker compose logs --tail 30 tts api 2>&1 | tail -n 30 | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"
+              exit 1
+            fi
+            test "$(head -c 4 /tmp/giong-doc/$i.wav)" = RIFF
+            size=$(stat -c %s /tmp/giong-doc/$i.wav); ms=$(( ($(date +%s%N) - t0) / 1000000 ))
+            test "$size" -gt 20000
+            echo "::notice title=TTS::'$s' → $(( (size - 44) * 1000 / 44100 )) ms âm thanh, tạo trong ${ms} ms"
+          done
+          # Lần hai lấy từ bộ nhớ đệm: cùng nội dung, nhanh
+          t0=$(date +%s%N); curl -fsS -o /tmp/again.wav "http://127.0.0.1:3100/api/tts?lang=vi&text=$(q "Bé đi học")"; ms=$(( ($(date +%s%N) - t0) / 1000000 ))
+          cmp /tmp/giong-doc/2.wav /tmp/again.wav
+          test "$(sudo find "$HC_DATA_DIR/media/tts" -name '*.wav' | wc -l)" = 4
+          test -z "$(sudo docker compose port tts 5002 2>/dev/null || true)"
+          test "$(sudo docker compose ps tts --format '{{.Health}}')" = healthy || sudo docker compose ps tts
+          echo "::notice title=TTS::Lần hai (lưu đệm) ${ms} ms; 4 file trong HC_DATA_DIR/media/tts; dịch vụ tts không mở cổng ra máy chủ"
+
+      - name: Lưu file giọng đọc mẫu để nghe thử
+        uses: actions/upload-artifact@v4
+        with:
+          name: giong-doc-mau
+          path: /tmp/giong-doc/*.wav
+          retention-days: 14
+
       - name: Thanh toán sandbox – tạo đơn, webhook SePay đi qua Web, cấp gói (số tài khoản GIẢ)
         run: |
           sudo PAYMENT_BANK_ACCOUNT=100000000001 PAYMENT_BANK_ACCOUNT_NAME="nguyen van test" bash ops/configure-payments.sh </dev/null > /tmp/pay.log 2>&1 || { cat /tmp/pay.log; exit 1; }

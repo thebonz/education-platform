@@ -72,6 +72,7 @@ export function GameShell(props: GameShellProps) {
   const [sound, setSound] = useState(true);
   const [accent, setAccent] = useState<Accent>('en-GB');
   const [speechOk, setSpeechOk] = useState(true);
+  const [voiceMissing, setVoiceMissing] = useState(false);
 
   const audio = useMemo(() => new GameAudio(lang === 'en' ? 'en-GB' : 'vi-VN'), [lang]);
   useEffect(() => {
@@ -79,8 +80,10 @@ export function GameShell(props: GameShellProps) {
     const savedAccent = readPref(ACCENT_KEY);
     if (savedSound === 'off') setSound(false);
     if (savedAccent === 'en-US' || savedAccent === 'en-GB') setAccent(savedAccent);
-    setSpeechOk(audio.speechAvailable);
-  }, [audio]);
+    // Tiếng Việt đọc bằng giọng của máy chủ nên không phụ thuộc trình duyệt
+    setSpeechOk(lang === 'vi' || audio.speechAvailable);
+    audio.onUnavailable = () => setVoiceMissing(true);
+  }, [audio, lang]);
   useEffect(() => { audio.enabled = sound; if (!sound) audio.stop(); }, [audio, sound]);
   useEffect(() => { if (lang === 'en') audio.voiceLang = accent; }, [audio, accent, lang]);
   useEffect(() => () => audio.stop(), [audio]);
@@ -185,6 +188,7 @@ export function GameShell(props: GameShellProps) {
         </div>
       )}
 
+      {voiceMissing && sound && <p className="voice-missing" role="status" data-testid="voice-missing">{t.voiceMissing}</p>}
       {phase === 'playing' && Template && (
         <div className="shell-stage">
           <Template key={round} data={props.data as never} lang={lang} t={t} rng={rng} audio={audio} settings={settings} onProgress={onProgress} onFinish={onFinish} />

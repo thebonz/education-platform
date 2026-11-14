@@ -40,6 +40,9 @@ const schema = z.object({
 
   // Thư mục lưu ảnh/âm thanh (trong container: /data/media, gắn ra HC_DATA_DIR/media)
   MEDIA_DIR: z.string().min(1).default('./data/media'),
+  // Đọc tiếng Việt: địa chỉ dịch vụ tts nội bộ (để trống = tắt, trình duyệt dùng giọng của máy) và thư mục lưu đệm
+  TTS_URL: z.union([z.string().url(), z.literal('')]).default(''),
+  TTS_CACHE_DIR: z.string().min(1).default('./data/tts'),
   MEDIA_MAX_IMAGE_BYTES: z.coerce.number().int().min(10_000).max(20_000_000).default(3_000_000),
   MEDIA_MAX_AUDIO_BYTES: z.coerce.number().int().min(10_000).max(50_000_000).default(5_000_000),
 
