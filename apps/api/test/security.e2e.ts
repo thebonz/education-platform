@@ -32,6 +32,7 @@ const PUBLIC_ROUTES = [
   'GET /api/class-join/:code/games/:gid',
   'POST /api/class-join/:code/games/:gid/plays',
   'GET /api/offline/public-key',
+  'GET /api/tts',
 ].sort();
 
 /** Chỉ webhook (có khóa riêng, so sánh timing-safe) được bỏ qua kiểm tra Origin. */

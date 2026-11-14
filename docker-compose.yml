@@ -50,6 +50,9 @@ x-api-env: &api-env
   CONTACT_ZALO: ${CONTACT_ZALO:-}
   OFFLINE_SIGNING_KEY: ${OFFLINE_SIGNING_KEY:-}
   TERMS_VERSION: ${TERMS_VERSION:-2026-11-01}
+  # Giọng đọc tiếng Việt (dịch vụ tts nội bộ, file âm thanh lưu đệm ở /data/tts)
+  TTS_URL: ${TTS_URL:-http://tts:5002}
+  TTS_CACHE_DIR: /data/tts
 
 x-hardening: &hardening
   security_opt: ["no-new-privileges:true"]
@@ -110,6 +113,8 @@ services:
     volumes:
       # Ảnh/âm thanh của Game Builder (chủ sở hữu uid 1000 = user node trong container)
       - ${HC_DATA_DIR:-/data/education-games-platform}/media/assets:/data/media
+      # Âm thanh đọc tiếng Việt đã tạo (tạo lại được, không cần sao lưu)
+      - ${HC_DATA_DIR:-/data/education-games-platform}/media/tts:/data/tts
     depends_on: { postgres: { condition: service_healthy } }
     ports: ["127.0.0.1:${HC_API_HOST_PORT:-3101}:4000"]
     healthcheck:
@@ -120,6 +125,19 @@ services:
       start_period: 30s
     networks: [hc_net]
     mem_limit: 1g
+    cpus: 1
+    logging: *default-logging
+    <<: *hardening
+
+  # Đọc tiếng Việt giọng Bắc (Piper, chạy trên CPU). Chỉ trong mạng nội bộ, không mở cổng.
+  tts:
+    image: happyclass/tts:local
+    build: { context: ., dockerfile: services/tts/Dockerfile }
+    restart: unless-stopped
+    read_only: true
+    tmpfs: ["/tmp:size=64m"]
+    networks: [hc_net]
+    mem_limit: 768m
     cpus: 1
     logging: *default-logging
     <<: *hardening

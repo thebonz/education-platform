@@ -2,7 +2,8 @@
  * Chỉ lưu những gì cần để mở trang "Chơi offline" khi mất mạng:
  *   - trang /offline (mạng trước, mất mạng thì dùng bản đã lưu);
  *   - file tĩnh /_next/static (đặt tên theo hash nên lưu lâu dài);
- *   - ảnh thư viện /api/media/<id> (không đổi theo id).
+ *   - ảnh thư viện /api/media/<id> (không đổi theo id);
+ *   - âm thanh đọc tiếng Việt /api/tts?… (nội dung cố định theo câu).
  * Không lưu trang khác, không lưu API có dữ liệu cá nhân. Gói nội dung do trang offline tự lưu vào Cache Storage.
  */
 const VERSION = 'hc-offline-v1';
@@ -52,4 +53,5 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/_next/static/')) return cacheFirst(STATIC);
   if (/^\/api\/media\/[0-9a-f-]{36}$/.test(url.pathname)) return cacheFirst(MEDIA);
+  if (url.pathname === '/api/tts') return cacheFirst(MEDIA);
 });
