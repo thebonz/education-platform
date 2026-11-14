@@ -76,7 +76,8 @@ log "Khởi động API và Web"
 # Mã commit đang chạy (hiện ở Admin → Tình trạng hệ thống)
 if GIT_COMMIT="$(git -c safe.directory="$REPO_DIR" -C "$REPO_DIR" rev-parse --short HEAD 2>&1)"; then ok "Phiên bản $GIT_COMMIT"
 else warn "Không đọc được commit: $GIT_COMMIT"; GIT_COMMIT=""; fi
-export GIT_COMMIT
+# Lưu vào .env để các script khác khởi động lại API (set-contact, configure-payments…) vẫn giữ giá trị
+set_env GIT_COMMIT "$GIT_COMMIT"
 compose up -d tts api web
 wait_healthy api 120
 wait_healthy web 120
