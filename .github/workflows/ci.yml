@@ -298,24 +298,25 @@ jobs:
           test -n "$img"
           echo "::notice title=Backup::Kho S3 thử nghiệm: $img"
           sudo docker run -d --name hc-minio -p 127.0.0.1:9000:9000 "$img" serve s3 --addr :9000 \
-            --auth-key ci-backup,ci-backup-secret-2026 --vfs-cache-mode writes /data > /tmp/s3run.log 2>&1 \
+            --auth-key ci-backup,ci-backup-secret-2026 /data > /tmp/s3run.log 2>&1 \
             || { echo "::error title=Backup::Không chạy được kho S3: $(tail -n2 /tmp/s3run.log | tr '\n' ' ')"; exit 1; }
           sudo docker exec hc-minio mkdir -p /data/happyclass-ci 2>/dev/null || true
           for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:9000/ && break; sleep 1; done
           keep="HC_DATA_DIR,BACKUP_DOCKER_NETWORK"
           conf() { sudo --preserve-env=$keep BACKUP_PROVIDER=s3 BACKUP_ENDPOINT=http://127.0.0.1:9000 BACKUP_BUCKET=happyclass-ci \
             BACKUP_ACCESS_KEY_ID=ci-backup BACKUP_SECRET_ACCESS_KEY=ci-backup-secret-2026 bash ops/configure-backup.sh </dev/null; }
-          conf > /tmp/bk-conf.log 2>&1 || { cat /tmp/bk-conf.log; exit 1; }
+          fail() { echo "::error title=$1::$(tail -n 15 "$2" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; exit 1; }
+          conf > /tmp/bk-conf.log 2>&1 || fail configure-backup /tmp/bk-conf.log
           test "$(sudo stat -c %a "$HC_DATA_DIR/backup/backup.env")" = 600
           pw1="$(sudo grep '^RESTIC_PASSWORD=' "$HC_DATA_DIR/backup/backup.env" | cut -d= -f2-)"; echo "::add-mask::$pw1"
           # Chạy lại cấu hình: giữ nguyên mật khẩu mã hoá, kho vẫn mở được
-          conf > /tmp/bk-conf2.log 2>&1 || { cat /tmp/bk-conf2.log; exit 1; }
+          conf > /tmp/bk-conf2.log 2>&1 || fail configure-backup-2 /tmp/bk-conf2.log
           grep -q 'mở được bằng mật khẩu hiện tại' /tmp/bk-conf2.log
           test "$(sudo grep '^RESTIC_PASSWORD=' "$HC_DATA_DIR/backup/backup.env" | cut -d= -f2-)" = "$pw1"
           sudo --preserve-env=$keep bash ops/backup-offsite.sh --check 2>&1 | tee /tmp/bk1.log
           grep -q 'Kho toàn vẹn' /tmp/bk1.log
           sudo test -f "$HC_DATA_DIR/backup/last-success"
-          sudo --preserve-env=$keep bash ops/backup-offsite.sh > /tmp/bk2.log 2>&1 || { cat /tmp/bk2.log; exit 1; }
+          sudo --preserve-env=$keep bash ops/backup-offsite.sh > /tmp/bk2.log 2>&1 || fail backup-offsite-2 /tmp/bk2.log
           sudo --preserve-env=$keep bash ops/configure-backup.sh --check | tee /tmp/bk-snap.log
           grep -q 'happyclass' /tmp/bk-snap.log
           sudo --preserve-env=$keep bash ops/restore-test.sh 2>&1 | tee /tmp/restore.log
