@@ -73,7 +73,10 @@ log "Nạp dữ liệu nền (idempotent, không ghi đè dữ liệu đã sửa
 compose run --rm seed
 
 log "Khởi động API và Web"
-export GIT_COMMIT="$(git -c safe.directory="$REPO_DIR" -C "$REPO_DIR" rev-parse --short HEAD 2>/dev/null || true)"
+# Mã commit đang chạy (hiện ở Admin → Tình trạng hệ thống)
+if GIT_COMMIT="$(git -c safe.directory="$REPO_DIR" -C "$REPO_DIR" rev-parse --short HEAD 2>&1)"; then ok "Phiên bản $GIT_COMMIT"
+else warn "Không đọc được commit: $GIT_COMMIT"; GIT_COMMIT=""; fi
+export GIT_COMMIT
 compose up -d tts api web
 wait_healthy api 120
 wait_healthy web 120
