@@ -378,3 +378,9 @@ label.check input{margin-top:3px;width:18px;height:18px}
 .danger-panel{border:1px solid #f4c7c3}.danger-panel h2{color:#b42318}
 .legal-doc{max-width:760px;margin:0 auto;line-height:1.65}.legal-doc h2{font-size:1.1rem;margin-top:1.6em}.legal-draft{background:#fff7e6;border:1px solid #f5d48b;border-radius:10px;padding:10px 14px}.legal-links{display:block;margin:-4px 0 6px}
 .voice-missing{margin:6px 12px;padding:8px 12px;border-radius:10px;background:#fff7e6;border:1px solid #f5d48b;font-size:.95rem}
+.status-list{list-style:none;padding:0;display:grid;gap:10px}
+.status-item{display:flex;gap:12px;align-items:flex-start;background:#fff;border:1px solid #e3e7ef;border-left:5px solid #2e9d5b;border-radius:10px;padding:12px 14px}
+.status-item.warn{border-left-color:#d99a00}.status-item.error{border-left-color:#c62828}
+.status-item p{margin:4px 0 0;color:#4a5160}
+.status-badge{flex:none;font-size:.8rem;font-weight:700;padding:2px 8px;border-radius:999px;background:#e6f4ec;color:#1d6b3d}
+.status-item.warn .status-badge{background:#fff4d6;color:#7a5600}.status-item.error .status-badge{background:#fde7e7;color:#9b1c1c}

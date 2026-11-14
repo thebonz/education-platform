@@ -24,6 +24,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         {can('billing.read') && <Link href={`${base}/billing`}>Thanh toán</Link>}
         {can('products.read') && <Link href={`${base}/products`}>Sản phẩm & tên miền</Link>}
         {can('audit.read') && <Link href={`${base}/audit`}>Nhật ký thao tác</Link>}
+        {can('system.read') && <Link href={`${base}/system`} data-testid="nav-system">Tình trạng hệ thống</Link>}
         <div className="admin-me"><span>{me.displayName}</span><small>{me.roles.join(', ')}</small><LogoutButton label="Đăng xuất" redirectTo={`${base}/login`} /></div>
       </aside>
       <section className="admin-main">{children}</section>

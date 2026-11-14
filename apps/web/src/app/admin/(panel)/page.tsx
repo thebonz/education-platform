@@ -26,7 +26,6 @@ export default async function AdminHome() {
     <>
       <h1 data-testid="admin-dashboard">Tổng quan</h1>
       <div className="stat-grid">{tiles.map(([label, value]) => <div className="stat-tile" key={label}><span>{label}</span><b>{value}</b></div>)}</div>
-      <p className="muted">Doanh thu, đơn hàng và membership sẽ hiển thị khi mở giai đoạn thanh toán.</p>
     </>
   );
 }

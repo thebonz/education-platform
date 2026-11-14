@@ -21,7 +21,7 @@ BEFORE="$(snapshot_other_projects)"
 ok "Đã ghi trạng thái CMMS/Airdrop trước khi triển khai ($(printf '%s\n' "$BEFORE" | grep -c . || true) container)"
 
 log "Thư mục dữ liệu: $DATA_DIR"
-mkdir -p "$DATA_DIR"/{database/postgres,backups,logs,media/english,media/vietnamese,media/assets,media/tts}
+mkdir -p "$DATA_DIR"/{database/postgres,backups,logs,media/english,media/vietnamese,media/assets,media/tts,status}
 chmod 700 "$DATA_DIR/backups"
 # API chạy bằng user node (uid 1000) và ghi file tải lên vào đây; chỉ đổi quyền đúng thư mục này.
 chown 1000:1000 "$DATA_DIR/media/assets" "$DATA_DIR/media/tts"
@@ -73,6 +73,7 @@ log "Nạp dữ liệu nền (idempotent, không ghi đè dữ liệu đã sửa
 compose run --rm seed
 
 log "Khởi động API và Web"
+export GIT_COMMIT="$(git -c safe.directory="$REPO_DIR" -C "$REPO_DIR" rev-parse --short HEAD 2>/dev/null || true)"
 compose up -d tts api web
 wait_healthy api 120
 wait_healthy web 120

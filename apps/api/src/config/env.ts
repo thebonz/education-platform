@@ -43,6 +43,10 @@ const schema = z.object({
   // Đọc tiếng Việt: địa chỉ dịch vụ tts nội bộ (để trống = tắt, trình duyệt dùng giọng của máy) và thư mục lưu đệm
   TTS_URL: z.union([z.string().url(), z.literal('')]).default(''),
   TTS_CACHE_DIR: z.string().min(1).default('./data/tts'),
+  // Thư mục chứa file trạng thái do script vận hành ghi (sao lưu, diễn tập khôi phục); chỉ đọc
+  STATUS_DIR: z.string().default(''),
+  // Mã commit đang chạy (ops/deploy-test.sh đặt)
+  GIT_COMMIT: z.string().max(40).default(''),
   MEDIA_MAX_IMAGE_BYTES: z.coerce.number().int().min(10_000).max(20_000_000).default(3_000_000),
   MEDIA_MAX_AUDIO_BYTES: z.coerce.number().int().min(10_000).max(50_000_000).default(5_000_000),
 

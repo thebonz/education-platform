@@ -11,6 +11,7 @@ export const PERMISSIONS = [
   'account.self',
   'admin.access',
   'stats.read',
+  'system.read',
   'users.read',
   'users.lock',
   'users.sessions.revoke',
