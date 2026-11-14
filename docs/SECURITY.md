@@ -43,13 +43,11 @@ Thêm một route công khai mới thì phải thêm có chủ đích vào `PUBL
 
 ## Lỗ hổng thư viện còn lại (npm audit, 11/2026)
 
-Các bản vá cùng major đã được áp tự động: multer 2.5.0, Next.js 15.5.29, @nestjs/platform-express 11.2.9. nodemailer đã nâng lên 10.5 để vá lỗi chèn lệnh SMTP/header, và có test gửi mail qua SMTP giả. Còn lại bốn mục, đều cần nâng cấp major:
+Các bản vá cùng major đã được áp tự động: multer 2.5.0, Next.js 15.5.29, @nestjs/platform-express 11.2.9. nodemailer đã nâng lên 10.5 để vá lỗi chèn lệnh SMTP/header, và có test gửi mail qua SMTP giả. postcss (trong Next.js) và deepmerge-ts (trong Prisma CLI) được vá bằng `overrides` trong `package.json`, không cần nâng major. Còn lại:
 
 | Gói | Vì sao chưa nâng | Mức phơi nhiễm thực tế |
 | --- | --- | --- |
 | zod 3 → 4 | Đổi API, dùng khắp schema game và trình soạn | Thấp: request JSON bị giới hạn 100 KB, mảng trong schema đều có giới hạn độ dài |
-| prisma 6 → 7 (`@prisma/config`, `deepmerge-ts`) | Đổi cách cấu hình và chạy migrate | Thấp: lỗi nằm ở phần đọc cấu hình của CLI, không xử lý dữ liệu người dùng |
-| postcss (qua Next.js 15 → 16) | Next 16 là major | Thấp: chỉ dùng lúc build CSS của chính dự án |
 
 Nên nâng cấp các mục này thành một PR riêng sau khi mở công khai ổn định.
 
