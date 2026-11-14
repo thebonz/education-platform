@@ -98,6 +98,20 @@ jobs:
       - name: Build API
         run: npm run build -w @happyclass/api
 
+      - name: Lỗ hổng thư viện (npm audit, chỉ dependency chạy production)
+        run: |
+          npm audit --omit=dev --json > /tmp/audit.json 2>/dev/null || true
+          node -e "
+            const r = JSON.parse(require('fs').readFileSync('/tmp/audit.json', 'utf8') || '{}');
+            const v = (r.metadata && r.metadata.vulnerabilities) || {};
+            const fix = (x) => x.fixAvailable === true ? 'có bản vá cùng major' : x.fixAvailable ? 'cần ' + x.fixAvailable.name + '@' + x.fixAvailable.version + (x.fixAvailable.isSemVerMajor ? ' (major)' : '') : 'chưa có bản vá';
+            const why = (x) => (x.via || []).map((v) => typeof v === 'string' ? 'qua ' + v : v.title + ' ' + v.range).join('; ');
+            const list = Object.values(r.vulnerabilities || {}).filter((x) => ['high', 'critical'].includes(x.severity)).map((x) => x.name + ' (' + x.severity + ', ' + fix(x) + ': ' + why(x) + ')');
+            console.log('::notice title=npm audit::critical ' + (v.critical || 0) + ', high ' + (v.high || 0) + ', moderate ' + (v.moderate || 0) + ', low ' + (v.low || 0));
+            for (const l of list) console.log('::warning title=npm audit::' + l.slice(0, 900));
+            process.exit(v.critical ? 1 : 0);
+          "
+
       - name: Test API (unit + e2e với PostgreSQL thật)
         run: |
           set +e
@@ -270,6 +284,59 @@ jobs:
           sudo --preserve-env=HC_DATA_DIR bash ops/backup-db.sh ci
           sudo ls -l /tmp/hc-data/backups/
           sudo sh -c 'cd /tmp/hc-data/backups && sha256sum -c *.sha256'
+
+      - name: Sao lưu mã hoá ra kho S3 (rclone serve s3 thay cho R2/B2), diễn tập khôi phục, lịch systemd
+        env:
+          BACKUP_DOCKER_NETWORK: host
+        run: |
+          trap 'echo "::error title=backup-step::lỗi ở dòng $LINENO: $BASH_COMMAND"; for f in /tmp/bk*.log /tmp/restore.log; do [ -f "$f" ] && echo "::error title=$(basename $f)::$(tail -n 25 "$f" | sed -e "s/%/%25/g" | awk "BEGIN{ORS=\"%0A\"} {print}")"; done' ERR
+          # Kho S3 thử nghiệm (chỉ dùng trong CI): rclone serve s3 trên thư mục trong container
+          img=""; for c in rclone/rclone:1.68.2 rclone/rclone:1.69.1 rclone/rclone:latest; do
+            if sudo docker pull -q "$c" > /tmp/pull.log 2>&1; then img="$c"; break; fi
+            echo "::warning title=Backup::Không tải được $c: $(tail -n1 /tmp/pull.log)"
+          done
+          test -n "$img"
+          echo "::notice title=Backup::Kho S3 thử nghiệm: $img"
+          sudo docker run -d --name hc-minio -p 127.0.0.1:9000:9000 "$img" serve s3 --addr :9000 \
+            --auth-key ci-backup,ci-backup-secret-2026 /data > /tmp/s3run.log 2>&1 \
+            || { echo "::error title=Backup::Không chạy được kho S3: $(tail -n2 /tmp/s3run.log | tr '\n' ' ')"; exit 1; }
+          sudo docker exec hc-minio mkdir -p /data/happyclass-ci 2>/dev/null || true
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:9000/ && break; sleep 1; done
+          keep="HC_DATA_DIR,BACKUP_DOCKER_NETWORK"
+          conf() { sudo --preserve-env=$keep BACKUP_PROVIDER=s3 BACKUP_ENDPOINT=http://127.0.0.1:9000 BACKUP_BUCKET=happyclass-ci \
+            BACKUP_ACCESS_KEY_ID=ci-backup BACKUP_SECRET_ACCESS_KEY=ci-backup-secret-2026 bash ops/configure-backup.sh </dev/null; }
+          fail() { echo "::error title=$1::$(tail -n 15 "$2" | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"; exit 1; }
+          conf > /tmp/bk-conf.log 2>&1 || fail configure-backup /tmp/bk-conf.log
+          test "$(sudo stat -c %a "$HC_DATA_DIR/backup/backup.env")" = 600
+          pw1="$(sudo grep '^RESTIC_PASSWORD=' "$HC_DATA_DIR/backup/backup.env" | cut -d= -f2-)"; echo "::add-mask::$pw1"
+          # Chạy lại cấu hình: giữ nguyên mật khẩu mã hoá, kho vẫn mở được
+          conf > /tmp/bk-conf2.log 2>&1 || fail configure-backup-2 /tmp/bk-conf2.log
+          grep -q 'mở được bằng mật khẩu hiện tại' /tmp/bk-conf2.log
+          test "$(sudo grep '^RESTIC_PASSWORD=' "$HC_DATA_DIR/backup/backup.env" | cut -d= -f2-)" = "$pw1"
+          sudo --preserve-env=$keep bash ops/backup-offsite.sh --check 2>&1 | tee /tmp/bk1.log
+          grep -q 'Kho toàn vẹn' /tmp/bk1.log
+          sudo test -f "$HC_DATA_DIR/backup/last-success"
+          sudo --preserve-env=$keep bash ops/backup-offsite.sh > /tmp/bk2.log 2>&1 || fail backup-offsite-2 /tmp/bk2.log
+          sudo --preserve-env=$keep bash ops/configure-backup.sh --check | tee /tmp/bk-snap.log
+          grep -q 'happyclass' /tmp/bk-snap.log
+          sudo --preserve-env=$keep bash ops/restore-test.sh 2>&1 | tee /tmp/restore.log
+          grep -q 'Diễn tập khôi phục thành công' /tmp/restore.log
+          grep -q '1 file media, tất cả khớp SHA-256' /tmp/restore.log
+          # Dọn sạch: không còn container hay thư mục diễn tập
+          test -z "$(sudo docker ps -aq --filter label=happyclass.restore-test=1)"
+          test -z "$(sudo find "$HC_DATA_DIR/backup" -maxdepth 1 -name 'restore-test-*')"
+          # Dữ liệu trên kho đã mã hoá: không thấy email hay mật khẩu database ở dạng rõ
+          sudo docker cp hc-minio:/data /tmp/minio-data
+          dbpw="$(sudo grep '^POSTGRES_PASSWORD=' .env | cut -d= -f2-)"; echo "::add-mask::$dbpw"
+          ! sudo grep -rqa 'admin@happyclass.test' /tmp/minio-data
+          ! sudo grep -rqaF "$dbpw" /tmp/minio-data
+          # Lịch systemd: cài, liệt kê, gỡ
+          sudo --preserve-env=HC_DATA_DIR bash ops/install-backup-timer.sh
+          systemctl list-timers 'happyclass-*' --no-pager | grep -q happyclass-backup.timer
+          sudo bash ops/install-backup-timer.sh --remove
+          test ! -f /etc/systemd/system/happyclass-backup.timer
+          sudo docker rm -f hc-minio > /dev/null
+          echo "::notice title=Backup::Sao lưu restic lên S3, kiểm tra toàn vẹn, diễn tập khôi phục (DB + media) khớp; dữ liệu trên kho đã mã hoá; lịch systemd cài/gỡ được"
 
       - name: Triển khai lần 2 (cập nhật, phải idempotent và tự sao lưu trước migrate)
         run: |

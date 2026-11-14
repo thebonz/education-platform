@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
-import { PasswordPanel, ProfilePanel, SessionsPanel, VerifyBanner } from '@/components/account-panels';
+import { DeleteAccountPanel, PasswordPanel, ProfilePanel, SessionsPanel, VerifyBanner } from '@/components/account-panels';
 import { SiteHeader } from '@/components/site-header';
 import { fill, formatDate, formatVnd, type BillingMe } from '@/lib/billing';
 import { dict } from '@/lib/i18n';
@@ -76,6 +76,7 @@ export default async function AccountPage({ params }: { params: Promise<{ produc
           <ProfilePanel site={product} displayName={me.displayName} />
           <PasswordPanel site={product} />
           <SessionsPanel site={product} sessions={sessions.ok ? sessions.data.sessions : []} logoutTarget={`${base}/login`} />
+          <DeleteAccountPanel site={product} afterDelete={`${base}/`} />
         </div>
       </section>
     </main>

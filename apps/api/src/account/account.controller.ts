@@ -1,4 +1,8 @@
-import { Body, Controller, Delete, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Patch, Put, Req } from '@nestjs/common';
+import { randomBytes } from 'node:crypto';
+import { BadRequestException, Body, Controller, Delete, ForbiddenException, Get, HttpCode, NotFoundException, Param, ParseUUIDPipe, Patch, Post, Put, Req, Res } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
+import type { Response } from 'express';
+import { hashPassword, verifyPassword } from '../auth/crypto';
 import { z } from 'zod';
 import { AuditService } from '../audit/audit.service';
 import { SessionService } from '../auth/session.service';
@@ -9,6 +13,7 @@ import { parse, text } from '../common/validation';
 import { PrismaService } from '../prisma/prisma.service';
 
 const profileSchema = z.object({ displayName: text(1, 80) });
+const deleteSchema = z.object({ password: z.string().min(1).max(200), confirm: z.enum(['XOA', 'DELETE']) });
 
 const gameCardSelect = {
   id: true, slug: true, title: true, templateKey: true, accessLevel: true,
@@ -41,6 +46,44 @@ export class AccountController {
     await this.prisma.user.update({ where: { id: auth.userId }, data: { displayName } });
     await this.audit.record({ actorId: auth.userId, action: 'account.profile_updated', entityType: 'user', entityId: auth.userId, ip: clientInfo(req).ip });
     return { ok: true };
+  }
+
+  /**
+   * Người dùng tự xoá tài khoản. Xoá dữ liệu cá nhân và dữ liệu học tập (lớp, học sinh, kết quả, yêu thích,
+   * đồng ý điều khoản, phiên). Đơn hàng và giao dịch ngân hàng là chứng từ kế toán nên được giữ lại,
+   * gắn với một tài khoản đã ẩn danh (không còn email, tên).
+   * Tài khoản nhân sự (có vai trò ngoài "member") phải do quản trị viên gỡ quyền trước.
+   */
+  @Post('delete')
+  @HttpCode(204)
+  @Throttle({ default: { limit: 5, ttl: 60_000 } })
+  async deleteAccount(@Body() body: unknown, @CurrentAuth() auth: AuthContext, @Req() req: AppRequest, @Res({ passthrough: true }) res: Response) {
+    const { password } = parse(deleteSchema, body);
+    if (auth.roles.some((r) => r !== 'member')) throw new ForbiddenException({ error: 'staff_account' });
+    const user = await this.prisma.user.findUniqueOrThrow({ where: { id: auth.userId }, select: { passwordHash: true } });
+    if (!(await verifyPassword(user.passwordHash, password))) throw new BadRequestException({ error: 'invalid_password' });
+    const id = auth.userId;
+    const unusable = await hashPassword(randomBytes(32).toString('base64url'));
+    await this.prisma.$transaction([
+      this.prisma.classroom.deleteMany({ where: { ownerId: id } }),
+      this.prisma.gameFavorite.deleteMany({ where: { userId: id } }),
+      this.prisma.gameSession.deleteMany({ where: { userId: id } }),
+      this.prisma.consent.deleteMany({ where: { userId: id } }),
+      this.prisma.authToken.deleteMany({ where: { userId: id } }),
+      this.prisma.userSession.deleteMany({ where: { userId: id } }),
+      this.prisma.entitlement.deleteMany({ where: { userId: id } }),
+      this.prisma.userRole.deleteMany({ where: { userId: id } }),
+      this.prisma.order.updateMany({ where: { userId: id, status: 'PENDING' }, data: { status: 'CANCELLED' } }),
+      this.prisma.user.update({
+        where: { id },
+        data: {
+          email: `deleted-${id}@deleted.invalid`, displayName: 'Tài khoản đã xoá', passwordHash: unusable,
+          emailVerifiedAt: null, isActive: false, lockedReason: 'deleted_by_user', lastLoginAt: null, deletedAt: new Date(),
+        },
+      }),
+    ]);
+    await this.audit.record({ actorId: id, action: 'account.deleted', entityType: 'user', entityId: id, ip: clientInfo(req).ip });
+    this.sessions.clearCookie(res);
   }
 
   @Get('sessions')

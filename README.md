@@ -88,6 +88,7 @@ docker-compose.yml           môi trường chạy thử cách ly trên DL380
 - **Nội dung game:** API danh sách không bao giờ trả nội dung game. Nội dung chỉ trả qua `/play` sau khi `AccessService` cho phép.
 - **Dữ liệu trẻ em:** tài khoản do người lớn (giáo viên/phụ huynh) tạo; hệ thống lưu bằng chứng đồng ý (bảng `consents`); học sinh không cần email.
 - **Bí mật:** chỉ đặt trong `.env`, không có trong Git. PostgreSQL không publish cổng ra máy chủ.
+- **Kiểm thử bảo mật tự động, CSP, xoá tài khoản, sao lưu mã hoá:** xem `docs/SECURITY.md`, `docs/BACKUP.md`; danh sách trước khi mở công khai: `docs/GO-LIVE.md`.
 
 ## Chạy trên máy chủ (chạy thử nội bộ)
 
@@ -107,6 +108,10 @@ Cập nhật phiên bản mới: `sudo git pull && sudo bash ops/deploy-test.sh`
 | Script | Việc làm |
 | --- | --- |
 | `ops/deploy-test.sh` | Triển khai/cập nhật, idempotent; tạo `.env` nếu chưa có (không ghi đè); kiểm tra cổng, health, các trang chính |
+| `ops/configure-backup.sh` | Cấu hình sao lưu mã hoá lên Cloudflare R2 / Backblaze B2 (xem `docs/BACKUP.md`) |
+| `ops/backup-offsite.sh` | Sao lưu database + media + `.env` lên kho mã hoá, dọn bản cũ |
+| `ops/restore-test.sh` | Diễn tập khôi phục vào PostgreSQL tạm, đối chiếu số dòng và SHA-256 media |
+| `ops/install-backup-timer.sh` | Lên lịch systemd: sao lưu 02:30 hằng ngày, diễn tập thứ Hai |
 | `ops/configure-payments.sh` | Bật/tắt thanh toán (sandbox → live), đặt tài khoản nhận tiền và khóa webhook trong `.env` |
 | `ops/create-admin.sh` | Tạo Super Admin hoặc tài khoản nhân sự (`--role content_reviewer`, `--promote`) |
 | `ops/enable-domain.sh` | Chuyển sang chế độ tên miền (sao lưu `.env`), bật Cloudflare Tunnel riêng của HappyClass |

@@ -39,6 +39,11 @@ jobs:
       - name: Đồng bộ lockfile
         run: npm install --package-lock-only --no-audit --no-fund
 
+      - name: Vá lỗ hổng thư viện trong phạm vi semver (npm audit fix, không --force)
+        run: |
+          npm audit fix --package-lock-only --no-fund > /tmp/fix.log 2>&1 || true
+          echo "::notice title=npm audit fix::$(grep -E 'changed|added|removed|found|vulnerabilit' /tmp/fix.log | tr '\n' ' ' | cut -c1-500)"
+
       - name: Sinh migration nếu schema lệch
         run: |
           npm ci --no-audit --no-fund

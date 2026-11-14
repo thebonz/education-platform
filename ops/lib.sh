@@ -55,3 +55,32 @@ set_env() { # set_env KEY VALUE – thay hoặc thêm một dòng trong .env, kh
   fi
   cat "$tmp" > .env; rm -f "$tmp"
 }
+
+# ---- Sao lưu ngoài máy chủ (restic chạy trong container, không cài gì lên máy chủ) ----
+RESTIC_IMAGE="${RESTIC_IMAGE:-restic/restic:0.17.3}"
+BACKUP_DIR="$DATA_DIR/backup"
+BACKUP_ENV="$BACKUP_DIR/backup.env"
+# Bảng đếm để đối chiếu khi diễn tập khôi phục
+COUNT_TABLES="users games game_versions orders entitlements bank_transactions classrooms class_students class_plays media_assets audit_logs"
+
+load_backup_env() {
+  [ -f "$BACKUP_ENV" ] || die "Chưa cấu hình sao lưu. Chạy: sudo bash ops/configure-backup.sh"
+  set -a; # shellcheck disable=SC1090
+  . "$BACKUP_ENV"; set +a
+}
+
+# restic <lệnh…> – chạy restic trong container dùng một lần; thông tin đăng nhập truyền qua --env-file (không hiện trên dòng lệnh)
+restic() {
+  mkdir -p "$BACKUP_DIR/cache"
+  docker run --rm -i --env-file "$BACKUP_ENV" \
+    ${BACKUP_DOCKER_NETWORK:+--network "$BACKUP_DOCKER_NETWORK"} \
+    -v "$BACKUP_DIR/cache:/cache" ${RESTIC_MOUNTS:-} \
+    "$RESTIC_IMAGE" --cache-dir /cache "$@"
+}
+
+db_counts() { # in "bảng số_dòng" cho các bảng quan trọng của database đang chạy
+  local t
+  for t in $COUNT_TABLES; do
+    printf '%s %s\n' "$t" "$(compose exec -T postgres sh -c "psql -U \"\$POSTGRES_USER\" -d \"\$POSTGRES_DB\" -tAc 'SELECT count(*) FROM $t'" | tr -d '\r ')"
+  done
+}

@@ -410,6 +410,8 @@ model User {
   isActive        Boolean      @default(true) @map("is_active")
   lockedReason    String?      @map("locked_reason")
   lastLoginAt     DateTime?    @map("last_login_at")
+  /// Người dùng tự xoá tài khoản: dữ liệu cá nhân đã bị xoá/ẩn danh, chỉ còn chứng từ thanh toán.
+  deletedAt       DateTime?    @map("deleted_at")
   roles           UserRole[]
   sessions        UserSession[]
   tokens          AuthToken[]
