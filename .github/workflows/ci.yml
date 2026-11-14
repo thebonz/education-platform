@@ -285,17 +285,23 @@ jobs:
           sudo ls -l /tmp/hc-data/backups/
           sudo sh -c 'cd /tmp/hc-data/backups && sha256sum -c *.sha256'
 
-      - name: Sao lưu mã hoá ra kho S3 (MinIO thay cho R2/B2), diễn tập khôi phục, lịch systemd
+      - name: Sao lưu mã hoá ra kho S3 (rclone serve s3 thay cho R2/B2), diễn tập khôi phục, lịch systemd
         env:
           BACKUP_DOCKER_NETWORK: host
         run: |
           trap 'echo "::error title=backup-step::lỗi ở dòng $LINENO: $BASH_COMMAND"; for f in /tmp/bk*.log /tmp/restore.log; do [ -f "$f" ] && echo "::error title=$(basename $f)::$(tail -n 25 "$f" | sed -e "s/%/%25/g" | awk "BEGIN{ORS=\"%0A\"} {print}")"; done' ERR
-          # Kho S3 thử nghiệm (chỉ dùng trong CI)
-          for img in minio/minio:RELEASE.2025-04-22T22-12-26Z minio/minio:latest; do sudo docker pull -q "$img" > /dev/null 2>&1 && break; done
+          # Kho S3 thử nghiệm (chỉ dùng trong CI): rclone serve s3 trên thư mục trong container
+          img=""; for c in rclone/rclone:1.68.2 rclone/rclone:1.69.1 rclone/rclone:latest; do
+            if sudo docker pull -q "$c" > /tmp/pull.log 2>&1; then img="$c"; break; fi
+            echo "::warning title=Backup::Không tải được $c: $(tail -n1 /tmp/pull.log)"
+          done
+          test -n "$img"
           echo "::notice title=Backup::Kho S3 thử nghiệm: $img"
-          sudo docker run -d --name hc-minio -p 127.0.0.1:9000:9000 -e MINIO_ROOT_USER=ci-backup -e MINIO_ROOT_PASSWORD=ci-backup-secret-2026 \
-            "$img" server /data > /dev/null
-          for i in $(seq 1 30); do curl -fsS http://127.0.0.1:9000/minio/health/live && break; sleep 1; done
+          sudo docker run -d --name hc-minio -p 127.0.0.1:9000:9000 "$img" serve s3 --addr :9000 \
+            --auth-key ci-backup,ci-backup-secret-2026 --vfs-cache-mode writes /data > /tmp/s3run.log 2>&1 \
+            || { echo "::error title=Backup::Không chạy được kho S3: $(tail -n2 /tmp/s3run.log | tr '\n' ' ')"; exit 1; }
+          sudo docker exec hc-minio mkdir -p /data/happyclass-ci 2>/dev/null || true
+          for i in $(seq 1 30); do curl -s -o /dev/null http://127.0.0.1:9000/ && break; sleep 1; done
           keep="HC_DATA_DIR,BACKUP_DOCKER_NETWORK"
           conf() { sudo --preserve-env=$keep BACKUP_PROVIDER=s3 BACKUP_ENDPOINT=http://127.0.0.1:9000 BACKUP_BUCKET=happyclass-ci \
             BACKUP_ACCESS_KEY_ID=ci-backup BACKUP_SECRET_ACCESS_KEY=ci-backup-secret-2026 bash ops/configure-backup.sh </dev/null; }
