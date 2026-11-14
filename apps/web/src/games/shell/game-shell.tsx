@@ -28,6 +28,8 @@ export type GameShellProps = {
   preview?: boolean;
   /** Lưu kết quả theo cách riêng (lớp học: gửi về cho giáo viên). Có hàm này thì không lưu vào tài khoản. */
   onResult?: (r: { score: number; maxScore: number; mistakes: number; stars: 1 | 2 | 3; durationMs: number }) => Promise<boolean>;
+  /** Thay link "về thư viện" bằng nút gọi hàm này (trang offline: không điều hướng khi mất mạng). */
+  onBack?: () => void;
   /** Chữ hiện khi onResult lưu xong. */
   savedLabel?: string;
 };
@@ -202,7 +204,9 @@ export function GameShell(props: GameShellProps) {
             : <p className="muted"><Link href={props.loginHref}>{t.loginToSave}</Link></p>}
           <div className="result-actions">
             <button type="button" className="primary-button" onClick={start} data-testid="play-again">↻ {t.playAgain}</button>
-            {!props.preview && <Link className="secondary-button" href={props.libraryHref}>{t.backToLibrary}</Link>}
+            {!props.preview && (props.onBack
+              ? <button type="button" className="secondary-button" onClick={props.onBack}>{t.backToLibrary}</button>
+              : <Link className="secondary-button" href={props.libraryHref}>{t.backToLibrary}</Link>)}
           </div>
         </div>
       )}

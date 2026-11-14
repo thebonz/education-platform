@@ -1,6 +1,6 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import type { TemplateKey } from '@happyclass/game-core/templates';
 import { GameShell } from '@/games/shell/game-shell';
 import type { Product } from '@/lib/sites';
@@ -16,6 +16,17 @@ const MEDIA = 'hc-media-v1';
 const packKey = (p: Product) => `/__hc/offline-pack/${p}.json`;
 const keyKey = '/__hc/offline-public-key.json';
 const LAST_SEEN = 'hc.offline.lastSeen';
+const QUEUE_MAX = 500;
+const queueKey = (p: Product) => `hc.offline.queue.${p}`;
+
+type QueuedResult = { id: string; slug: string; playedAt: number; score: number; maxScore: number; mistakes: number; stars: 1 | 2 | 3; durationMs: number };
+
+function readQueue(p: Product): QueuedResult[] {
+  try { const v = JSON.parse(localStorage.getItem(queueKey(p)) || '[]'); return Array.isArray(v) ? v : []; } catch { return []; }
+}
+function writeQueue(p: Product, q: QueuedResult[]) {
+  try { localStorage.setItem(queueKey(p), JSON.stringify(q.slice(-QUEUE_MAX))); return true; } catch { return false; }
+}
 
 const S = {
   vi: {
@@ -26,6 +37,8 @@ const S = {
     invalid: 'Dữ liệu offline không hợp lệ. Hãy tải lại khi có mạng.', clock: 'Đồng hồ thiết bị bị lùi bất thường. Hãy chỉnh lại ngày giờ rồi mở lại.',
     games: 'game', back: '← Danh sách game', locked: 'Gói đã hết hạn', remove: 'Xoá dữ liệu offline', notSupported: 'Trình duyệt này không hỗ trợ chơi offline.',
     saved: 'Đã tải {n} game. Bạn có thể tắt mạng và mở lại trang này.',
+    resultSaved: 'Đã lưu kết quả trên máy – sẽ tự gửi khi có mạng.', pending: '{n} kết quả chơi offline chờ gửi', sendNow: 'Gửi ngay',
+    synced: 'Đã gửi {n} kết quả chơi offline.', syncLogin: 'Đăng nhập để gửi kết quả chơi offline.',
   },
   en: {
     title: 'Play offline', lead: 'Download games to this device to play without internet (classrooms, travel). The offline licence must be renewed online every 30 days.',
@@ -35,6 +48,8 @@ const S = {
     invalid: 'Offline data is invalid. Please download again when online.', clock: 'The device clock went backwards. Please fix the date and time.',
     games: 'games', back: '← Game list', locked: 'Membership ended', remove: 'Remove offline data', notSupported: 'This browser does not support offline play.',
     saved: 'Downloaded {n} games. You can go offline and reopen this page.',
+    resultSaved: 'Result saved on this device – it will be sent when you are online.', pending: '{n} offline results waiting to be sent', sendNow: 'Send now',
+    synced: 'Sent {n} offline results.', syncLogin: 'Log in to send offline results.',
   },
 };
 
@@ -63,6 +78,44 @@ export function OfflinePlayer({ product, loggedIn }: { product: Product; loggedI
   const [msg, setMsg] = useState<string | null>(null);
   const [playing, setPlaying] = useState<PackGame | null>(null);
   const [supported, setSupported] = useState(true);
+  const [pending, setPending] = useState(0);
+  const syncing = useRef(false);
+
+  /** Gửi hàng đợi kết quả offline lên máy chủ; giữ lại nếu mất mạng hoặc chưa đăng nhập. */
+  const sync = useCallback(async (manual = false) => {
+    const queue = readQueue(product);
+    setPending(queue.length);
+    if (!queue.length || syncing.current || !navigator.onLine) return;
+    syncing.current = true;
+    try {
+      let sent = 0;
+      for (let i = 0; i < queue.length; i += 200) {
+        const batch = queue.slice(i, i + 200);
+        const res = await fetch('/api/offline/sync', {
+          method: 'POST', credentials: 'same-origin', cache: 'no-store',
+          headers: { 'content-type': 'application/json' }, body: JSON.stringify({ product, results: batch }),
+        });
+        if (res.status === 401) { if (manual) setMsg(t.syncLogin); break; }
+        if (!res.ok) break;
+        const data = (await res.json()) as { accepted: string[]; rejected: { id: string }[]; saved: number };
+        const done = new Set([...data.accepted, ...data.rejected.map((r) => r.id)]);
+        writeQueue(product, readQueue(product).filter((r) => !done.has(r.id)));
+        sent += data.saved;
+      }
+      if (sent) setMsg(t.synced.replace('{n}', String(sent)));
+    } catch { /* mất mạng giữa chừng – thử lại lần sau */ } finally {
+      syncing.current = false;
+      setPending(readQueue(product).length);
+    }
+  }, [product, t]);
+
+  const saveResult = useCallback(async (slug: string, r: Omit<QueuedResult, 'id' | 'slug' | 'playedAt'>) => {
+    const item: QueuedResult = { id: crypto.randomUUID(), slug, playedAt: Date.now(), ...r };
+    const ok = writeQueue(product, [...readQueue(product), item]);
+    setPending(readQueue(product).length);
+    if (ok) void sync();
+    return ok;
+  }, [product, sync]);
 
   const load = useCallback(async () => {
     if (!('caches' in window)) { setStatus({ kind: 'none' }); return; }
@@ -85,12 +138,13 @@ export function OfflinePlayer({ product, loggedIn }: { product: Product; loggedI
   useEffect(() => {
     setOnline(navigator.onLine);
     setSupported('caches' in window && 'serviceWorker' in navigator && !!window.crypto?.subtle);
-    const on = () => setOnline(true), off = () => setOnline(false);
+    const on = () => { setOnline(true); void sync(); }, off = () => setOnline(false);
     window.addEventListener('online', on); window.addEventListener('offline', off);
     if ('serviceWorker' in navigator) navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(() => undefined);
     load();
+    void sync();
     return () => { window.removeEventListener('online', on); window.removeEventListener('offline', off); };
-  }, [load]);
+  }, [load, sync]);
 
   async function download() {
     setBusy(true); setMsg(null);
@@ -134,7 +188,8 @@ export function OfflinePlayer({ product, loggedIn }: { product: Product; loggedI
         <button type="button" className="back-link link-button" onClick={() => setPlaying(null)}>{t.back}</button>
         <GameShell product={product} slug={playing.slug} title={playing.title} templateKey={playing.templateKey} data={playing.data}
           instructions={typeof (playing.data as { instructions?: unknown }).instructions === 'string' ? (playing.data as { instructions: string }).instructions : undefined}
-          loggedIn={false} preview libraryHref="#" loginHref="#" />
+          loggedIn={false} libraryHref="#" loginHref="#" savedLabel={t.resultSaved} onBack={() => setPlaying(null)}
+          onResult={(r) => saveResult(playing.slug, r)} />
       </div>
     );
   }
@@ -154,6 +209,12 @@ export function OfflinePlayer({ product, loggedIn }: { product: Product; loggedI
         {pack && <button type="button" className="link-button" onClick={remove}>{t.remove}</button>}
       </div>
       {msg && <p className="form-success" role="status" data-testid="offline-message">{msg}</p>}
+      {pending > 0 && (
+        <p className="muted" data-testid="offline-pending" data-count={pending}>
+          {t.pending.replace('{n}', String(pending))}{' '}
+          {online && <button type="button" className="link-button" onClick={() => sync(true)} data-testid="offline-sync">{t.sendNow}</button>}
+        </p>
+      )}
       {status?.kind === 'none' && <p className="muted" data-testid="offline-none">{t.none}</p>}
       {status?.kind === 'invalid' && <p className="form-error">{t.invalid}</p>}
       {status?.kind === 'clock' && <p className="form-error">{t.clock}</p>}

@@ -144,6 +144,10 @@ model GameSession {
   mistakes   Int      @default(0)
   stars      Int
   durationMs Int      @map("duration_ms")
+  /// Mã do trình duyệt sinh cho kết quả chơi offline – chống gửi trùng khi đồng bộ lại.
+  clientId   String?  @unique @map("client_id") @db.Uuid
+  /// Kết quả chơi khi không có mạng, gửi lên sau (createdAt = lúc chơi).
+  offline    Boolean  @default(false)
   user       User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   game       Game     @relation(fields: [gameId], references: [id], onDelete: Cascade)
   createdAt  DateTime @default(now()) @map("created_at")

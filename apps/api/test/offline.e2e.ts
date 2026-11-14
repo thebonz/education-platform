@@ -1,4 +1,4 @@
-import { createPublicKey, type JsonWebKey, verify } from 'node:crypto';
+import { createPublicKey, type JsonWebKey, randomUUID, verify } from 'node:crypto';
 import { createTestApp, createUser, login, ORIGIN_EN, TestApp } from './helpers';
 
 const PW = 'Correct-Horse-42';
@@ -82,5 +82,60 @@ describe('Gói chơi offline + giấy phép ký số', () => {
     const res = await t.http().get('/api/offline/pack?product=english').set('Cookie', free).expect(200);
     expect(json).not.toBe(JSON.stringify(content));
     expect(res.body.media).toEqual([`/api/media/${id}`]);
+  });
+
+  describe('đồng bộ kết quả chơi offline', () => {
+    const DAY = 86_400_000;
+    const sync = (cookie: string | null, body: object) => {
+      const r = t.http().post('/api/offline/sync').set('Origin', ORIGIN_EN).send(body);
+      return cookie ? r.set('Cookie', cookie) : r;
+    };
+    const result = (over: Record<string, unknown> = {}) => ({
+      id: randomUUID(), slug: 'alphabet-bingo', playedAt: Date.now() - 2 * DAY, score: 8, maxScore: 10, mistakes: 1, stars: 2, durationMs: 60_000, ...over,
+    });
+
+    it('cần đăng nhập và đúng Origin', async () => {
+      await sync(null, { product: 'english', results: [result()] }).expect(401);
+      await t.http().post('/api/offline/sync').set('Origin', 'https://evil.example').set('Cookie', free).send({ product: 'english', results: [result()] }).expect(403);
+    });
+
+    it('lưu kết quả với thời điểm chơi thật; gửi lại không bị trùng', async () => {
+      const a = result();
+      const b = result({ slug: 'team-quiz' }); // game trả phí, tài khoản miễn phí → từ chối
+      const r1 = await sync(free, { product: 'english', results: [a, b] }).expect(200);
+      expect(r1.body).toEqual({ accepted: [a.id], rejected: [{ id: b.id, reason: 'membership_required' }], saved: 1 });
+      const row = await t.prisma.gameSession.findUniqueOrThrow({ where: { clientId: a.id } });
+      expect(row.offline).toBe(true);
+      expect(row.createdAt.getTime()).toBe(a.playedAt);
+      const r2 = await sync(free, { product: 'english', results: [a] }).expect(200);
+      expect(r2.body).toEqual({ accepted: [a.id], rejected: [], saved: 0 });
+      expect(await t.prisma.gameSession.count({ where: { clientId: a.id } })).toBe(1);
+    });
+
+    it('từ chối kết quả quá cũ, ở tương lai, sai sản phẩm hoặc điểm vô lý', async () => {
+      const old = result({ playedAt: Date.now() - 40 * DAY });
+      const future = result({ playedAt: Date.now() + DAY });
+      const vi = result({ slug: 'chon-dau-cau-lop-2' });
+      const r = await sync(free, { product: 'english', results: [old, future, vi] }).expect(200);
+      expect(r.body.rejected).toEqual([
+        { id: old.id, reason: 'too_old' }, { id: future.id, reason: 'in_future' }, { id: vi.id, reason: 'game_not_found' },
+      ]);
+      await sync(free, { product: 'english', results: [result({ score: 11, maxScore: 10 })] }).expect(400);
+      await sync(free, { product: 'english', results: [] }).expect(400);
+    });
+
+    it('game trả phí: nhận nếu lúc chơi còn gói (kể cả gói đã hết hạn sau đó)', async () => {
+      const user = await t.prisma.user.findUniqueOrThrow({ where: { email: 'free@example.com' } });
+      const en = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'english' } });
+      await t.prisma.entitlement.create({ data: { userId: user.id, productId: en.id, startsAt: new Date(Date.now() - 20 * DAY), endsAt: new Date(Date.now() - 5 * DAY), source: 'manual' } });
+      const during = result({ slug: premiumSlug, playedAt: Date.now() - 10 * DAY });
+      const after = result({ slug: premiumSlug, playedAt: Date.now() - 2 * DAY });
+      const r = await sync(free, { product: 'english', results: [during, after] }).expect(200);
+      expect(r.body.accepted).toEqual([during.id]);
+      expect(r.body.rejected).toEqual([{ id: after.id, reason: 'membership_required' }]);
+      // Có gói hiện tại thì nhận
+      const p = result({ slug: premiumSlug });
+      expect((await sync(paid, { product: 'english', results: [p] }).expect(200)).body.saved).toBe(1);
+    });
   });
 });
