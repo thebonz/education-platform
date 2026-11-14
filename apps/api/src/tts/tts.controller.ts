@@ -34,14 +34,8 @@ export class TtsController {
     const key = createHash('sha256').update(`${TTS_VOICE}|${text}`).digest('hex');
     const dir = resolve(env().TTS_CACHE_DIR, key.slice(0, 2));
     const path = join(dir, `${key}.wav`);
-    let wav = await readFile(path).catch(() => null);
-    if (!wav) {
-      wav = await this.synthesize(text);
-      await mkdir(dir, { recursive: true });
-      const tmp = `${path}.${process.pid}.${Date.now()}.tmp`;
-      await writeFile(tmp, wav);
-      await rename(tmp, path);
-    }
+    const cached: Buffer | null = await readFile(path).catch(() => null);
+    const wav: Buffer = cached ?? await this.synthesizeAndStore(text, dir, path);
     res.set({
       'Content-Type': 'audio/wav',
       'Content-Length': String(wav.length),
@@ -52,6 +46,15 @@ export class TtsController {
       ETag: `"${key}"`,
     });
     return new StreamableFile(wav, { type: 'audio/wav', length: wav.length });
+  }
+
+  private async synthesizeAndStore(text: string, dir: string, path: string): Promise<Buffer> {
+    const wav = await this.synthesize(text);
+    await mkdir(dir, { recursive: true });
+    const tmp = `${path}.${process.pid}.${Date.now()}.tmp`;
+    await writeFile(tmp, wav);
+    await rename(tmp, path);
+    return wav;
   }
 
   private async synthesize(text: string): Promise<Buffer> {
