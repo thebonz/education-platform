@@ -59,4 +59,7 @@ done < "$db/counts.txt"
 
 snap="$(restic snapshots --host happyclass --latest 1 --json | tr -d '\n' | grep -o '"time":"[^"]*"' | head -n1 | cut -d'"' -f4)"
 date -Is > "$BACKUP_DIR/last-restore-test"
+mkdir -p "$DATA_DIR/status" && chmod 755 "$DATA_DIR/status"
+printf '{"lastSuccess":"%s","snapshot":"%s","mediaFiles":%s}\n' "$(date -Is)" "${snap:-}" "$n" > "$DATA_DIR/status/restore-test.json"
+chmod 644 "$DATA_DIR/status/restore-test.json"
 ok "Diễn tập khôi phục thành công (bản sao lưu lúc ${snap:-?})"

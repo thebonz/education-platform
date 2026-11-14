@@ -100,3 +100,15 @@ test('super admin xem tổng quan, tìm và khóa người dùng; người bị 
   await other.getByRole('button', { name: 'Log in' }).click();
   await expect(other.locator('.form-error')).toHaveText('This account is locked. Please contact support.');
 });
+
+test('super admin xem tình trạng hệ thống', async ({ page }) => {
+  test.skip(!ADMIN_PASSWORD, 'Chưa đặt E2E_ADMIN_PASSWORD');
+  await page.goto(`${ADMIN}/login`);
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Mật khẩu').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await page.getByTestId('nav-system').click();
+  await expect(page.getByTestId('system-status')).toBeVisible();
+  await expect(page.getByTestId('status-database')).toHaveAttribute('data-level', 'ok');
+  await expect(page.getByTestId('status-backup')).toContainText('Sao lưu ngoài máy chủ');
+});

@@ -47,4 +47,8 @@ fi
 
 rm -rf "$stage"
 date -Is > "$BACKUP_DIR/last-success"
+# Trạng thái cho trang Admin → Tình trạng hệ thống (không chứa bí mật)
+mkdir -p "$DATA_DIR/status" && chmod 755 "$DATA_DIR/status"
+printf '{"lastSuccess":"%s","provider":"%s","mediaFiles":%s}\n' "$(date -Is)" "${BACKUP_PROVIDER:-}" "$media_files" > "$DATA_DIR/status/backup.json"
+chmod 644 "$DATA_DIR/status/backup.json"
 echo "---- $(date -Is) backup-offsite xong"

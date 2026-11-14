@@ -325,7 +325,7 @@ jobs:
         env:
           BACKUP_DOCKER_NETWORK: host
         run: |
-          trap 'echo "::error title=backup-step::lỗi ở dòng $LINENO: $BASH_COMMAND"; for f in /tmp/bk*.log /tmp/restore.log; do [ -f "$f" ] && echo "::error title=$(basename $f)::$(tail -n 25 "$f" | sed -e "s/%/%25/g" | awk "BEGIN{ORS=\"%0A\"} {print}")"; done' ERR
+          trap 'echo "::error title=backup-step::lỗi ở dòng $LINENO: $BASH_COMMAND"; for f in /tmp/bk*.log /tmp/restore.log; do [ -f "$f" ] && echo "::warning title=$(basename $f)::$(tail -n 25 "$f" | sed -e "s/%/%25/g" | awk "BEGIN{ORS=\"%0A\"} {print}")"; done' ERR
           # Kho S3 thử nghiệm (chỉ dùng trong CI): rclone serve s3 trên thư mục trong container
           img=""; for c in rclone/rclone:1.68.2 rclone/rclone:1.69.1 rclone/rclone:latest; do
             if sudo docker pull -q "$c" > /tmp/pull.log 2>&1; then img="$c"; break; fi
@@ -358,6 +358,18 @@ jobs:
           sudo --preserve-env=$keep bash ops/restore-test.sh 2>&1 | tee /tmp/restore.log
           grep -q 'Diễn tập khôi phục thành công' /tmp/restore.log
           grep -q '1 file media, tất cả khớp SHA-256' /tmp/restore.log
+          # Trang Admin → Tình trạng hệ thống thấy được lần sao lưu và diễn tập vừa xong
+          code=$(curl -sS -o /tmp/status.json -w '%{http_code}' -b /tmp/cookies.txt http://127.0.0.1:3100/api/admin/system/status)
+          if [ "$code" != 200 ]; then
+            echo "::error title=Status::HTTP $code $(head -c 400 /tmp/status.json)"
+            echo "::error title=Status-api-log::$(sudo docker compose logs --tail 15 api 2>&1 | grep -iv 'RouterExplorer\|RoutesResolver' | tail -n 8 | sed -e 's/%/%25/g' | awk 'BEGIN{ORS="%0A"} {print}')"
+            exit 1
+          fi
+          node -e "const s=require('/tmp/status.json');const g=(k)=>s.checks.find((c)=>c.key===k);
+            const bad=['backup','restore','database','offline'].filter((k)=>g(k).level!=='ok');
+            if(g('tts').level==='error')bad.push('tts');if(!s.version.commit)bad.push('commit');
+            console.log('::notice title=Status::'+s.checks.map((c)=>c.key+'='+c.level).join(', ')+' · commit '+s.version.commit);
+            if(bad.length){console.log('::error title=Status::'+bad.join(', ')+' '+JSON.stringify(s.checks));process.exit(1)}"
           # Dọn sạch: không còn container hay thư mục diễn tập
           test -z "$(sudo docker ps -aq --filter label=happyclass.restore-test=1)"
           test -z "$(sudo find "$HC_DATA_DIR/backup" -maxdepth 1 -name 'restore-test-*')"
