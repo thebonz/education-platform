@@ -12,6 +12,7 @@ import { clientInfo } from '../common/request';
 import { parse } from '../common/validation';
 import { env } from '../config/env';
 import { PrismaService } from '../prisma/prisma.service';
+import { spokenTexts, TtsService, ttsUrl } from '../tts/tts.service';
 
 const b64url = (b: Buffer) => b.toString('base64url');
 let keyCache: { priv: KeyObject; pubJwk: JsonWebKey; kid: string; ephemeral: boolean } | null = null;
@@ -62,7 +63,10 @@ function mediaUrls(data: unknown, out = new Set<string>()): Set<string> {
  */
 @Controller('offline')
 export class OfflineController {
-  constructor(private readonly prisma: PrismaService, private readonly access: AccessService, private readonly audit: AuditService) {}
+  constructor(
+    private readonly prisma: PrismaService, private readonly access: AccessService, private readonly audit: AuditService,
+    private readonly tts: TtsService,
+  ) {}
 
   @Get('public-key')
   publicKey() {
@@ -102,6 +106,10 @@ export class OfflineController {
       }];
     });
     const media = [...mediaUrls(included.map((g) => g.data))];
+    // Tiếng Việt: kèm file giọng đọc đã tạo sẵn, để chơi offline vẫn nghe giọng Bắc
+    if (product === 'vietnamese') {
+      for (const text of spokenTexts(included.map((g) => g.data))) if (await this.tts.isCached(text)) media.push(ttsUrl(text));
+    }
     const exp = now + days * 86_400_000;
     // Game trả phí offline: tới hạn gói (nhân sự xem trước: theo hạn giấy phép).
     const premiumUntil = staff ? exp : membership ? Math.min(membership.endsAt.getTime(), exp) : null;

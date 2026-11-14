@@ -7,8 +7,10 @@ Game tiếng Việt không dùng giọng đọc của trình duyệt nữa. Trư
 1. Game gọi `GET /api/tts?lang=vi&text=<câu>`.
 2. API tìm file WAV đã tạo trong `HC_DATA_DIR/media/tts`. Tên file là SHA-256 của tên giọng cộng với câu.
 3. Chưa có file thì API nhờ container `tts` tạo. Container này chạy [Piper](https://github.com/rhasspy/piper) trên CPU, không gọi dịch vụ ngoài và không mở cổng ra máy chủ. File tạo xong được lưu lại.
-4. Trình duyệt và service worker lưu file lâu dài, nên khi chơi offline vẫn nghe được những câu đã từng phát.
-5. Nếu dịch vụ `tts` không chạy, trình duyệt dùng giọng tiếng Việt cài trên máy (nếu có). Không có giọng Việt thì game báo rõ, **không** đọc bằng giọng tiếng Anh.
+4. Trình duyệt và service worker lưu file lâu dài.
+5. **Tạo sẵn:** 20 giây sau khi API khởi động, rồi cứ 6 giờ một lần, API tạo trước âm thanh cho mọi câu của game tiếng Việt đã xuất bản. Mỗi lần chỉ tạo một câu để không chiếm CPU; câu đã có thì bỏ qua.
+6. **Offline:** gói tải về ở trang `/offline` có kèm file giọng đọc của các game, nên khi mất mạng vẫn nghe giọng Bắc.
+7. Nếu dịch vụ `tts` không chạy, trình duyệt dùng giọng tiếng Việt cài trên máy (nếu có). Không có giọng Việt thì game báo rõ, **không** đọc bằng giọng tiếng Anh.
 
 ## Giọng
 
@@ -30,4 +32,4 @@ Piper và mô hình đều được kiểm tra SHA-256 khi build image. Khi buil
 ## Giới hạn
 
 - Giọng tổng hợp vẫn chưa tự nhiên bằng người thu âm. Với các mục nghe quan trọng, sau này nên tải file thu âm của giáo viên qua thư viện media.
-- Câu chưa từng phát khi có mạng thì chưa có trong bộ nhớ máy, nên lúc offline sẽ dùng giọng của máy.
+- Câu giáo viên vừa sửa trong lớp học có âm thanh ở lần phát đầu tiên khi có mạng. Lần tạo sẵn chỉ quét game đã xuất bản, không quét bản sao của lớp.

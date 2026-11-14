@@ -1,41 +1,31 @@
-import { createHash } from 'node:crypto';
-import { mkdir, readFile, rename, writeFile } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
-import { Controller, Get, Logger, Query, Res, ServiceUnavailableException, StreamableFile } from '@nestjs/common';
+import { Controller, Get, Query, Res, StreamableFile } from '@nestjs/common';
 import { Throttle } from '@nestjs/throttler';
 import type { Response } from 'express';
 import { z } from 'zod';
 import { parse } from '../common/validation';
-import { env } from '../config/env';
+import { normalizeTtsText, TTS_MAX_CHARS, TTS_TEXT, TtsService } from './tts.service';
 
-/** Phiên bản giọng + tham số: đổi giọng thì đổi chuỗi này để không dùng lại file cũ. */
-export const TTS_VOICE = 'vi_VN-vais1000-medium@1.15';
-
-const normalize = (s: string) => s.normalize('NFC').replace(/\s+/g, ' ').trim();
 const ttsQuery = z.object({
   lang: z.literal('vi'),
   // Chỉ chữ, dấu, số, dấu câu và khoảng trắng; tối đa 300 ký tự (một câu trong game)
-  text: z.string().transform(normalize).pipe(z.string().min(1).max(300).regex(/^[\p{L}\p{M}\p{N}\p{P}\p{Zs}]+$/u, 'Ký tự không hợp lệ')),
+  text: z.string().refine((s) => { const n = normalizeTtsText(s); return n.length >= 1 && n.length <= TTS_MAX_CHARS && TTS_TEXT.test(n); }, 'Câu không hợp lệ'),
 });
 
 /**
- * Đọc tiếng Việt giọng Bắc: tạo file WAV bằng dịch vụ tts nội bộ (Piper), lưu đệm theo SHA-256 của câu,
- * lần sau trả ngay từ ổ đĩa. Trình duyệt và service worker lưu lâu dài vì nội dung không đổi theo URL.
- * Nếu dịch vụ tts không chạy: 503, trình duyệt chuyển sang giọng tiếng Việt của máy (nếu có).
+ * Đọc tiếng Việt giọng Bắc: file WAV do dịch vụ tts nội bộ (Piper) tạo, lưu đệm theo SHA-256 của câu.
+ * Trình duyệt và service worker lưu lâu dài vì nội dung không đổi theo URL.
+ * Dịch vụ tts không chạy: 503, trình duyệt chuyển sang giọng tiếng Việt của máy (nếu có).
  */
 @Controller('tts')
 export class TtsController {
-  private readonly logger = new Logger('TTS');
+  constructor(private readonly tts: TtsService) {}
 
   @Get()
-  @Throttle({ default: { limit: 120, ttl: 60_000 } })
+  // Rộng hơn mức thường vì tải gói offline lấy sẵn âm thanh của mọi game (đa số đã có trong bộ nhớ đệm)
+  @Throttle({ default: { limit: 600, ttl: 60_000 } })
   async speak(@Query() query: unknown, @Res({ passthrough: true }) res: Response) {
     const { text } = parse(ttsQuery, query);
-    const key = createHash('sha256').update(`${TTS_VOICE}|${text}`).digest('hex');
-    const dir = resolve(env().TTS_CACHE_DIR, key.slice(0, 2));
-    const path = join(dir, `${key}.wav`);
-    const cached: Buffer | null = await readFile(path).catch(() => null);
-    const wav: Buffer = cached ?? await this.synthesizeAndStore(text, dir, path);
+    const { key, wav } = await this.tts.get(text);
     res.set({
       'Content-Type': 'audio/wav',
       'Content-Length': String(wav.length),
@@ -46,31 +36,5 @@ export class TtsController {
       ETag: `"${key}"`,
     });
     return new StreamableFile(wav, { type: 'audio/wav', length: wav.length });
-  }
-
-  private async synthesizeAndStore(text: string, dir: string, path: string): Promise<Buffer> {
-    const wav = await this.synthesize(text);
-    await mkdir(dir, { recursive: true });
-    const tmp = `${path}.${process.pid}.${Date.now()}.tmp`;
-    await writeFile(tmp, wav);
-    await rename(tmp, path);
-    return wav;
-  }
-
-  private async synthesize(text: string): Promise<Buffer> {
-    const url = env().TTS_URL;
-    if (!url) throw new ServiceUnavailableException({ error: 'tts_unavailable' });
-    try {
-      const r = await fetch(`${url.replace(/\/$/, '')}/synthesize`, {
-        method: 'POST', headers: { 'content-type': 'application/json' }, body: JSON.stringify({ text }),
-        signal: AbortSignal.timeout(30_000),
-      });
-      const buf = Buffer.from(await r.arrayBuffer());
-      if (!r.ok || buf.subarray(0, 4).toString('latin1') !== 'RIFF') throw new Error(`HTTP ${r.status}`);
-      return buf;
-    } catch (e) {
-      this.logger.warn(`Không tạo được âm thanh: ${(e as Error).message}`);
-      throw new ServiceUnavailableException({ error: 'tts_unavailable' });
-    }
   }
 }

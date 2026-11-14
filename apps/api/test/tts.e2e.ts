@@ -3,7 +3,8 @@ import { createServer, type Server } from 'node:http';
 import type { AddressInfo } from 'node:net';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
-import { createTestApp, TestApp } from './helpers';
+import { TtsService, ttsUrl } from '../src/tts/tts.service';
+import { createTestApp, createUser, login, ORIGIN_VI, TestApp } from './helpers';
 
 /** WAV tối thiểu hợp lệ (44 byte header + 4 byte dữ liệu). */
 function fakeWav(): Buffer {
@@ -75,5 +76,27 @@ describe('Đọc tiếng Việt (TTS)', () => {
     expect(r.body.error).toBe('tts_unavailable');
     expect(readdirSync(cache).length).toBe(1);
     fail = false;
+  });
+
+  it('tạo sẵn âm thanh cho mọi câu của game tiếng Việt; lần hai không tạo lại', async () => {
+    const svc = t.app.get(TtsService);
+    const before = calls.length;
+    const made = await svc.warm();
+    expect(made).toBeGreaterThan(50);
+    expect(calls.length - before).toBe(made);
+    expect(await svc.warm()).toBe(0);
+  });
+
+  it('gói offline tiếng Việt kèm file giọng đọc của các game (đúng URL trình duyệt dùng)', async () => {
+    await createUser(t.prisma, 'teacher-tts@example.com', 'Correct-Horse-42');
+    const cookie = await login(t, 'teacher-tts@example.com', 'Correct-Horse-42', ORIGIN_VI);
+    const pack = await t.http().get('/api/offline/pack?product=vietnamese').set('Cookie', cookie).expect(200);
+    const tone = pack.body.games.find((g: { slug: string }) => g.slug === 'nghe-chon-dau-thanh');
+    const word: string = tone.data.items[0].say ?? tone.data.items[0].word;
+    expect(pack.body.media).toContain(ttsUrl(word));
+    // URL trong gói phát được ngay từ bộ nhớ đệm
+    const before = calls.length;
+    await t.http().get(ttsUrl(word)).expect(200);
+    expect(calls.length).toBe(before);
   });
 });

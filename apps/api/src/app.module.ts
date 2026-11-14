@@ -15,6 +15,7 @@ import { OriginGuard } from './common/origin.guard';
 import { HealthModule } from './health/health.module';
 import { MediaController } from './media/media.controller';
 import { TtsController } from './tts/tts.controller';
+import { TtsService } from './tts/tts.service';
 import { AdminBillingController } from './billing/admin-billing.controller';
 import { BillingController } from './billing/billing.controller';
 import { BillingService } from './billing/billing.service';
@@ -34,6 +35,7 @@ import { PrismaModule } from './prisma/prisma.module';
   ],
   controllers: [CatalogController, AccountController, AdminUsersController, AdminSystemController, AdminContentController, AdminBuilderController, MediaController, BillingController, WebhookController, AdminBillingController, ClassesController, OfflineController, TtsController],
   providers: [
+    TtsService,
     AccessService,
     BillingService,
     // Thứ tự quan trọng: chặn origin lạ → giới hạn tần suất → xác thực/phân quyền.
