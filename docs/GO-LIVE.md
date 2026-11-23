@@ -26,7 +26,7 @@ Hiện HappyClass chạy thử sau Cloudflare Access: chỉ email được mời
 - [ ] **Tài khoản quản trị:**
   - mỗi người một tài khoản, đúng vai trò (`ops/create-admin.sh --role …`);
   - xoá hoặc khoá tài khoản thử.
-- [ ] **Nội dung:** cô Thúy duyệt hết game ở trạng thái *Chờ duyệt*.
+- [ ] **Nội dung:** giáo viên phụ trách duyệt hết game ở trạng thái *Chờ duyệt* trước khi mở công khai.
 
 ## Nên làm
 
@@ -37,7 +37,7 @@ Hiện HappyClass chạy thử sau Cloudflare Access: chỉ email được mời
 - [ ] Theo dõi:
   - Uptime check cho `https://english.happyclass.asia/api/health`;
   - kiểm tra `backup/last-success` không cũ quá 2 ngày.
-- [ ] Thu âm giọng Bắc cho các mục nghe (hiện dùng giọng đọc của trình duyệt).
+- [ ] **Giọng đọc:** kiểm tra nghe thực tế trên máy tính và điện thoại; xác nhận âm thanh Piper giọng Bắc đã cache đủ cho game tiếng Việt và gói offline (xem `docs/VOICE.md`).
 
 ## Mở công khai
 
