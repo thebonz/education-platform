@@ -9,15 +9,16 @@ Hiện HappyClass chạy thử sau Cloudflare Access: chỉ email được mời
   - chạy `ops/install-backup-timer.sh`;
   - có ít nhất một lần `restore-test.sh` thành công (`docs/BACKUP.md`).
 - [ ] **Email:**
-  - có tài khoản SMTP, đặt `MAIL_TRANSPORT=smtp` và `SMTP_*` trong `.env`;
-  - thử đăng ký và quên mật khẩu nhận được email.
+  - chạy `sudo bash ops/configure-mail.sh` để nhập SMTP và gửi email kiểm tra;
+  - nhận được email kiểm tra trong Inbox (hoặc xác minh Spam/Quảng cáo);
+  - thử đăng ký, gửi lại xác thực và quên mật khẩu để xác nhận nhận được email thật (`docs/MAIL.md`).
 - [ ] **Thanh toán:**
   - sandbox đã thử với một giao dịch thật nhỏ (`docs/PAYMENTS.md`);
   - rồi chạy `ops/configure-payments.sh --live`;
   - kiểm tra Cloudflare Access bypass cho `/api/webhooks/`.
 - [ ] **Chế độ production:**
   - đặt `API_NODE_ENV=production`, `COOKIE_SECURE=true` (`enable-domain.sh` đã đặt) trong `.env`;
-  - chạy `sudo bash ops/deploy-test.sh`.
+  - chỉ chuyển production sau khi SMTP thật hoạt động; chạy `sudo bash ops/deploy-test.sh`.
 - [ ] **Pháp lý:**
   - bổ sung tên pháp nhân và địa chỉ vận hành, chính sách hoàn tiền vào `apps/web/src/components/legal.tsx`;
   - bỏ dòng "Bản dự thảo";
