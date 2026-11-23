@@ -10,33 +10,22 @@ Một nền tảng lõi dùng chung (Modular Monolith) cho hai sản phẩm game
 
 Tên miền **không nằm trong code**: đặt bằng biến môi trường `SITE_*_URL`.
 
-## Trạng thái
+## Trạng thái hiện tại
 
-**Giai đoạn 6 – Gói thành viên và thanh toán.**
+**Các giai đoạn phát triển chính đã hoàn thành đến Phase 8.** Dự án hiện chuyển trọng tâm từ xây dựng tính năng sang kiểm thử vận hành và chuẩn bị mở công khai (Phase 9 – Go-live readiness).
 
-- Đã có (giai đoạn 2): tài khoản dùng chung, đăng ký tự do + xác thực email, phiên dùng chung giữa các subdomain, phân quyền (RBAC), admin cơ bản, nhật ký thao tác.
-- Đã có (giai đoạn 3):
-  - Game Shell: đọc to, hiệu ứng, đồng hồ, chế độ đội, toàn màn hình, chơi lại, màn kết quả có sao.
-  - 6 template đầu tiên; 6 game tiếng Anh; thư viện lọc, tìm kiếm không dấu; lưu kết quả, game gần đây, yêu thích; SEO.
-- Đã có (giai đoạn 4):
-  - Lõi tiếng Việt (`packages/game-core/src/vi`): tách tiếng thành âm đầu + vần + thanh, ghép tiếng với dấu đặt đúng chỗ, so sánh không phân biệt kiểu đặt dấu cũ/mới (hoà = hòa), quy tắc c/k, g/gh, ng/ngh, đánh vần giọng Bắc.
-  - 4 template mới: `syllable-builder` (ghép tiếng), `tone-finder` (tìm dấu thanh), `word-sort` (xếp từ vào nhóm), `sentence-order` (sắp xếp câu).
-  - 23 game tiếng Việt từ lớp 1 đến lớp 5, soạn mới theo mạch chủ đề Kết nối tri thức (không chép sách giáo khoa). "Ghép vần" được phát hành lại bằng template ghép tiếng.
-  - Quy trình giáo viên duyệt: mọi nội dung mới ở trạng thái **chờ duyệt** và có ghi chú trên trang game; vai trò `content_reviewer` duyệt hoặc yêu cầu sửa trong admin (mục *Nội dung game*); mỗi phiên bản nội dung mới phải duyệt lại.
-- Đã có (giai đoạn 5):
-  - Admin → *Nội dung game* → **+ Tạo game**: chọn sản phẩm và template, game bắt đầu bằng nội dung mẫu hợp lệ.
-  - Trình soạn: form dựng tự động từ schema của template (lỗi hiện ngay tại ô nhập), chế độ JSON nâng cao, xem trước trực tiếp.
-  - Phiên bản: lưu nháp → phát hành; mở lại phiên bản cũ; nhân bản game. Game đã sửa tay không bị seed ghi đè.
-  - Admin → *Thư viện media*: tải ảnh (PNG/JPEG/WebP/GIF) và âm thanh (MP3/OGG/WAV), nhận dạng theo nội dung file, chặn SVG/HTML; chọn ảnh ngay trong form soạn game; đánh dấu file do AI tạo.
-  - Quyền: `content_editor` tạo/sửa/phát hành game và tải media; `content_reviewer` xem và duyệt.
-- Mới (giai đoạn 6):
-  - Gói theo từng sản phẩm (năm/tháng), giá sửa được trong admin; đơn hàng giữ giá lúc đặt.
-  - Thanh toán chuyển khoản: VietQR tự tạo, SePay báo tiền về qua webhook (khóa API), cấp gói tự động, gia hạn nối tiếp.
-  - Game PREMIUM chỉ mở cho người có gói còn hạn của đúng sản phẩm.
-  - Admin → *Thanh toán*: tổng quan, đơn hàng (xác nhận/huỷ tay), giao dịch ngân hàng (gán vào đơn), gói và giá, tặng gói.
-  - Chế độ `disabled` → `sandbox` → `live` bằng `ops/configure-payments.sh` (xem `docs/PAYMENTS.md`).
-- Chưa có:
-  - trường học và Offline Player (giai đoạn 7).
+- **Phase 2 – Shared Core:** tài khoản dùng chung, xác thực email, phiên đăng nhập giữa các subdomain, RBAC, admin và audit log.
+- **Phase 3 – English Games:** Game Shell, các template tiếng Anh, thư viện game, kết quả, yêu thích và SEO.
+- **Phase 4 – Vietnamese Games:** lõi xử lý tiếng Việt, game lớp 1–5 và quy trình giáo viên duyệt nội dung.
+- **Phase 5 – Game Builder:** trình tạo game từ schema, quản lý phiên bản, thư viện media và phân quyền biên tập/duyệt.
+- **Phase 6 – Membership & Payments:** gói tháng/năm theo từng sản phẩm, VietQR, SePay webhook, đối soát và cấp gói.
+- **Phase 7 – Classes & Offline:** lớp học, giáo viên/liên hệ Zalo, PWA offline với giấy phép ký số 30 ngày và đồng bộ kết quả khi có mạng trở lại.
+- **Phase 8 – Security & Operations:** kiểm thử bảo mật, xoá tài khoản, trang pháp lý, sao lưu mã hoá R2/B2 và trang Tình trạng hệ thống trong admin.
+- **Hoàn thiện sau Phase 8:** giọng đọc tiếng Việt miền Bắc bằng Piper, cache âm thanh game và gói giọng đọc offline.
+
+**Phần còn lại trước khi mở công khai:** cấu hình và kiểm thử SMTP thật; thiết lập sao lưu offsite và diễn tập restore trên máy chủ; kiểm thử SePay sandbox rồi mới bật live; chuyển API sang production; hoàn thiện thông tin pháp lý/chính sách hoàn tiền; rà soát tài khoản và duyệt nội dung game; cấu hình WAF/rate limit và theo dõi uptime.
+
+Checklist vận hành là tài liệu chuẩn: [docs/GO-LIVE.md](docs/GO-LIVE.md). Không bật thanh toán live hoặc gỡ Cloudflare Access chỉ dựa trên việc CI xanh.
 
 ## Thêm game mới
 
