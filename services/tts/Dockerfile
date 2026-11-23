@@ -9,7 +9,7 @@ FROM debian:bookworm-slim AS fetch
 RUN apt-get update && apt-get install -y --no-install-recommends ca-certificates curl && rm -rf /var/lib/apt/lists/*
 ARG PIPER_URL=https://github.com/rhasspy/piper/releases/download/2023.11.14-2/piper_linux_x86_64.tar.gz
 ARG PIPER_SHA256=a50cb45f355b7af1f6d758c1b360717877ba0a398cc8cbe6d2a7a3a26e225992
-ARG VOICE_BASE=https://huggingface.co/rhasspy/piper-voices/resolve/main/vi/vi_VN/vais1000/medium
+ARG VOICE_BASE=https://huggingface.co/rhasspy/piper-voices/resolve/v1.0.0/vi/vi_VN/vais1000/medium
 ARG VOICE_SHA256=ec7c89e2c85f4d1edc24b6120c18aaf1bda614f06b511567eb9c7c0de15e2dab
 RUN curl -fsSL --retry 3 "$PIPER_URL" -o /tmp/piper.tgz \
  && echo "$PIPER_SHA256  /tmp/piper.tgz" | sha256sum -c - \
