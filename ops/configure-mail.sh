@@ -11,13 +11,9 @@ log "Cấu hình email SMTP cho HappyClass"
 echo "Thông tin này chỉ được lưu trong .env của HappyClass (quyền 600), không đưa vào Git."
 echo "Mật khẩu sẽ được nhập ẩn và không hiển thị trên màn hình."
 
-current_host="$(env_value SMTP_HOST || true)"
 current_port="$(env_value SMTP_PORT || echo 587)"
-current_user="$(env_value SMTP_USER || true)"
-current_from="$(env_value MAIL_FROM || echo 'HappyClass <no-reply@happyclass.asia>')"
 
-read -rp "SMTP host (ví dụ smtp.gmail.com) [${current_host}]: " host
-host="${host:-$current_host}"
+read -rp "SMTP host (ví dụ smtp.gmail.com): " host
 [[ "$host" =~ ^[A-Za-z0-9.-]+$ && "$host" != .* && "$host" != *. && "$host" != *..* ]] || die "SMTP host không hợp lệ."
 
 read -rp "SMTP port [${current_port:-587}]: " port
@@ -30,16 +26,15 @@ read -rp "Dùng TLS ngay khi kết nối? true/false [${secure_default}]: " secu
 secure="${secure:-$secure_default}"
 case "$secure" in true|false) ;; *) die "Chỉ nhập true hoặc false."; esac
 
-read -rp "SMTP username (để trống nếu máy chủ không cần xác thực) [${current_user}]: " smtp_user
-smtp_user="${smtp_user:-$current_user}"
+read -rp "SMTP username (để trống nếu máy chủ không cần xác thực): " smtp_user
 smtp_password=""
 if [ -n "$smtp_user" ]; then
   read -rsp "SMTP password / app password (nhập ẩn): " smtp_password; echo
   [ -n "$smtp_password" ] || die "Đã nhập SMTP username thì cần có SMTP password."
 fi
 
-read -rp "Địa chỉ người gửi [${current_from}]: " mail_from
-mail_from="${mail_from:-$current_from}"
+read -rp "Địa chỉ người gửi [HappyClass <no-reply@happyclass.asia>]: " mail_from
+mail_from="${mail_from:-HappyClass <no-reply@happyclass.asia>}"
 [[ "$mail_from" =~ [A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,} ]] || die "MAIL_FROM phải chứa một địa chỉ email hợp lệ."
 [[ "$mail_from" != *$'\n'* && "$mail_from" != *$'\r'* ]] || die "MAIL_FROM không được chứa xuống dòng."
 
@@ -56,7 +51,7 @@ quote_compose() {
   printf '"%s"' "$value"
 }
 set_env_quoted() {
-  local key="$1" value="$2" encoded tmp found=0
+  local key="$1" value="$2" encoded tmp found=0 line
   encoded="$(quote_compose "$value")"
   tmp="$(mktemp "$REPO_DIR/.env.XXXXXX")"
   chmod 600 "$tmp"
