@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
@@ -103,6 +103,17 @@ jobs:
           PGPASSWORD: ci-password
         run: |
           psql -h 127.0.0.1 -U happyclass -d happyclass_test -X -v ON_ERROR_STOP=1 -f ops/postgres-diagnostics.sql
+          psql -h 127.0.0.1 -U happyclass -d happyclass_test -X -qAt -v ON_ERROR_STOP=1 -f ops/postgres-trend.sql > /tmp/postgres-trend.json
+          python3 - <<'PY'
+          import json
+          with open('/tmp/postgres-trend.json', encoding='utf-8') as f:
+              sample = json.load(f)
+          assert sample['schema_version'] == 1
+          assert sample['max_connections'] > 0
+          assert sample['autovacuum'] in (True, False)
+          assert sample['xact_commit'] >= 0
+          print('PostgreSQL READ ONLY JSON snapshot: OK')
+          PY
 
       - name: Typecheck API + Web
         run: npm run typecheck
