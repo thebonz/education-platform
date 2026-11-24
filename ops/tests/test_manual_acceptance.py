@@ -145,8 +145,8 @@ class ManualAcceptanceTests(unittest.TestCase):
                 mod.change(path, "smtp.delivery", revoke=False, now=NOW)
             self.assertEqual(target.read_text(), "Do not overwrite.")
             path.unlink()
-            (data / "status").rmdir() if not list((data / "status").iterdir()) else None
-            # The lock file may exist after attempted write; remove it for fixture only.
+            # Remove the lock file created by the rejected writer, if present.
+            # Test fixture cleanup only; production code never unlinks user data.
             for p in (data / "status").iterdir():
                 p.unlink()
             (data / "status").rmdir()
