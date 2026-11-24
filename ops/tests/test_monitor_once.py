@@ -6,6 +6,7 @@ import copy
 import importlib.util
 import io
 import json
+import subprocess
 from pathlib import Path
 import sys
 import tempfile
@@ -135,6 +136,14 @@ class IncidentMonitorTests(unittest.TestCase):
         self.assertEqual(pg["waiting_for_lock"], 1)
         self.assertEqual(r.warnings, 2)
         self.assertNotIn("secrets", str(r.checks))
+
+    def test_postgres_timeout_reports_critical_without_leaking_command(self):
+        r = mod.AlertReport()
+        timeout = subprocess.TimeoutExpired(cmd=["docker", "compose", "secret-value"], timeout=25)
+        with patch.object(mod.postgres, "collect", side_effect=timeout):
+            self.assertIsNone(mod.check_postgres(Path("/repo"), Path("/hc"), r, True))
+        self.assertEqual(r.failed, 1)
+        self.assertNotIn("secret-value", json.dumps(mod.summarize(r, None)))
 
     def test_postgres_unhealthy_skips_sql_completely(self):
         r = mod.AlertReport()
