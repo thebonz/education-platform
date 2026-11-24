@@ -196,6 +196,66 @@ describe('Gói thành viên và thanh toán', () => {
     expect(summary.body.paidOrders30d).toBeGreaterThanOrEqual(4);
   });
 
+  it('báo cáo kinh doanh tính doanh thu, khách mua lại, gia hạn và gói sắp hết hạn', async () => {
+    const before = await t.http().get('/api/admin/billing/analytics?days=30').set('Cookie', accountant).expect(200);
+    await t.http().get('/api/admin/billing/analytics?days=14').set('Cookie', accountant).expect(400);
+    await t.http().get('/api/admin/billing/analytics').set('Cookie', member).expect(403);
+
+    const userA = await createUser(t.prisma, 'business-analytics-a@example.com', PW);
+    const userB = await createUser(t.prisma, 'business-analytics-b@example.com', PW);
+    const userC = await createUser(t.prisma, 'business-analytics-c@example.com', PW);
+    const [enYear, enMonth, viYear] = await Promise.all([
+      t.prisma.plan.findUniqueOrThrow({ where: { code: 'english-year' } }),
+      t.prisma.plan.findUniqueOrThrow({ where: { code: 'english-month' } }),
+      t.prisma.plan.findUniqueOrThrow({ where: { code: 'vietnamese-year' } }),
+    ]);
+    const now = new Date();
+    const futureA = new Date(now.getTime() + 365 * 86_400_000);
+    const futureB = new Date(now.getTime() + 396 * 86_400_000);
+    const futureVi = new Date(now.getTime() + 365 * 86_400_000);
+    const paidOrders = [
+      { code: 'HCANL23456', userId: userA.id, plan: enYear, productId: enYear.productId, planName: enYear.name, months: 12, amountVnd: 599000, paidAmountVnd: 599000, startsAt: futureA, endsAt: futureB },
+      { code: 'HCANL23457', userId: userA.id, plan: enMonth, productId: enMonth.productId, planName: enMonth.name, months: 1, amountVnd: 55000, paidAmountVnd: 55000, startsAt: futureB, endsAt: new Date(futureB.getTime() + 30 * 86_400_000) },
+      { code: 'HCANL23458', userId: userB.id, plan: viYear, productId: viYear.productId, planName: viYear.name, months: 12, amountVnd: 599000, paidAmountVnd: 599000, startsAt: now, endsAt: futureVi },
+    ];
+    for (const item of paidOrders) {
+      const order = await t.prisma.order.create({
+        data: {
+          code: item.code, userId: item.userId, planId: item.plan.id, productId: item.productId, planName: item.planName,
+          months: item.months, amountVnd: item.amountVnd, paidAmountVnd: item.paidAmountVnd, status: 'PAID',
+          paymentMethod: 'manual', paidAt: now, expiresAt: new Date(now.getTime() + 86_400_000),
+        },
+      });
+      await t.prisma.entitlement.create({
+        data: { userId: item.userId, productId: item.productId, startsAt: item.startsAt, endsAt: item.endsAt, source: 'order', orderId: order.id },
+      });
+    }
+    const viProduct = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'vietnamese' } });
+    await t.prisma.entitlement.create({
+      data: { userId: userC.id, productId: viProduct.id, startsAt: new Date(now.getTime() - 20 * 86_400_000), endsAt: new Date(now.getTime() + 10 * 86_400_000), source: 'manual', note: 'analytics fixture' },
+    });
+
+    const after = await t.http().get('/api/admin/billing/analytics?days=30').set('Cookie', accountant).expect(200);
+    expect(after.body.summary.paidOrders - before.body.summary.paidOrders).toBe(3);
+    expect(after.body.summary.revenueVnd - before.body.summary.revenueVnd).toBe(1_253_000);
+    expect(after.body.summary.payingCustomers - before.body.summary.payingCustomers).toBe(2);
+    expect(after.body.summary.renewals - before.body.summary.renewals).toBe(2);
+    expect(after.body.summary.repeatCustomers - before.body.summary.repeatCustomers).toBe(1);
+    expect(after.body.summary.membershipsExpiring30d - before.body.summary.membershipsExpiring30d).toBe(1);
+
+    const englishBefore = await t.http().get('/api/admin/billing/analytics?days=30&product=english').set('Cookie', accountant).expect(200);
+    const englishAfter = await t.http().get('/api/admin/billing/analytics?days=30&product=english').set('Cookie', accountant).expect(200);
+    expect(englishAfter.body.summary.revenueVnd).toBe(englishBefore.body.summary.revenueVnd);
+    expect(after.body.byProduct).toEqual(expect.arrayContaining([
+      expect.objectContaining({ product: 'english', paidOrders: expect.any(Number) }),
+      expect.objectContaining({ product: 'vietnamese', paidOrders: expect.any(Number) }),
+    ]));
+    expect(after.body.topPlans).toEqual(expect.arrayContaining([
+      expect.objectContaining({ code: 'english-year', revenueVnd: expect.any(Number) }),
+    ]));
+    expect(JSON.stringify(after.body)).not.toContain('business-analytics-a@example.com');
+  });
+
   it('khách tự huỷ đơn đang chờ', async () => {
     const res = await post(member, '/api/billing/orders', { planId: await plan('vietnamese-month') }).expect(201);
     await post(member, `/api/billing/orders/${res.body.code}/cancel`).expect(200);
