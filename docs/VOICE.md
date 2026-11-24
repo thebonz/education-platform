@@ -23,6 +23,12 @@ Game tiếng Việt không dùng giọng đọc của trình duyệt nữa. Trư
 
 Piper và mô hình đều được kiểm tra SHA-256 khi build image. Khi build còn đọc thử một câu, nên image nào tạo được cũng đã đọc được tiếng Việt.
 
+## Tự kiểm tra bằng tai trước khi chơi
+
+Trong trang game tiếng Việt, màn **Bắt đầu** có nút **Nghe thử giọng Việt**, đọc lần lượt các thanh: `ma, má, mà, mả, mã, mạ`. Nút chỉ gọi sau khi người dùng chủ động nhấn; cho phép kiểm tra loa, dấu thanh và khả năng nghe rõ trước khi bắt đầu. Nếu máy chủ TTS lỗi và trình duyệt không có giọng Việt, game vẫn báo không khả dụng; sau khi âm thanh phát trở lại thì bỏ cảnh báo đã lỗi thời. Đây là kiểm tra **thủ công**, không có nghĩa mô hình Piper được tự động đánh giá đúng phát âm.
+
+Xem [định hướng chất lượng nội dung, âm thanh, thư viện và gameplay](PHASE10-LEARNING-EXPERIENCE.md).
+
 ## Vận hành
 
 - Cập nhật như thường lệ: `sudo bash ops/deploy-test.sh`. Lệnh này build và chạy thêm container `tts`, chiếm khoảng 700 MB RAM khi đang đọc.
