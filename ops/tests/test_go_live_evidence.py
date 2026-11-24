@@ -128,6 +128,15 @@ class GoLiveEvidenceTests(unittest.TestCase):
                 result = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
                 self.assertEqual(self.statuses(result)["smtp.config"], "block")
 
+    def test_smtp_secure_numeric_flag_and_malformed_status(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env, datadir, legal = self.fixtures(Path(tmp), env_updates={"SMTP_SECURE": "1"})
+            report = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
+            self.assertEqual(self.statuses(report)["smtp.config"], "pass")
+            (datadir / "status" / "backup.json").write_text("[]")
+            report = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
+            self.assertEqual(self.statuses(report)["backup.offsite"], "block")
+
     def test_backup_age_limits_and_future_date_fail_closed(self):
         with tempfile.TemporaryDirectory() as tmp:
             env, datadir, legal = self.fixtures(Path(tmp))
