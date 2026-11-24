@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
@@ -408,6 +408,31 @@ jobs:
           test ! -f /etc/systemd/system/happyclass-backup.timer
           sudo docker rm -f hc-minio > /dev/null
           echo "::notice title=Backup::Sao lưu restic lên S3, kiểm tra toàn vẹn, diễn tập khôi phục (DB + media) khớp; dữ liệu trên kho đã mã hoá; lịch systemd cài/gỡ được"
+
+      - name: Giám sát vận hành một lần qua JSON, không gửi thông báo
+        run: |
+          before=0
+          [ -e "$HC_DATA_DIR/status/postgres-trend.json" ] && before=1
+          set +e
+          sudo --preserve-env=HC_DATA_DIR bash ops/check-operational-alerts.sh --json > /tmp/hc-incident.json
+          rc=$?
+          set -e
+          python3 - <<'PY'
+          import json
+          with open('/tmp/hc-incident.json', encoding='utf-8') as stream:
+              data = json.load(stream)
+          assert data['schema_version'] == 1
+          assert data['status'] in ('ok', 'warning'), 'unexpected critical monitor result'
+          assert data['scheduled'] is False
+          assert data['notifications_sent'] is False
+          assert data['postgres']['connections'] >= 1
+          assert data['postgres']['max_connections'] >= data['postgres']['connections']
+          print('::notice title=Monitor::One-shot HappyClass JSON OK: ' + data['status'])
+          PY
+          test "$rc" -le 1
+          after=0
+          [ -e "$HC_DATA_DIR/status/postgres-trend.json" ] && after=1
+          test "$before" = "$after"
 
       - name: Triển khai lần 2 (cập nhật, phải idempotent và tự sao lưu trước migrate)
         run: |
