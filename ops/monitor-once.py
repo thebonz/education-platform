@@ -13,6 +13,7 @@ import datetime as dt
 import importlib.util
 import io
 import json
+import subprocess
 from pathlib import Path
 import sys
 from typing import Any
@@ -112,7 +113,7 @@ def check_postgres(repo: Path, data_dir: Path, report: AlertReport,
     # The only SQL is a bounded BEGIN READ ONLY transaction (ops/postgres-trend.sql).
     try:
         sample = postgres.collect(repo, repo / "ops" / "postgres-trend.sql")
-    except (OSError, ValueError, RuntimeError):
+    except (OSError, ValueError, RuntimeError, subprocess.TimeoutExpired):
         report.fail("Không lấy được metadata PostgreSQL.")
         return None
 
@@ -204,8 +205,8 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         data = run(ROOT)
-    except (OSError, ValueError, KeyError, TypeError, RuntimeError):
-        # Deliberately do not echo exception text from files or Docker.
+    except Exception:
+        # Fail closed without showing any exception text from files or Docker.
         data = {
             "schema_version": 1,
             "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
