@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 # Read-only local-origin security check for HappyClass behind Cloudflare Tunnel.
-# Checks the API health endpoint, loopback-only published ports, and web security headers.
+# Checks API health, loopback-only published ports, and web security headers.
 # Does not modify .env, Docker, Cloudflare, Access, payment mode, or containers.
-source "$(dirname "\${BASH_SOURCE[0]}")/lib.sh"
+source "$(dirname "${BASH_SOURCE[0]}")/lib.sh"
 require_root
 
 PASS=0; WARN=0; FAIL=0
@@ -33,7 +33,7 @@ check_loopback_binding() {
   local service="$1" port="$2" binding
   binding="$(compose port "$service" "$port" 2>/dev/null || true)"
   case "$binding" in
-    127.0.0.1:*|[::1]:*) pass "$service chỉ publish trên loopback ($binding)" ;;
+    127.0.0.1:*) pass "$service chỉ publish trên loopback ($binding)" ;;
     "") fail_check "Không đọc được port mapping của $service" ;;
     *) fail_check "$service đang publish ngoài loopback ($binding); cần giữ origin đóng với Internet" ;;
   esac
@@ -41,13 +41,13 @@ check_loopback_binding() {
 
 check_header() {
   local file="$1" header="$2"
-  grep -Eiq "^\${header}:" "$file"
+  grep -Eiq "^${header}:" "$file"
 }
 
 log "Kiểm tra API và ánh xạ cổng"
 api_port="$(env_value HC_API_HOST_PORT || echo 3101)"
 web_port="$(env_value HC_WEB_HOST_PORT || echo 3100)"
-api_health="$(curl -fsS --max-time 8 "http://127.0.0.1:\${api_port}/api/health" 2>/dev/null || true)"
+api_health="$(curl -fsS --max-time 8 "http://127.0.0.1:${api_port}/api/health" 2>/dev/null || true)"
 if [ -n "$api_health" ] && printf '%s' "$api_health" | python3 -c 'import json,sys; d=json.load(sys.stdin); sys.exit(0 if d.get("status")=="ok" and d.get("database")=="connected" else 1)' 2>/dev/null; then
   pass "API health và kết nối PostgreSQL bình thường"
 else
@@ -69,17 +69,17 @@ for item in english vietnamese admin; do
   if ! info="$(site_info "$url" "$item" 2>/dev/null)"; then fail_check "URL $item không hợp lệ"; continue; fi
   host="$(printf '%s\n' "$info" | sed -n '1p')"
   path="$(printf '%s\n' "$info" | sed -n '2p')"
-  code="$(curl -sS --max-time 12 -D "$tmp_headers" -o /dev/null -w '%{http_code}' -H "Host: $host" "http://127.0.0.1:\${web_port}\${path}" 2>/dev/null || true)"
+  code="$(curl -sS --max-time 12 -D "$tmp_headers" -o /dev/null -w '%{http_code}' -H "Host: $host" "http://127.0.0.1:${web_port}${path}" 2>/dev/null || true)"
   if [ "$code" != "200" ]; then
-    fail_check "$item origin trả HTTP \${code:-không phản hồi}, mong đợi 200"
+    fail_check "$item origin trả HTTP ${code:-không phản hồi}, mong đợi 200"
     continue
   fi
   missing=""
   for h in Content-Security-Policy Strict-Transport-Security Cross-Origin-Opener-Policy X-Content-Type-Options Referrer-Policy X-Frame-Options Permissions-Policy; do
-    check_header "$tmp_headers" "$h" || missing="\${missing} \${h}"
+    check_header "$tmp_headers" "$h" || missing="${missing} ${h}"
   done
   if [ -z "$missing" ]; then pass "$item trả HTTP 200 và đủ 7 security headers"
-  else fail_check "$item thiếu security headers:\${missing}"; fi
+  else fail_check "$item thiếu security headers:${missing}"; fi
 done
 
 log "Kiểm tra Cloudflare Tunnel"
