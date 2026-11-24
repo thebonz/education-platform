@@ -50,6 +50,6 @@ Công cụ **chỉ đọc** `status/postgres-trend.json` (mốc do `ops/check-po
 
 Chạy lại công cụ để kiểm tra xem tín hiệu có tái diễn. Dùng `sudo bash ops/check-runtime-health.sh` để xem chi tiết, `sudo bash ops/check-postgres.sh` hoặc `sudo bash ops/check-postgres-trend.sh` để đánh giá PostgreSQL, và `docs/OPERATIONS-MONITORING.md` để xử lý các tình huống thường gặp. Không gửi log thô hoặc `.env` vào chat/công khai vì có thể chứa bí mật. Không tự VACUUM, reboot, sửa giới hạn bộ nhớ hoặc bật thanh toán Live để xử lý cảnh báo.
 
-## Quy trình triển khai an toàn
+## Xác nhận và chống lặp sự cố (chạy thủ công)\n\nNếu muốn xác nhận cảnh báo qua hai lần đo cách nhau và theo dõi hồi phục, xem [INCIDENT-CONFIRMATION.md](INCIDENT-CONFIRMATION.md). Công cụ mới chỉ ghi metadata khi người vận hành chỉ định `--record`, không gửi thông báo hoặc tự lên lịch.\n\n## Quy trình triển khai an toàn
 
 Sau khi PR được review và CI xanh, chỉ cần cập nhật mã nguồn và chạy lệnh theo yêu cầu trên. **Không cần `deploy-test.sh` hoặc restart container** vì PR này chỉ bổ sung script/tài liệu. Nếu triển khai timer/alerts chủ động trong tương lai, phải có PR, thông số tần suất, điểm nhận thông báo, kiểm thử fail-closed và quyết định vận hành riêng.

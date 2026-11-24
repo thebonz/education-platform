@@ -55,7 +55,7 @@ Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, kh�
   - Uptime check cho `https://english.happyclass.asia/api/health`;
   - kiểm tra `backup/last-success` không cũ quá 2 ngày.
 - [ ] **Hiệu năng:** chạy `sudo bash ops/check-performance.sh`, lưu p50/p95 và ảnh chụp CPU/RAM/dung lượng; không tổ chức stress test trên DL380 dùng chung (`docs/PERFORMANCE.md`).
-- [ ] **Giám sát:** chạy `sudo bash ops/check-runtime-health.sh` để xem chi tiết và `sudo bash ops/check-operational-alerts.sh --json` để có tín hiệu vận hành dạng cấu trúc. Cả hai chỉ chạy một lần và không gửi cảnh báo; xem `docs/OPERATIONS-MONITORING.md`, `docs/INCIDENT-MONITORING.md`. Chưa thay thế giám sát/cảnh báo 24/7.
+- [ ] **Giám sát:** chạy `sudo bash ops/check-runtime-health.sh`, `sudo bash ops/check-operational-alerts.sh --json` và xem trước `sudo bash ops/check-incident-confirmation.sh --json`. Muốn ghi mốc xác nhận sự cố thì thực hiện thủ công với `--record`; không có timer hay thông báo tự động. Xem `docs/OPERATIONS-MONITORING.md`, `docs/INCIDENT-MONITORING.md`, `docs/INCIDENT-CONFIRMATION.md`. Chưa thay thế giám sát 24/7.
 - [ ] **PostgreSQL:** chạy `sudo bash ops/check-postgres.sh` để đọc trạng thái, sau đó `sudo bash ops/check-postgres-trend.sh` ở ít nhất hai thời điểm để so sánh delta (không đổi cấu hình hay tự chạy VACUUM); xem `docs/POSTGRES-DIAGNOSTICS.md` và `docs/POSTGRES-TRENDS.md`.
 - [ ] **Giọng đọc:** kiểm tra nghe thực tế trên máy tính và điện thoại; xác nhận âm thanh Piper giọng Bắc đã cache đủ cho game tiếng Việt và gói offline (xem `docs/VOICE.md`).
 
