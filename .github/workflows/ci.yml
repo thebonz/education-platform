@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/check-go-live-evidence.sh ops/check-manual-acceptance.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/check-go-live-evidence.sh ops/check-manual-acceptance.sh ops/check-prelaunch-content-accounts.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
@@ -521,6 +521,33 @@ jobs:
           assert recorded['confirmation']['recorded'] is True
           assert recorded['confirmation']['active_confirmed'] == []
           print('::notice title=Confirm::Preview read only; explicit record 0600; no alerts')
+          PY
+
+      - name: Kiểm toán số liệu nội dung và phân quyền bằng SQL READ ONLY
+        run: |
+          set +e
+          sudo bash ops/check-prelaunch-content-accounts.sh --json > /tmp/hc-prelaunch-aggregate.json
+          result=$?
+          set -e
+          # A manual-review result (1) is expected until a teacher and owner approve.
+          # A blocker (2) on clean CI fixtures means the seed/role state is inconsistent.
+          test "$result" -eq 1
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          result = json.loads(Path('/tmp/hc-prelaunch-aggregate.json').read_text())
+          assert result['schema_version'] == 1
+          assert result['read_only'] is True
+          assert result['no_personal_data'] is True
+          assert result['assessment'] == 'manual_review_required'
+          assert result['counts']['block'] == 0
+          assert result['aggregates']['games_total'] > 0
+          assert result['aggregates']['active_super_admins'] >= 1
+          assert result['database_modified'] is False
+          assert result['public_release_allowed'] is False
+          assert result['content_review_approved'] is False
+          assert result['admin_accounts_approved'] is False
+          print('::notice title=Content audit::Aggregate counts only, PostgreSQL read-only, no go-live authorization')
           PY
 
       - name: Triển khai lần 2 (cập nhật, phải idempotent và tự sao lưu trước migrate)
