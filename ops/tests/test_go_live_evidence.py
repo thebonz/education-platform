@@ -183,6 +183,56 @@ class GoLiveEvidenceTests(unittest.TestCase):
             report = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
             self.assertEqual(self.statuses(report)["backup.offsite"], "block")
 
+    def test_self_attested_smtp_and_sepay_still_leave_manual_and_legal_blocker(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env, datadir, legal = self.fixtures(
+                Path(tmp),
+                legal="""export const legal = { draft: 'Bản dự thảo giai đoạn chạy thử.' };"""
+            )
+            # Load the same local module the CLI uses; no server/files outside tmp.
+            import importlib.util
+            file = SRC.parent / "manual-acceptance.py"
+            spec = importlib.util.spec_from_file_location("happyclass_manual_evidence_integration", file)
+            module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(module)
+            module.change(module.state_path(datadir), "smtp.delivery",
+                          revoke=False, now=NOW)
+            module.change(module.state_path(datadir), "payment.sandbox_acceptance",
+                          revoke=False, now=NOW)
+            result = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
+            self.assertEqual(result["assessment"], "blocked")
+            self.assertEqual(self.statuses(result)["legal.draft"], "block")
+            self.assertEqual(self.statuses(result)["smtp.delivery"], "manual")
+            self.assertEqual(self.statuses(result)["payment.sandbox_acceptance"], "manual")
+            self.assertEqual(result["counts"]["attested"], 2)
+            self.assertEqual(result["counts"]["manual"], len(mod.MANUAL_GATES) + 2)
+            self.assertFalse(result["public_release_allowed"])
+            self.assertFalse(result["manual_assertions_are_independent_proof"])
+
+    def test_corrupted_manual_assertion_blocks_and_stale_assertion_expires(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            env, datadir, legal = self.fixtures(Path(tmp))
+            file = datadir / "status" / "manual-acceptance.json"
+            stale = {
+                "schema_version": 1,
+                "entries": {
+                    "smtp.delivery": {
+                        "attested_at": "2026-11-16T15:00:00+00:00",
+                        "expires_at": "2026-11-23T15:00:00+00:00"
+                    }
+                }
+            }
+            file.write_text(json.dumps(stale))
+            file.chmod(0o600)
+            result = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
+            self.assertEqual(result["counts"]["attested"], 0)
+            self.assertEqual(result["expired_manual_attestation_keys"], ["smtp.delivery"])
+            self.assertEqual(self.statuses(result)["smtp.delivery"], "manual")
+            file.write_text("{broken")
+            result = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
+            self.assertEqual(self.statuses(result)["acceptance.integrity"], "block")
+            self.assertFalse(result["public_release_allowed"])
+
     def test_json_stdout_is_one_object_and_no_success_exit_while_manual_pending(self):
         with tempfile.TemporaryDirectory() as tmp, patch.object(mod, "timer_ok", return_value=True):
             env, datadir, legal = self.fixtures(Path(tmp))
