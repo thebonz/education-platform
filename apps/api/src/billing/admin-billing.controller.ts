@@ -24,6 +24,10 @@ const orderQuery = z.object({
 const confirmBody = z.object({ note: text(3, 300), paidAmountVnd: z.number().int().min(0).max(100_000_000).optional() }).strict();
 const cancelBody = z.object({ note: text(3, 300) }).strict();
 const txQuery = z.object({ status: z.nativeEnum(BankTransactionStatus).optional(), page: z.coerce.number().int().min(1).default(1) });
+const businessAnalyticsQuery = z.object({
+  days: z.coerce.number().int().refine((n) => [7, 30, 90].includes(n), 'days phải là 7, 30 hoặc 90').default(30),
+  product: z.enum(['english', 'vietnamese']).optional(),
+});
 const matchBody = z.object({ orderCode: z.string().regex(/^HC[2-9A-HJKMNP-Z]{8}$/), note: text(3, 300) }).strict();
 const grantBody = z.object({ product: z.enum(['english', 'vietnamese']), months: z.number().int().min(1).max(36), note: text(3, 300) }).strict();
 
@@ -45,6 +49,138 @@ export class AdminBillingController {
       paymentsEnabled: this.billing.paymentsEnabled(),
       revenue30dVnd: paid30._sum.paidAmountVnd ?? 0, paidOrders30d: paid30._count._all,
       pendingOrders: pending, transactionsToReview: unmatched, activeMemberships: active.length,
+    };
+  }
+
+  /** Báo cáo doanh thu/gia hạn tổng hợp; không trả thông tin khách hàng cá nhân. */
+  @Get('analytics')
+  @RequirePermissions('admin.access', 'billing.read')
+  async analytics(@Query() query: unknown) {
+    const { days, product } = parse(businessAnalyticsQuery, query);
+    const now = new Date();
+    const since = new Date(now.getTime() - days * 86_400_000);
+    const expiresBy = new Date(now.getTime() + 30 * 86_400_000);
+    const productClause = product ? Prisma.sql`AND prod.slug = ${product}` : Prisma.empty;
+
+    const [summaryRows, productRows, trendRows, planRows, repeatRows, expiringRows] = await Promise.all([
+      this.prisma.$queryRaw<Array<{ paidOrders: number; revenueVnd: number; payingCustomers: number; renewals: number }>>(Prisma.sql`
+        SELECT
+          COUNT(o.id)::int AS "paidOrders",
+          COALESCE(SUM(o.paid_amount_vnd), 0)::float8 AS "revenueVnd",
+          COUNT(DISTINCT o.user_id)::int AS "payingCustomers",
+          COUNT(*) FILTER (WHERE e.starts_at > o.paid_at)::int AS renewals
+        FROM orders o
+        JOIN products prod ON prod.id = o.product_id
+        LEFT JOIN entitlements e ON e.order_id = o.id
+        WHERE o.status = 'PAID' AND o.paid_at >= ${since}
+          ${productClause}
+      `),
+      this.prisma.$queryRaw<Array<{ productSlug: string; paidOrders: number; revenueVnd: number; payingCustomers: number; renewals: number }>>(Prisma.sql`
+        SELECT
+          prod.slug AS "productSlug",
+          COUNT(o.id)::int AS "paidOrders",
+          COALESCE(SUM(o.paid_amount_vnd), 0)::float8 AS "revenueVnd",
+          COUNT(DISTINCT o.user_id)::int AS "payingCustomers",
+          COUNT(*) FILTER (WHERE e.starts_at > o.paid_at)::int AS renewals
+        FROM orders o
+        JOIN products prod ON prod.id = o.product_id
+        LEFT JOIN entitlements e ON e.order_id = o.id
+        WHERE o.status = 'PAID' AND o.paid_at >= ${since}
+          ${productClause}
+        GROUP BY prod.slug
+      `),
+      this.prisma.$queryRaw<Array<{ day: string; revenueVnd: number; paidOrders: number }>>(Prisma.sql`
+        SELECT
+          to_char(date_trunc('day', o.paid_at AT TIME ZONE 'Asia/Ho_Chi_Minh'), 'YYYY-MM-DD') AS day,
+          COALESCE(SUM(o.paid_amount_vnd), 0)::float8 AS "revenueVnd",
+          COUNT(o.id)::int AS "paidOrders"
+        FROM orders o
+        JOIN products prod ON prod.id = o.product_id
+        WHERE o.status = 'PAID' AND o.paid_at >= ${since}
+          ${productClause}
+        GROUP BY 1
+        ORDER BY 1 ASC
+      `),
+      this.prisma.$queryRaw<Array<{ code: string; planName: string; productSlug: string; productName: string; paidOrders: number; revenueVnd: number; renewals: number }>>(Prisma.sql`
+        SELECT
+          p.code AS code,
+          o.plan_name AS "planName",
+          prod.slug AS "productSlug",
+          prod.name AS "productName",
+          COUNT(o.id)::int AS "paidOrders",
+          COALESCE(SUM(o.paid_amount_vnd), 0)::float8 AS "revenueVnd",
+          COUNT(*) FILTER (WHERE e.starts_at > o.paid_at)::int AS renewals
+        FROM orders o
+        JOIN plans p ON p.id = o.plan_id
+        JOIN products prod ON prod.id = o.product_id
+        LEFT JOIN entitlements e ON e.order_id = o.id
+        WHERE o.status = 'PAID' AND o.paid_at >= ${since}
+          ${productClause}
+        GROUP BY p.code, o.plan_name, prod.slug, prod.name
+        ORDER BY "revenueVnd" DESC
+        LIMIT 10
+      `),
+      this.prisma.$queryRaw<Array<{ repeatCustomers: number }>>(Prisma.sql`
+        SELECT COUNT(DISTINCT repeat_orders.user_id)::int AS "repeatCustomers"
+        FROM (
+          SELECT o.user_id, o.product_id
+          FROM orders o
+          JOIN products prod ON prod.id = o.product_id
+          WHERE o.status = 'PAID' AND o.paid_at >= ${since}
+            ${productClause}
+          GROUP BY o.user_id, o.product_id
+          HAVING COUNT(o.id) > 1
+        ) repeat_orders
+      `),
+      this.prisma.$queryRaw<Array<{ count: number }>>(Prisma.sql`
+        SELECT COUNT(*)::int AS count
+        FROM (
+          SELECT e.user_id, e.product_id, MAX(e.ends_at) AS ends_at
+          FROM entitlements e
+          JOIN products prod ON prod.id = e.product_id
+          WHERE e.ends_at > ${now}
+            ${productClause}
+          GROUP BY e.user_id, e.product_id
+        ) current_memberships
+        WHERE current_memberships.ends_at <= ${expiresBy}
+      `),
+    ]);
+
+    const summary = summaryRows[0] ?? { paidOrders: 0, revenueVnd: 0, payingCustomers: 0, renewals: 0 };
+    const byProduct = (['english', 'vietnamese'] as const).map((slug) => {
+      const row = productRows.find((item) => item.productSlug === slug);
+      const paidOrders = row?.paidOrders ?? 0;
+      const renewals = row?.renewals ?? 0;
+      const revenueVnd = Math.round(row?.revenueVnd ?? 0);
+      return {
+        product: slug, paidOrders, revenueVnd, payingCustomers: row?.payingCustomers ?? 0, renewals,
+        renewalRatePercent: paidOrders ? Number((renewals / paidOrders * 100).toFixed(1)) : 0,
+        averageOrderValueVnd: paidOrders ? Math.round(revenueVnd / paidOrders) : 0,
+      };
+    });
+    const trend = trendRows.map((row) => ({
+      day: row.day, revenueVnd: Math.round(row.revenueVnd), paidOrders: row.paidOrders,
+    }));
+
+    return {
+      range: { days, from: since.toISOString(), to: now.toISOString(), product: product ?? 'all' },
+      summary: {
+        revenueVnd: Math.round(summary.revenueVnd),
+        paidOrders: summary.paidOrders,
+        payingCustomers: summary.payingCustomers,
+        averageOrderValueVnd: summary.paidOrders ? Math.round(summary.revenueVnd / summary.paidOrders) : 0,
+        renewals: summary.renewals,
+        renewalRatePercent: summary.paidOrders ? Number((summary.renewals / summary.paidOrders * 100).toFixed(1)) : 0,
+        repeatCustomers: repeatRows[0]?.repeatCustomers ?? 0,
+        membershipsExpiring30d: expiringRows[0]?.count ?? 0,
+      },
+      byProduct,
+      trend,
+      topPlans: planRows.map((row) => ({
+        code: row.code, name: row.planName, product: { slug: row.productSlug, name: row.productName },
+        paidOrders: row.paidOrders, revenueVnd: Math.round(row.revenueVnd), renewals: row.renewals,
+      })),
+      generatedAt: now.toISOString(),
     };
   }
 
