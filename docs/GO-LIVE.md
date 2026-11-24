@@ -12,10 +12,14 @@ Hiện HappyClass chạy thử sau Cloudflare Access: chỉ email được mời
   - chạy `sudo bash ops/configure-mail.sh` để nhập SMTP và gửi email kiểm tra;
   - nhận được email kiểm tra trong Inbox (hoặc xác minh Spam/Quảng cáo);
   - thử đăng ký, gửi lại xác thực và quên mật khẩu để xác nhận nhận được email thật (`docs/MAIL.md`).
-- [ ] **Thanh toán:**
-  - sandbox đã thử với một giao dịch thật nhỏ (`docs/PAYMENTS.md`);
-  - rồi chạy `ops/configure-payments.sh --live`;
-  - kiểm tra Cloudflare Access bypass cho `/api/webhooks/`.
+- [ ] **Thanh toán (chưa bật Live cho đến khi hoàn tất toàn bộ mục này):**
+  - SePay **Test Mode** đang bật; tài khoản ngân hàng trong Test Mode phải khớp `PAYMENT_BANK_ACCOUNT` của HappyClass. Ưu tiên sao chép tài khoản Live sang Test Mode.
+  - Tạo webhook ngay trong **Test Mode**, đúng URL `https://english.happyclass.asia/api/webhooks/sepay`, xác thực bằng API Key của HappyClass và đã bỏ bộ lọc “chỉ gửi khi có mã”.
+  - Mô phỏng ít nhất một giao dịch tiền vào đúng mã đơn/đúng số tiền: SePay webhook history trả HTTP 200; đơn HappyClass thành **PAID** và entitlement được cấp. Đây là giao dịch mô phỏng, không cần chuyển tiền thật.
+  - Kiểm thử giao dịch thiếu tiền và nội dung không khớp: không cấp entitlement; giao dịch xuất hiện trong mục đối soát tương ứng.
+  - Gửi lại cùng một webhook/giao dịch: không tạo bank transaction trùng và không cấp entitlement lần hai.
+  - Chỉ sau khi các ca trên đạt, người vận hành mới chủ động xác nhận và chạy `sudo bash ops/configure-payments.sh --live`; không bật Live tự động.
+  - Giữ Cloudflare Access Bypass giới hạn đúng endpoint `/api/webhooks/sepay` (hoặc prefix đã cấu hình), không bypass toàn site. Xem `docs/PAYMENTS.md`.
 - [ ] **Chế độ production:**
   - đặt `API_NODE_ENV=production`, `COOKIE_SECURE=true` (`enable-domain.sh` đã đặt) trong `.env`;
   - chỉ chuyển production sau khi SMTP thật hoạt động; chạy `sudo bash ops/deploy-test.sh`.
