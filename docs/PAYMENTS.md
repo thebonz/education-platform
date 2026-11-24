@@ -50,17 +50,36 @@ sudo bash ops/check-payment-sandbox.sh
 
 Script xác nhận cấu hình sandbox, quyền `.env`, trạng thái PostgreSQL/API/Web, bảng giá và việc webhook từ chối request không có API Key. Nếu domain HTTPS đã cấu hình, script còn kiểm tra Cloudflare Access có cho webhook đi tới API hay không. Script **không tạo đơn, không ghi giao dịch, không chuyển tiền và không thay đổi cấu hình**. Nếu script báo HTTP 302/403 ở webhook công khai, kiểm tra lại Access Bypass cho `/api/webhooks/`.
 
-## Bước 3 – Cấu hình webhook trong SePay
+## Bước 3 – Tạo webhook trong SePay Test Mode
 
-my.sepay.vn → **Tích hợp WebHooks** → **Thêm webhooks**:
+**Quan trọng:** Test Mode của SePay là môi trường tách biệt với Live. Bật Test Mode trong SePay, rồi tạo tài khoản ngân hàng và webhook ngay trong môi trường Test Mode; webhook Live không nhận giao dịch mô phỏng.
+
+1. Mở `my.sepay.vn` và bật **Test Mode**. Xác nhận dashboard hiển thị banner Test Mode.
+2. Vào **Test mode → Tài khoản ngân hàng**.
+   - **Ưu tiên chọn “Sao chép từ Live”** cho tài khoản VietinBank đang dùng. HappyClass kiểm tra `accountNumber` của webhook phải trùng `PAYMENT_BANK_ACCOUNT` trong `.env`; tài khoản Test Mode tạo mới sẽ được SePay tự sinh số tài khoản khác và giao dịch sẽ bị HappyClass đánh dấu *ignored* nếu chưa đồng bộ số tài khoản.
+   - Nếu chưa có tài khoản Live để sao chép, có thể tạo tài khoản Test Mode mới. Khi đó phải chạy lại `sudo bash ops/configure-payments.sh` và nhập đúng số tài khoản/tên chủ tài khoản Test Mode vừa tạo trước khi kiểm thử. Trước khi bật Live, phải đổi lại tài khoản nhận tiền thật.
+3. Vào **Test mode → Tích hợp Webhook → Thêm webhook** và cấu hình:
 
 | Mục | Giá trị |
 | --- | --- |
-| Sự kiện | Có tiền vào |
-| Tài khoản | VietinBank vừa liên kết |
-| URL | `https://english.happyclass.asia/api/webhooks/sepay` |
-| Kiểu chứng thực | API Key – dán khóa script vừa in |
-| Bỏ qua nếu không có code thanh toán | **Không** (để giao dịch ghi sai nội dung vẫn về cho kế toán gán tay) |
+| Tên webhook | `HappyClass Sandbox` |
+| URL nhận webhook | `https://english.happyclass.asia/api/webhooks/sepay` |
+| Loại giao dịch | **Tiền vào** |
+| Định dạng dữ liệu | **JSON** |
+| Tự động gửi lại khi server trả lỗi | Bật (nếu có) |
+| Tài khoản | Chọn đúng tài khoản Test Mode đã sao chép/tạo ở bước 2 |
+| Dùng để xác thực thanh toán / Chỉ gửi khi có mã | Để tắt bộ lọc “Chỉ gửi khi có mã” để giao dịch sai/thiếu mã vẫn được gửi về cho kế toán đối soát |
+| Phương thức xác thực | **API Key** |
+| API Key | Khóa do HappyClass tạo ở bước 2 (xem lại bằng lệnh bên dưới) |
+| Định dạng request | **JSON** |
+
+Xem lại khóa trên server nếu cần (không gửi khóa qua chat hoặc chụp ảnh có khóa):
+
+~~~bash
+sudo bash ops/configure-payments.sh --show-key
+~~~
+
+SePay gửi API Key trong header `Authorization: Apikey <API_KEY>`. Không chọn “Không xác thực”, không dùng API Token SePay ở đây.
 
 ## Bước 4 – Cho SePay đi qua Cloudflare Access
 
@@ -72,12 +91,16 @@ Khi site đang chặn bằng Cloudflare Access, SePay sẽ bị chặn ở màn 
 
 Đường dẫn này vẫn được bảo vệ bằng khóa API (sai khóa → 401).
 
-## Bước 5 – Kiểm thử (sandbox)
+## Bước 5 – Kiểm thử end-to-end trong SePay Test Mode
 
-1. Đăng nhập site bằng tài khoản thường → **Bảng giá** → mua gói tháng → trang thanh toán hiện QR.
-2. Trong SePay, dùng chức năng **giả lập giao dịch** (tài khoản sandbox của SePay) với nội dung là mã đơn và đúng số tiền.
-3. Trang thanh toán tự chuyển sang "Thanh toán thành công"; Admin → Thanh toán thấy đơn *Đã thanh toán (tự động)*.
-4. Thử thêm: chuyển thiếu tiền, ghi sai nội dung → kiểm tra mục *Giao dịch ngân hàng* và gán tay.
+1. Trên HappyClass, đăng nhập bằng tài khoản học viên thử nghiệm → **Bảng giá** → chọn gói tháng. Không chuyển tiền thật. Ghi lại **mã đơn** và **đúng số tiền** đang hiển thị trên đơn.
+2. Trong SePay, giữ Test Mode đang bật → **Giao dịch → Mô phỏng giao dịch**.
+3. Chọn đúng tài khoản Test Mode đã dùng cho webhook; nhập số tiền đúng bằng đơn HappyClass và nội dung chuyển khoản chính xác là mã đơn (ví dụ `HC7K2P9QAB`), sau đó gửi giao dịch thử.
+4. Mở lại đơn HappyClass: trạng thái phải chuyển thành **Đã thanh toán**. Vào Admin → **Thanh toán** để xác nhận đơn *Đã thanh toán (tự động)* và giao dịch ngân hàng được ghi nhận.
+5. Nếu chưa cập nhật, kiểm tra **Test mode → Tích hợp Webhook → Lịch sử gửi**. Payload phải tới đúng URL, HTTP response phải là 200 và body có `{"success":true}`. Kiểm tra cả log chi tiết của lần gửi; không đăng API Key hoặc thông tin tài khoản lên chat.
+6. Sau khi ca đúng tiền thành công, có thể tạo một đơn thử khác để kiểm tra thiếu tiền hoặc sai mã. Các ca này phải không cấp gói và xuất hiện trong danh sách giao dịch chờ đối soát.
+
+Giao dịch mô phỏng của SePay Test Mode không làm thay đổi số dư Live. Tuy vậy, tuyệt đối không bật `PAYMENT_MODE=live` cho tới khi hoàn tất kiểm thử.
 
 ## Bước 6 – Bật thanh toán thật
 
