@@ -16,6 +16,8 @@ export class GameAudio {
   voiceLang: string;
   /** Gọi khi không có cách nào đọc đúng tiếng Việt (máy chủ lỗi và máy không có giọng Việt). */
   onUnavailable?: () => void;
+  /** Chỉ báo khi audio máy chủ thực sự bắt đầu phát, hoặc giọng thiết bị được chọn. */
+  onAvailable?: () => void;
   private ctx: AudioContext | null = null;
   private player: HTMLAudioElement | null = null;
   private seq = 0;
@@ -55,12 +57,16 @@ export class GameAudio {
     const id = ++this.seq;
     let fellBack = false;
     const fallback = () => {
-      if (fellBack || id !== this.seq) return;
+      if (fellBack || id !== this.seq || !this.enabled) return;
       fellBack = true;
-      if (!this.speakWithDevice(text, true)) this.onUnavailable?.();
+      if (this.speakWithDevice(text, true)) this.onAvailable?.();
+      else this.onUnavailable?.();
     };
     const a = new Audio(`/api/tts?lang=vi&text=${encodeURIComponent(text)}`);
     a.preload = 'auto';
+    a.onplaying = () => {
+      if (id === this.seq && this.enabled) this.onAvailable?.();
+    };
     a.onerror = fallback;
     this.player = a;
     a.play().catch((e: DOMException) => {
@@ -97,7 +103,14 @@ export class GameAudio {
   }
 
   stop() {
-    if (this.player) { this.player.onerror = null; this.player.pause(); this.player = null; }
+    // Vô hiệu các sự kiện onerror/onplaying của lần phát cũ khi đổi câu, đổi game hoặc tắt tiếng.
+    this.seq++;
+    if (this.player) {
+      this.player.onerror = null;
+      this.player.onplaying = null;
+      this.player.pause();
+      this.player = null;
+    }
     if (this.speechAvailable) window.speechSynthesis.cancel();
   }
 }

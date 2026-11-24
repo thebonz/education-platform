@@ -26,6 +26,26 @@ test.beforeEach(async ({ page }) => {
   });
 });
 
+test('màn giới thiệu cho nghe thử đủ sáu thanh trước khi chơi', async ({ page }) => {
+  const asked: string[] = [];
+  await page.route('**/api/tts?**', (route) => {
+    const u = new URL(route.request().url());
+    asked.push(u.searchParams.get('text') ?? '');
+    return route.fulfill({ status: 200, contentType: 'audio/wav', body: silentWav() });
+  });
+  await page.goto(`${VI}/games/nghe-chon-dau-thanh`);
+  await expect(page.getByTestId('voice-check-button')).toBeVisible();
+  await page.getByTestId('voice-check-button').click();
+  await expect.poll(() => asked.length).toBeGreaterThan(0);
+  expect(asked[0]).toContain('ma, má, mà, mả, mã, mạ');
+  await expect(page.getByTestId('game-shell')).toHaveAttribute('data-phase', 'intro');
+  await page.getByRole('button', { name: 'Tắt âm thanh' }).click();
+  await expect(page.getByTestId('voice-check-button')).toBeDisabled();
+  await page.getByRole('button', { name: 'Bật âm thanh' }).click();
+  await expect(page.getByTestId('voice-check-button')).toBeEnabled();
+  expect(await page.evaluate(() => (window as unknown as { __speak: string[] }).__speak)).toEqual([]);
+});
+
 test('game tiếng Việt đọc bằng giọng của máy chủ, không dùng giọng trình duyệt', async ({ page }) => {
   const asked: string[] = [];
   await page.route('**/api/tts?**', (route) => {

@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { GameCard } from '@/components/game-card';
 import { SiteHeader } from '@/components/site-header';
 import type { CatalogGame, CatalogProduct, Taxonomy } from '@/lib/catalog';
+import { matchesSkill, SKILL_GROUPS } from '@/lib/discovery';
 import { productContext } from '@/lib/page-context';
 import { productCopy } from '@/lib/product-copy';
 import { apiGet } from '@/lib/server-api';
@@ -28,6 +29,9 @@ export default async function ProductHome({ params }: { params: Promise<{ produc
   const isEnglish = product === 'english';
   const lang = isEnglish ? 'en' : 'vi';
   const freeCount = games.ok ? games.data.filter((g) => g.accessLevel === 'FREE').length : 0;
+  const activities = SKILL_GROUPS[product]
+    .map((group) => ({ ...group, count: games.ok ? games.data.filter((g) => matchesSkill(g.templateKey, group)).length : 0 }))
+    .filter((group) => group.count > 0);
   const steps = isEnglish
     ? [['🎲', 'Pick a game', 'Filter by level, skill or category.'], ['🖥️', 'Play on any screen', 'Projector, tablet or phone – press F for fullscreen.'], ['🔊', 'Listen and learn', 'Every word can be read aloud in British or American English.']]
     : [['🎲', 'Chọn trò chơi', 'Lọc theo lớp, kỹ năng hoặc chủ đề.'], ['🖥️', 'Chơi trên mọi màn hình', 'Máy chiếu, máy tính bảng hay điện thoại – nhấn F để toàn màn hình.'], ['⭐', 'Ghi nhận tiến bộ', 'Đăng nhập để lưu kết quả và game yêu thích.']];
@@ -44,6 +48,24 @@ export default async function ProductHome({ params }: { params: Promise<{ produc
         </div>
         <div className="hero-illustration"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="hero-orb">{isEnglish ? 'Aa' : 'Ăă'}<small>{isEnglish ? 'PLAY' : 'HỌC VUI'}</small></div></div>
       </section>
+
+      {activities.length > 0 && (
+        <section className="featured-section">
+          <div className="section-heading">
+            <div><span className="eyebrow">{isEnglish ? 'PLAY YOUR WAY' : 'VỪA HỌC VỪA CHƠI'}</span>
+              <h2>{isEnglish ? 'Choose a learning adventure' : 'Học theo cách bé thích'}</h2></div>
+            <Link href={`${base}/games`} className="all-games-link">{isEnglish ? 'All activities' : 'Tất cả trò chơi'} ↗</Link>
+          </div>
+          <div className="skill-chips" data-testid="homepage-skills">
+            {activities.map((group) => (
+              <Link key={group.key} href={`${base}/games?skill=${group.key}`} className="skill-chip" data-testid={`home-skill-${group.key}`}>
+                <span aria-hidden="true">{group.icon}</span><b>{group.label}</b>
+                <small>{group.count} {isEnglish ? (group.count === 1 ? 'game' : 'games') : 'trò'}</small>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {taxonomy.ok && taxonomy.data.categories.length > 0 && (
         <section className="featured-section">
