@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
@@ -433,6 +433,32 @@ jobs:
           after=0
           [ -e "$HC_DATA_DIR/status/postgres-trend.json" ] && after=1
           test "$before" = "$after"
+
+      - name: Xác nhận sự cố thủ công: preview không ghi, record chỉ metadata bảo vệ
+        run: |
+          state="$HC_DATA_DIR/status/incident-confirmation.json"
+          test ! -e "$state"
+          sudo --preserve-env=HC_DATA_DIR bash ops/check-incident-confirmation.sh --json > /tmp/hc-preview.json
+          test ! -e "$state"
+          sudo --preserve-env=HC_DATA_DIR bash ops/check-incident-confirmation.sh --record --json > /tmp/hc-confirmed.json
+          sudo test -f "$state"
+          test "$(sudo stat -c '%a' "$state")" = "600"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          preview = json.loads(Path('/tmp/hc-preview.json').read_text())
+          recorded = json.loads(Path('/tmp/hc-confirmed.json').read_text())
+          for data in (preview, recorded):
+              assert data['schema_version'] == 1
+              assert data['status'] == 'ok'
+              assert data['confirmation']['notifications_sent'] is False
+              assert data['confirmation']['scheduled'] is False
+              assert data['confirmation']['transitions'] == []
+          assert preview['confirmation']['recorded'] is False
+          assert recorded['confirmation']['recorded'] is True
+          assert recorded['confirmation']['active_confirmed'] == []
+          print('::notice title=Confirm::Preview read only; explicit record 0600; no alerts')
+          PY
 
       - name: Triển khai lần 2 (cập nhật, phải idempotent và tự sao lưu trước migrate)
         run: |
