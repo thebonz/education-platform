@@ -58,6 +58,10 @@ Những mục trên không được đánh dấu `pass` tự động ngay cả k
 
 Bản ghi vận hành gần đây trên DL380 có 16/16 tín hiệu khỏe, PostgreSQL 8/100 kết nối, không có deadlock/rollback mới, backup/restore cách đó 17,9 giờ. Các thông số đó **chỉ chứng minh runtime hiện tại**, không thể suy ra SMTP thật, hồ sơ pháp lý hoặc SePay Test Mode đã nghiệm thu. Do đó trước khi có bằng chứng và quyết định riêng, **giữ Cloudflare Access và SePay Sandbox như hiện tại**.
 
+## Ghi nhận kiểm thử đã thực hiện
+
+Nếu người vận hành đã thử SMTP thực tế và SePay Test Mode, có thể **tự xác nhận** từng mục bằng [MANUAL-ACCEPTANCE.md](MANUAL-ACCEPTANCE.md). Báo cáo này chỉ tăng `counts.attested`; các mục đó **vẫn là manual**, không thay đổi điều kiện mở công khai hay SePay Live. Mốc tự xác nhận hết hiệu lực sau 7 ngày.
+
 ## Dành cho kiểm thử ngoại tuyến
 
 Chạy `python3 ops/go-live-evidence.py --env-file path/to/sample.env --data-dir path/to/sample-data --legal-file path/to/legal.tsx --no-systemd --json` để kiểm tra trên fixtures. Trong chế độ `--no-systemd`, timer được gán `manual` thay vì `pass`; điều đó không phải bằng chứng trạng thái timer trên DL380.
