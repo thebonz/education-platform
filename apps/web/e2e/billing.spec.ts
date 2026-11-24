@@ -53,7 +53,7 @@ test('mua gói tháng bằng VietQR, tiền về qua webhook SePay, game trả p
     await expect(page.getByTestId('tr-amount')).toContainText('55.000');
     const memo = (await page.getByTestId('tr-content').innerText()).trim();
     expect(memo).toMatch(/^SEVQR HC[2-9A-HJKMNP-Z]{8}$/);
-    const code = memo.replace(/^SEVQR\\s+/i, '');
+    const code = memo.replace(/^SEVQR\s+/i, '');
 
     // SePay báo tiền về: giữ nguyên tiền tố bắt buộc của VietinBank trong nội dung.
     const hook = await page.request.post(`${EN}/api/webhooks/sepay`, {
