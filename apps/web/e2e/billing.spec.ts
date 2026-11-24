@@ -51,13 +51,14 @@ test('mua gói tháng bằng VietQR, tiền về qua webhook SePay, game trả p
     await expect(page.getByTestId('qr').locator('svg')).toBeVisible();
     await expect(page.getByTestId('tr-account')).toHaveText('100000000001');
     await expect(page.getByTestId('tr-amount')).toContainText('55.000');
-    const code = (await page.getByTestId('tr-content').innerText()).trim();
-    expect(code).toMatch(/^HC[2-9A-HJKMNP-Z]{8}$/);
+    const memo = (await page.getByTestId('tr-content').innerText()).trim();
+    expect(memo).toMatch(/^SEVQR HC[2-9A-HJKMNP-Z]{8}$/);
+    const code = memo.replace(/^SEVQR\\s+/i, '');
 
-    // SePay báo tiền về (nội dung bị ngân hàng thêm tiền tố, chữ thường)
+    // SePay báo tiền về: giữ nguyên tiền tố bắt buộc của VietinBank trong nội dung.
     const hook = await page.request.post(`${EN}/api/webhooks/sepay`, {
       headers: { Authorization: `Apikey ${KEY}` },
-      data: { id: Date.now(), gateway: 'VietinBank', transactionDate: '2026-11-08 10:00:00', accountNumber: '100000000001', content: `MBVCB.99 ${code.toLowerCase()} chuyen tien`, transferType: 'in', transferAmount: 55000 },
+      data: { id: Date.now(), gateway: 'VietinBank', transactionDate: '2026-11-08 10:00:00', accountNumber: '100000000001', content: `SEVQR ${code.toLowerCase()}`, transferType: 'in', transferAmount: 55000 },
     });
     expect(await hook.json()).toMatchObject({ success: true, result: 'matched' });
 
