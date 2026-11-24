@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/check-go-live-evidence.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/check-go-live-evidence.sh ops/check-manual-acceptance.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
@@ -93,6 +93,37 @@ jobs:
           assert data['notifications_sent'] is False
           print('::notice title=Go-live::Preflight never grants public release in sample mode')
           PY
+
+      - name: Ghi nhận nghiệm thu thủ công chỉ trên fixture CI
+        run: |
+          data_dir="$(mktemp -d)"
+          mkdir -p "$data_dir/status"
+          python3 ops/manual-acceptance.py --data-dir "$data_dir" --json > /tmp/hc-manual-preview.json
+          test ! -e "$data_dir/status/manual-acceptance.json"
+          python3 ops/manual-acceptance.py --attest smtp.delivery --confirm I_VERIFIED --data-dir "$data_dir" --json > /tmp/hc-manual-record.json
+          test "$(stat -c '%a' "$data_dir/status/manual-acceptance.json")" = "600"
+          set +e
+          python3 ops/go-live-evidence.py --env-file .env.example --data-dir "$data_dir" --no-systemd --json > /tmp/hc-evidence-attested.json
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          preview = json.loads(Path('/tmp/hc-manual-preview.json').read_text())
+          record = json.loads(Path('/tmp/hc-manual-record.json').read_text())
+          audit = json.loads(Path('/tmp/hc-evidence-attested.json').read_text())
+          assert preview['attested_keys'] == []
+          assert record['attested_keys'] == ['smtp.delivery']
+          assert record['public_release_allowed'] is False
+          assert record['assertion_is_independent_proof'] is False
+          assert audit['counts']['attested'] == 1
+          assert audit['counts']['block'] > 0
+          assert audit['public_release_allowed'] is False
+          assert audit['manual_assertions_are_independent_proof'] is False
+          print('::notice title=Manual audit::Read-only preview and explicit 0600 metadata; no launch permission')
+          PY
+          rm -rf "$data_dir"
 
       - name: ESLint
         run: |
