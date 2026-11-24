@@ -94,6 +94,11 @@ test('super admin xem tổng quan, tìm và khóa người dùng; người bị 
   await expect(page.getByTestId('learning-analytics-summary')).toBeVisible();
   await expect(page.getByTestId('learning-analytics-products')).toBeVisible();
 
+  await page.goto(`${ADMIN}/business-analytics?days=30`);
+  await expect(page.getByTestId('business-analytics-page')).toBeVisible();
+  await expect(page.getByTestId('business-analytics-summary')).toBeVisible();
+  await expect(page.getByTestId('business-analytics-products')).toBeVisible();
+
   await page.goto(`${ADMIN}/users`);
   await expect(page.getByPlaceholder('Tìm theo email hoặc tên', { exact: true })).toBeVisible();
   await page.getByPlaceholder('Tìm theo email hoặc tên', { exact: true }).fill(email);
