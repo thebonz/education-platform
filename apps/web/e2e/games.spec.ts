@@ -41,6 +41,10 @@ test('trang chủ English có bộ sưu tập và 6 game nổi bật', async ({ 
   await page.goto(`${EN}/`);
   await expect(page.locator('.collection-card').first()).toBeVisible();
   await expect(page.getByTestId('game-card')).toHaveCount(6);
+  await expect(page.getByTestId('homepage-skills')).toBeVisible();
+  await page.getByTestId('home-skill-listen').click();
+  await expect(page).toHaveURL(/\/games\?skill=listen/);
+  await expect(page.getByTestId('game-card')).toHaveCount(3);
 });
 
 test('thư viện lọc theo cấp độ và danh mục, bộ lọc nằm trên URL', async ({ page }) => {
