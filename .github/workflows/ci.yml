@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
@@ -97,6 +97,12 @@ jobs:
             exit 1
           fi
           npx prisma migrate deploy
+
+      - name: Smoke kiểm tra PostgreSQL dạng READ ONLY
+        env:
+          PGPASSWORD: ci-password
+        run: |
+          psql -h 127.0.0.1 -U happyclass -d happyclass_test -X -v ON_ERROR_STOP=1 -f ops/postgres-diagnostics.sql
 
       - name: Typecheck API + Web
         run: npm run typecheck

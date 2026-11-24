@@ -56,6 +56,7 @@ Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, kh�
   - kiểm tra `backup/last-success` không cũ quá 2 ngày.
 - [ ] **Hiệu năng:** chạy `sudo bash ops/check-performance.sh`, lưu p50/p95 và ảnh chụp CPU/RAM/dung lượng; không tổ chức stress test trên DL380 dùng chung (`docs/PERFORMANCE.md`).
 - [ ] **Giám sát:** chạy `sudo bash ops/check-runtime-health.sh`, xử lý cảnh báo về container, bộ nhớ, dung lượng và lịch backup/restore (`docs/OPERATIONS-MONITORING.md`). Đây là kiểm tra một lần, chưa thay thế giám sát/cảnh báo 24/7.
+- [ ] **PostgreSQL:** chạy `sudo bash ops/check-postgres.sh`, kiểm tra kết nối/lock/autovacuum và thông số hiện tại trước khi đề xuất tối ưu (`docs/POSTGRES-DIAGNOSTICS.md`).
 - [ ] **Giọng đọc:** kiểm tra nghe thực tế trên máy tính và điện thoại; xác nhận âm thanh Piper giọng Bắc đã cache đủ cho game tiếng Việt và gói offline (xem `docs/VOICE.md`).
 
 ## Mở công khai — CHƯA ĐƯỢC THỰC HIỆN
