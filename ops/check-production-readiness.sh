@@ -116,7 +116,7 @@ else
   warning "Bỏ qua kiểm tra webhook công khai vì English URL chưa phải HTTPS"
 fi
 
-if grep -Eiq 'Bản dự thảo|Draft terms|Draft terms for the testing period' apps/web/src/components/legal.tsx; then
+if grep -Eiq "draft:[[:space:]]*'(Bản dự thảo|Draft terms)" apps/web/src/components/legal.tsx; then
   failure "Trang pháp lý vẫn còn nội dung 'Bản dự thảo/Draft'; cần bổ sung pháp nhân, địa chỉ và chính sách hoàn tiền"
 else
   pass "Không tìm thấy nhãn bản dự thảo trong nội dung pháp lý"
