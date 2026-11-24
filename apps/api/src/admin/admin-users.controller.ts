@@ -67,6 +67,75 @@ export class AdminUsersController {
     };
   }
 
+  /** Danh sách giáo viên/quản trị trường cùng số liệu lớp học tổng hợp. */
+  @Get('teachers')
+  @RequirePermissions('admin.access', 'users.read')
+  async teachers(@Query() query: unknown) {
+    const { q, page, pageSize } = parse(listSchema, query);
+    const term = q?.normalize('NFC').trim();
+    const where: Prisma.UserWhereInput = {
+      deletedAt: null,
+      roles: { some: { role: { key: { in: ['teacher', 'school_admin'] } } } },
+      ...(term ? {
+        OR: [
+          { email: { contains: term, mode: 'insensitive' } },
+          { displayName: { contains: term, mode: 'insensitive' } },
+        ],
+      } : {}),
+    };
+    const [total, rows] = await this.prisma.$transaction([
+      this.prisma.user.count({ where }),
+      this.prisma.user.findMany({
+        where,
+        select: {
+          id: true, email: true, displayName: true, emailVerifiedAt: true, isActive: true,
+          createdAt: true, lastLoginAt: true,
+          roles: { select: { role: { select: { key: true } } } },
+          classrooms: {
+            where: { isArchived: false },
+            select: {
+              product: { select: { slug: true } },
+              _count: {
+                select: {
+                  students: { where: { isActive: true } },
+                  games: { where: { isActive: true } },
+                },
+              },
+            },
+          },
+        },
+        orderBy: [{ isActive: 'desc' }, { createdAt: 'desc' }],
+        skip: (page - 1) * pageSize,
+        take: pageSize,
+      }),
+    ]);
+    return {
+      total, page, pageSize,
+      teachers: rows.map(({ roles, classrooms, ...user }) => {
+        const classesByProduct = { english: 0, vietnamese: 0 };
+        let activeStudents = 0;
+        let activeGames = 0;
+        for (const classroom of classrooms) {
+          if (classroom.product.slug === 'english' || classroom.product.slug === 'vietnamese') {
+            classesByProduct[classroom.product.slug] += 1;
+          }
+          activeStudents += classroom._count.students;
+          activeGames += classroom._count.games;
+        }
+        return {
+          ...user,
+          roles: roles.map((r) => r.role.key),
+          metrics: {
+            activeClasses: classrooms.length,
+            activeStudents,
+            activeGames,
+            classesByProduct,
+          },
+        };
+      }),
+    };
+  }
+
   @Get(':id')
   @RequirePermissions('admin.access', 'users.read')
   async detail(@Param('id', ParseUUIDPipe) id: string) {

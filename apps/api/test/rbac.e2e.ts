@@ -28,6 +28,7 @@ describe('Phân quyền và quản trị', () => {
     await t.http().get('/api/admin/stats').expect(401);
     await admin(memberCookie).get('/api/admin/stats').expect(403);
     await admin(memberCookie).get('/api/admin/users').expect(403);
+    await admin(memberCookie).get('/api/admin/users/teachers').expect(403);
     await admin(memberCookie).post(`/api/admin/users/${memberId}/lock`, { reason: 'test lock' }).expect(403);
   });
 
@@ -56,6 +57,52 @@ describe('Phân quyền và quản trị', () => {
     expect(JSON.stringify(stats.body)).not.toContain('Bạn nhỏ A');
   });
 
+  it('danh sách giáo viên trả số liệu lớp tổng hợp, bỏ lớp lưu trữ và không lộ dữ liệu học sinh', async () => {
+    const teacher = await createUser(t.prisma, 'teacher-report@example.com', PW, ['teacher', 'member']);
+    const english = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'english' } });
+    const vietnamese = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'vietnamese' } });
+    const englishClass = await t.prisma.classroom.create({
+      data: { ownerId: teacher.id, productId: english.id, name: 'English 2A', joinCode: 'TEA234' },
+    });
+    const vietnameseClass = await t.prisma.classroom.create({
+      data: { ownerId: teacher.id, productId: vietnamese.id, name: 'Tiếng Việt 2A', joinCode: 'TEA235' },
+    });
+    await t.prisma.classroom.create({
+      data: { ownerId: teacher.id, productId: english.id, name: 'Lớp đã lưu trữ', joinCode: 'TEA236', isArchived: true },
+    });
+    await t.prisma.classStudent.createMany({
+      data: [
+        { classroomId: englishClass.id, nickname: 'HS_PRIVATE_01' },
+        { classroomId: englishClass.id, nickname: 'HS_PRIVATE_02' },
+        { classroomId: englishClass.id, nickname: 'HS_INACTIVE', isActive: false },
+        { classroomId: vietnameseClass.id, nickname: 'HS_PRIVATE_03' },
+      ],
+    });
+    await t.prisma.classGame.create({
+      data: { classroomId: englishClass.id, title: 'Game đang dùng', templateKey: 'quiz-choice', accessLevel: 'FREE', content: { questions: [] } },
+    });
+    await t.prisma.classGame.create({
+      data: { classroomId: englishClass.id, title: 'Game đã tắt', templateKey: 'quiz-choice', accessLevel: 'FREE', content: { questions: [] }, isActive: false },
+    });
+
+    const result = await admin(superCookie).get('/api/admin/users/teachers?q=teacher-report').expect(200);
+    expect(result.body.total).toBe(1);
+    const row = result.body.teachers[0];
+    expect(row).toMatchObject({
+      email: 'teacher-report@example.com',
+      roles: expect.arrayContaining(['teacher']),
+      metrics: {
+        activeClasses: 2,
+        activeStudents: 3,
+        activeGames: 1,
+        classesByProduct: { english: 1, vietnamese: 1 },
+      },
+    });
+    expect(row).not.toHaveProperty('passwordHash');
+    expect(JSON.stringify(result.body)).not.toContain('HS_PRIVATE');
+    expect(JSON.stringify(result.body)).not.toContain('TEA234');
+  });
+
   it('khóa tài khoản thu hồi phiên và chặn đăng nhập; mở khóa khôi phục', async () => {
     await createUser(t.prisma, 'victim@example.com', PW);
     const victimCookie = await login(t, 'victim@example.com', PW);
@@ -78,6 +125,7 @@ describe('Phân quyền và quản trị', () => {
     const supportCookie = await login(t, 'support@example.com', PW, ORIGIN_ADMIN);
 
     await admin(supportCookie).get('/api/admin/users').expect(200);
+    await admin(supportCookie).get('/api/admin/users/teachers').expect(200);
     await admin(supportCookie).put(`/api/admin/users/${memberId}/roles`, { roles: ['teacher'] }).expect(403); // thiếu roles.assign
     await admin(supportCookie).put(`/api/admin/users/${support.id}/roles`, { roles: ['super_admin'] }).expect(403);
 
