@@ -187,7 +187,9 @@ class GoLiveEvidenceTests(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             env, datadir, legal = self.fixtures(
                 Path(tmp),
-                legal="""export const legal = { draft: 'Bản dự thảo giai đoạn chạy thử.' };"""
+                legal="""export const legal = {
+                draft: 'Bản dự thảo giai đoạn chạy thử.'
+            };"""
             )
             # Load the same local module the CLI uses; no server/files outside tmp.
             import importlib.util
