@@ -53,6 +53,20 @@ test('thư viện lọc theo cấp độ và danh mục, bộ lọc nằm trên 
   await expect(page.getByTestId('game-card')).toHaveCount(2);
 });
 
+test('khám phá theo nhóm kỹ năng, URL chia sẻ được và xoá bộ lọc rỗng', async ({ page }) => {
+  await page.goto(`${EN}/games`);
+  await page.getByTestId('skill-chip-words').click();
+  await expect(page).toHaveURL(/skill=words/);
+  await expect(page.getByTestId('game-card')).toHaveCount(2);
+  await expect(page.getByTestId('skill-chip-words')).toHaveAttribute('aria-pressed', 'true');
+  await expect(page.getByTestId('library-results')).toContainText('Showing 2 of 6 games');
+  await page.goto(`${EN}/games?skill=teams&category=spelling`);
+  await expect(page.getByTestId('game-card')).toHaveCount(0);
+  await page.getByTestId('clear-library-filters').click();
+  await expect(page).toHaveURL(`${EN}/games`);
+  await expect(page.getByTestId('game-card')).toHaveCount(6);
+});
+
 test('Alphabet Bingo: nghe gọi chữ, đánh dấu, BINGO', async ({ page }) => {
   await page.goto(`${EN}/games/alphabet-bingo`);
   await page.getByTestId('shell-start').click();
