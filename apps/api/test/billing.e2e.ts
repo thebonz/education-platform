@@ -117,7 +117,10 @@ describe('Gói thành viên và thanh toán', () => {
   });
 
   it('hai webhook đồng thời cho cùng một giao dịch chỉ cấp quyền một lần', async () => {
-    const created = await post(member, '/api/billing/orders', { planId: await plan('english-year') }).expect(201);
+    // Dùng tài khoản độc lập để không ảnh hưởng test gia hạn của member bên dưới.
+    await createUser(t.prisma, 'concurrent@example.com', PW);
+    const concurrentMember = await login(t, 'concurrent@example.com', PW, ORIGIN_EN);
+    const created = await post(concurrentMember, '/api/billing/orders', { planId: await plan('english-year') }).expect(201);
     const txId = 888888;
     const payload = {
       id: txId, transactionDate: '2026-11-08 10:25:00', accountNumber: ACCOUNT,
