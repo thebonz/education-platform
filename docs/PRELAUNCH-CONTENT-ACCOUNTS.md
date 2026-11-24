@@ -41,6 +41,10 @@ Số game `PENDING` hay `CHANGES_REQUESTED` được gắn cờ **manual** để
 
 Mã thoát `1` khi không có blocker nhưng vẫn cần nghiệm thu con người, `2` khi có blocker hoặc không truy vấn được PostgreSQL. Không dùng mã 0 để ra quyết định mở public. JSON luôn mang `public_release_allowed=false`, `content_review_approved=false` và `admin_accounts_approved=false`.
 
+## Mẫu giọng đọc và checklist khi duyệt
+
+Trong Admin → Nội dung game → Chi tiết game tiếng Việt, giáo viên có thể nghe trực tiếp một nhóm tối đa 12 câu/từ trong phiên bản đang chạy. Nút **Duyệt** ở giao diện yêu cầu xác nhận đã đọc đáp án, chơi thử và nghe giọng Việt trước khi bấm. Đây là bảo vệ thao tác, không phải tự động kiểm định chất lượng; backend vẫn dùng quyền `games.review`. Luôn thử **toàn bộ game**, không chỉ các câu mẫu. Không duyệt hàng loạt cho đủ chỉ tiêu.
+
 ## Hành động tiếp theo
 
 Nếu còn game chờ duyệt, người có quyền `content_reviewer` vào Admin → Nội dung game → kiểm tra và duyệt từng game. Nếu Super Admin vắng mặt hoặc vai trò nhân sự chưa được rà soát, xử lý thủ công trong Admin, không sửa SQL trực tiếp. Sau khi xác minh, người vận hành có thể chạy `check-manual-acceptance.sh --attest content.review --confirm I_VERIFIED` hoặc `--attest admin.accounts` **chỉ khi đã thực hiện đúng bước tương ứng**.

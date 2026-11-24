@@ -90,3 +90,28 @@ test('tạo game mới bằng Game Builder, tải ảnh, phát hành và chơi t
   await page.getByRole('link', { name: 'Thư viện media' }).click();
   await expect(page.getByTestId('media-item').filter({ hasText: 'cái thước kẻ' })).toBeVisible();
 });
+
+test('giáo viên xem được mẫu đọc tiếng Việt và phải tích đủ checklist trước khi nút duyệt được bật', async ({ page }) => {
+  test.skip(!ADMIN_PASSWORD, 'Chưa đặt E2E_ADMIN_PASSWORD');
+  await page.goto(`${ADMIN}/login`);
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Mật khẩu').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByTestId('admin-dashboard')).toBeVisible();
+  await page.goto(`${ADMIN}/games?review=PENDING`);
+  await page.locator('tr[data-slug="nghe-chon-dau-thanh"] a').first().click();
+  const preview = page.getByTestId('admin-voice-review');
+  await expect(preview).toBeVisible();
+  await expect(preview.getByTestId('admin-voice-sample').first()).toBeVisible();
+  await expect(preview.getByTestId('admin-voice-sample').first()).toContainText('bò');
+  const approve = page.getByTestId('review-approve');
+  await expect(approve).toBeDisabled();
+  await page.getByTestId('review-check-0').check();
+  await page.getByTestId('review-check-1').check();
+  await expect(approve).toBeDisabled();
+  await page.getByTestId('review-check-2').check();
+  await expect(approve).toBeEnabled();
+  await page.getByTestId('review-check-1').uncheck();
+  await expect(approve).toBeDisabled();
+  // Không tự bấm Duyệt: test không thay đổi nội dung hoặc trạng thái 29 game.
+});

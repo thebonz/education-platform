@@ -1,8 +1,10 @@
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ReviewActions } from '@/components/admin-actions';
+import { AdminVoiceReview } from '@/components/admin-voice-review';
 import { adminContext } from '@/lib/admin-context';
 import { REVIEW_LABEL, type ReviewStatus } from '@/lib/review';
+import { reviewVoiceSamples } from '@/lib/review-voice-samples';
 import { apiGet } from '@/lib/server-api';
 import { siteUrl } from '@/lib/sites';
 
@@ -40,6 +42,7 @@ export default async function GameAdminDetail({ params }: { params: Promise<{ id
           {g.isPublished && <a className="secondary-button" href={playHref} target="_blank" rel="noreferrer">Chơi thử ↗</a>}
         </p>
       </div>
+      {g.product.slug === 'vietnamese' && g.version && <AdminVoiceReview samples={reviewVoiceSamples(g.version.content)} />}
       {can('games.review') && g.version && <ReviewActions gameId={g.id} />}
       <div className="panel">
         <h2>Nội dung phiên bản đang phát hành</h2>
