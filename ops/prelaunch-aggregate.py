@@ -80,7 +80,6 @@ def collect(*, repo: Path = ROOT, sql_path: Path = SQL) -> dict[str, int]:
         'exec psql -X -q -A -t -v ON_ERROR_STOP=1 -U "$POSTGRES_USER" -d "$POSTGRES_DB"',
     ]
     done = subprocess.run(command, cwd=repo, input=contents, text=True,
-                          stdin=subprocess.DEVNULL if False else None,
                           stdout=subprocess.PIPE, stderr=subprocess.PIPE,
                           timeout=25, check=False)
     if done.returncode != 0:
