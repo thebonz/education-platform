@@ -42,6 +42,14 @@ sudo bash ops/configure-payments.sh
 Script hỏi số tài khoản và tên chủ tài khoản (viết HOA không dấu), tạo **khóa webhook** ngẫu nhiên và in ra **một lần**.
 Ở chế độ thử nghiệm, trang thanh toán có dải vàng "CHẾ ĐỘ THỬ NGHIỆM – vui lòng KHÔNG chuyển tiền".
 
+Sau khi bật sandbox, chạy script kiểm tra chỉ đọc:
+
+~~~bash
+sudo bash ops/check-payment-sandbox.sh
+~~~
+
+Script xác nhận cấu hình sandbox, quyền `.env`, trạng thái PostgreSQL/API/Web, bảng giá và việc webhook từ chối request không có API Key. Nếu domain HTTPS đã cấu hình, script còn kiểm tra Cloudflare Access có cho webhook đi tới API hay không. Script **không tạo đơn, không ghi giao dịch, không chuyển tiền và không thay đổi cấu hình**. Nếu script báo HTTP 302/403 ở webhook công khai, kiểm tra lại Access Bypass cho `/api/webhooks/`.
+
 ## Bước 3 – Cấu hình webhook trong SePay
 
 my.sepay.vn → **Tích hợp WebHooks** → **Thêm webhooks**:
