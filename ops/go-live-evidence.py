@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import datetime as dt
+import importlib.util
 import json
 import re
 import stat
@@ -42,7 +43,7 @@ LEGAL_DRAFT = re.compile(
 
 class Gates:
     def __init__(self) -> None:
-        self.entries: list[dict[str, str]] = []
+        self.entries: list[dict[str, Any]] = []
 
     def add(self, key: str, status: str, explanation: str, action: str) -> None:
         if status not in ("pass", "block", "manual"):
@@ -110,6 +111,17 @@ def status_age_hours(file: Path, *, now: dt.datetime) -> float:
     if age < 0:
         raise ValueError("future success stamp")
     return age
+
+
+def load_manual_assertions(data_dir: Path, now: dt.datetime) -> tuple[list[str], list[str]]:
+    """Read local operator statements, not external proof and not go-live consent."""
+    module_path = ROOT / "ops" / "manual-acceptance.py"
+    spec = importlib.util.spec_from_file_location("happyclass_go_live_manual", module_path)
+    if spec is None or spec.loader is None:
+        raise ValueError("missing acceptance module")
+    module = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(module)
+    return module.active_assertions(data_dir, now)
 
 
 def timer_ok(name: str) -> bool:
@@ -250,17 +262,33 @@ def evaluate(env_path: Path, data_dir: Path | None, legal_file: Path,
         report.block("legal.draft", "Không đọc được văn bản pháp lý.",
                      "Kiểm tra apps/web/src/components/legal.tsx.")
 
+    accepted: list[str] = []
+    expired: list[str] = []
+    try:
+        if target is None:
+            raise ValueError("invalid data directory")
+        accepted, expired = load_manual_assertions(target, captured)
+    except (OSError, ValueError, KeyError, TypeError, json.JSONDecodeError, UnicodeError):
+        report.block("acceptance.integrity", "Không xác minh được file tự ghi nhận nghiệm thu.",
+                     "Kiểm tra trạng thái JSON/quyền 0600; không ghi đè file lỗi.")
+
     for key, explanation in MANUAL_GATES:
         report.manual(key, explanation)
+        if key in accepted:
+            report.entries[-1]["attested"] = True
 
     counts = {level: sum(x["status"] == level for x in report.entries)
               for level in ("pass", "block", "manual")}
+    counts["attested"] = sum(x.get("attested") is True for x in report.entries)
     return {
         "schema_version": 1,
         "captured_at": captured.astimezone(dt.timezone.utc).isoformat(timespec="seconds"),
         "assessment": "blocked" if counts["block"] else "manual_review_required",
         "counts": counts,
         "gates": report.entries,
+        "manual_attestation_keys": sorted(accepted),
+        "expired_manual_attestation_keys": sorted(expired),
+        "manual_assertions_are_independent_proof": False,
         "public_release_allowed": False,
         "requires_owner_approval": True,
         "smtp_test_email_sent": False,
@@ -274,12 +302,13 @@ def print_text(report: dict[str, Any]) -> None:
     print("HappyClass – Go-live Evidence (chỉ đọc; KHÔNG duyệt mở công khai)")
     for g in report["gates"]:
         symbol = {"pass": "✓", "block": "✗", "manual": "?"}[g["status"]]
-        print(f"  {symbol} [{g['key']}] {g['explanation']}")
+        print(f"  {symbol} [{g['key']}] {g['explanation']}"
+              + (" (đã tự xác nhận; chưa kiểm chứng độc lập)" if g.get("attested") else ""))
         if g["status"] == "block":
             print("    Cần làm: " + g["action"])
     c = report["counts"]
     print(f"==> {report['assessment']} | Đạt {c['pass']}, Chặn {c['block']}, "
-          f"Cần xác minh thủ công {c['manual']}")
+          f"Cần xác minh thủ công {c['manual']}, đã tự xác nhận {c['attested']}")
     print("Không gửi email, không tạo giao dịch SePay, không đổi Cloudflare/.env/Docker.")
     print("Không có kết quả nào của công cụ tự cấp quyền mở công khai hoặc bật thanh toán Live.")
 
@@ -305,6 +334,7 @@ def main(argv: list[str] | None = None) -> int:
                           "explanation": "Không thể hoàn thành kiểm định.",
                           "action": "Kiểm tra quyền truy cập và dữ liệu cục bộ."}],
             "public_release_allowed": False, "requires_owner_approval": True,
+            "manual_assertions_are_independent_proof": False,
             "smtp_test_email_sent": False, "sepay_transaction_created": False,
             "notifications_sent": False, "configuration_changed": False,
         }

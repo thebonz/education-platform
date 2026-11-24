@@ -25,7 +25,7 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
 
 **Phần còn lại trước khi mở công khai:** cấu hình và kiểm thử SMTP thật; thiết lập sao lưu offsite và diễn tập restore trên máy chủ; kiểm thử SePay sandbox rồi mới bật live; chuyển API sang production; hoàn thiện thông tin pháp lý/chính sách hoàn tiền; rà soát tài khoản và duyệt nội dung game; cấu hình WAF/rate limit và theo dõi uptime.
 
-Checklist vận hành là tài liệu chuẩn: [docs/GO-LIVE.md](docs/GO-LIVE.md); [bằng chứng trước go-live](docs/GO-LIVE-EVIDENCE.md) phân biệt kiểm tra tự động với nghiệm thu thủ công và **không bao giờ tự phê duyệt mở public**. Có thể đọc [xu hướng PostgreSQL chỉ từ metadata](docs/POSTGRES-TRENDS.md) và [tín hiệu giám sát vận hành một lần](docs/INCIDENT-MONITORING.md) và [xác nhận sự cố thủ công có chống lặp](docs/INCIDENT-CONFIRMATION.md) (không tự gửi cảnh báo) trước khi tối ưu. Không bật thanh toán live hoặc gỡ Cloudflare Access chỉ dựa trên việc CI xanh.
+Checklist vận hành là tài liệu chuẩn: [docs/GO-LIVE.md](docs/GO-LIVE.md); [bằng chứng trước go-live](docs/GO-LIVE-EVIDENCE.md) phân biệt kiểm tra tự động với nghiệm thu thủ công, và [ghi nhận tự xác nhận nghiệm thu](docs/MANUAL-ACCEPTANCE.md) lưu metadata trong 7 ngày. **Không có script nào tự phê duyệt mở public.** Có thể đọc [xu hướng PostgreSQL chỉ từ metadata](docs/POSTGRES-TRENDS.md) và [tín hiệu giám sát vận hành một lần](docs/INCIDENT-MONITORING.md) và [xác nhận sự cố thủ công có chống lặp](docs/INCIDENT-CONFIRMATION.md) (không tự gửi cảnh báo) trước khi tối ưu. Không bật thanh toán live hoặc gỡ Cloudflare Access chỉ dựa trên việc CI xanh.
 
 ## Thêm game mới
 
