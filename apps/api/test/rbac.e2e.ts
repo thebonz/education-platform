@@ -43,6 +43,19 @@ describe('Phân quyền và quản trị', () => {
     expect(users.body.users[0]).not.toHaveProperty('passwordHash');
   });
 
+  it('dashboard trả số liệu tổng hợp giáo viên, lớp và học sinh mà không lộ dữ liệu học sinh', async () => {
+    const teacher = await createUser(t.prisma, 'teacher@example.com', PW, ['teacher', 'member']);
+    const product = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'english' } });
+    const classroom = await t.prisma.classroom.create({
+      data: { ownerId: teacher.id, productId: product.id, name: 'Lớp thử nghiệm', joinCode: 'TCH234' },
+    });
+    await t.prisma.classStudent.create({ data: { classroomId: classroom.id, nickname: 'Bạn nhỏ A' } });
+
+    const stats = await admin(superCookie).get('/api/admin/stats').expect(200);
+    expect(stats.body.education).toMatchObject({ activeTeachers: 1, activeClasses: 1, activeStudents: 1, classPlays7d: 0 });
+    expect(JSON.stringify(stats.body)).not.toContain('Bạn nhỏ A');
+  });
+
   it('khóa tài khoản thu hồi phiên và chặn đăng nhập; mở khóa khôi phục', async () => {
     await createUser(t.prisma, 'victim@example.com', PW);
     const victimCookie = await login(t, 'victim@example.com', PW);
