@@ -76,7 +76,7 @@ describe('Gói thành viên và thanh toán', () => {
   });
 
   it('chuyển thiếu tiền: không cấp quyền, giao dịch chờ đối soát', async () => {
-    const res = await webhook(`CT ${code.toLowerCase()} nguyen van a`, 500000).expect(200);
+    const res = await webhook(`SEVQR ${code} nguyen van a`, 500000).expect(200);
     expect(res.body).toEqual({ success: true, result: 'amount_too_low' });
     const order = await t.prisma.order.findUniqueOrThrow({ where: { code } });
     expect(order.status).toBe('PENDING');
@@ -85,7 +85,7 @@ describe('Gói thành viên và thanh toán', () => {
   });
 
   it('chuyển đủ tiền: đơn PAID, cấp quyền 12 tháng, mở game trả phí của đúng sản phẩm', async () => {
-    const res = await webhook(`MBVCB.1 ${code} chuyen khoan`, 599000).expect(200);
+    const res = await webhook(`SEVQR ${code}`, 599000).expect(200);
     expect(res.body).toEqual({ success: true, result: 'matched' });
     const order = await t.prisma.order.findUniqueOrThrow({ where: { code }, include: { entitlement: true } });
     expect(order).toMatchObject({ status: 'PAID', paymentMethod: 'sepay', paidAmountVnd: 599000 });
