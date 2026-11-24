@@ -81,6 +81,29 @@ sudo bash ops/configure-payments.sh --show-key
 
 SePay gửi API Key trong header `Authorization: Apikey <API_KEY>`. Không chọn “Không xác thực”, không dùng API Token SePay ở đây.
 
+### Quy tắc riêng của VietinBank và mã đơn HappyClass
+
+VietinBank cá nhân/hộ kinh doanh yêu cầu nội dung chuyển khoản có tiền tố `SEVQR`. HappyClass tự tạo nội dung theo dạng:
+
+~~~text
+SEVQR HCXXXXXXXX
+~~~
+
+Trong đó `HCXXXXXXXX` là mã đơn của HappyClass. Trang thanh toán hiển thị và cho phép sao chép **đầy đủ cả tiền tố SEVQR**, đồng nhất với dữ liệu được mã hoá trong QR. Không xoá tiền tố này khi giả lập hoặc chuyển khoản. Nếu SePay báo “Thiếu SEVQR”, không gửi giao dịch; hãy tải lại trang thanh toán sau khi cập nhật phiên bản có bản sửa này.
+
+Để SePay tự điền trường `code` của webhook (không bắt buộc với bộ phân tích phía HappyClass, nhưng giúp nhìn thấy mã được nhận diện trong Test Mode), vào **Test mode → Cấu hình → Nhận diện mã thanh toán** và tạo cấu trúc:
+
+| Trường | Giá trị |
+|---|---|
+| Nhận diện mã thanh toán | Bật |
+| Tiền tố | `HC` |
+| Độ dài hậu tố tối thiểu | `8` |
+| Độ dài hậu tố tối đa | `8` |
+| Kiểu ký tự | Số và chữ (alphanumeric) |
+| Trạng thái | Đang hoạt động |
+
+Lưu cấu hình. Vẫn để bộ lọc webhook **“Chỉ gửi khi có mã thanh toán” tắt** để các giao dịch sai mã/thiếu mã vẫn tới HappyClass và được lưu cho kế toán đối soát. `SEVQR` là tiền tố bắt buộc của nội dung VietinBank; `HC` mới là tiền tố mã đơn HappyClass.
+
 ## Bước 4 – Cho SePay đi qua Cloudflare Access
 
 Khi site đang chặn bằng Cloudflare Access, SePay sẽ bị chặn ở màn đăng nhập. Thêm một ứng dụng Access riêng:
@@ -95,7 +118,7 @@ Khi site đang chặn bằng Cloudflare Access, SePay sẽ bị chặn ở màn 
 
 1. Trên HappyClass, đăng nhập bằng tài khoản học viên thử nghiệm → **Bảng giá** → chọn gói tháng. Không chuyển tiền thật. Ghi lại **mã đơn** và **đúng số tiền** đang hiển thị trên đơn.
 2. Trong SePay, giữ Test Mode đang bật → **Giao dịch → Mô phỏng giao dịch**.
-3. Chọn đúng tài khoản Test Mode đã dùng cho webhook; nhập số tiền đúng bằng đơn HappyClass và nội dung chuyển khoản chính xác là mã đơn (ví dụ `HC7K2P9QAB`), sau đó gửi giao dịch thử.
+3. Chọn đúng tài khoản Test Mode đã dùng cho webhook; nhập số tiền đúng bằng đơn HappyClass và nội dung chuyển khoản chính xác là `SEVQR <mã đơn>` (ví dụ `SEVQR HC7K2P9QAB`), sau đó gửi giao dịch thử.
 4. Mở lại đơn HappyClass: trạng thái phải chuyển thành **Đã thanh toán**. Vào Admin → **Thanh toán** để xác nhận đơn *Đã thanh toán (tự động)* và giao dịch ngân hàng được ghi nhận.
 5. Nếu chưa cập nhật, kiểm tra **Test mode → Tích hợp Webhook → Lịch sử gửi**. Payload phải tới đúng URL, HTTP response phải là 200 và body có `{"success":true}`. Kiểm tra cả log chi tiết của lần gửi; không đăng API Key hoặc thông tin tài khoản lên chat.
 6. Sau khi ca đúng tiền thành công, có thể tạo một đơn thử khác để kiểm tra thiếu tiền hoặc sai mã. Các ca này phải không cấp gói và xuất hiện trong danh sách giao dịch chờ đối soát.
