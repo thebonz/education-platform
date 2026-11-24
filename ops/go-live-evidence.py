@@ -81,6 +81,19 @@ def read_env_values(path: Path) -> dict[str, str]:
     return values
 
 
+def valid_mail_from(value: str) -> bool:
+    """Validate an address or conventional display name + <address> syntax."""
+    if not isinstance(value, str) or "\r" in value or "\n" in value:
+        return False
+    candidate = value.strip()
+    if "<" in candidate or ">" in candidate:
+        match = re.fullmatch(r"[^<>\r\n]+\s*<([^<>\s]+)>", candidate)
+        if not match:
+            return False
+        candidate = match.group(1)
+    return bool(re.fullmatch(r"[^@\s<>]+@[^@\s<>]+\.[^@\s<>]+", candidate))
+
+
 def status_age_hours(file: Path, *, now: dt.datetime) -> float:
     if file.is_symlink() or file.parent.is_symlink():
         raise ValueError("symlink status file")
@@ -146,7 +159,7 @@ def evaluate(env_path: Path, data_dir: Path | None, legal_file: Path,
     has_auth = bool(values.get("SMTP_USER")) == bool(values.get("SMTP_PASSWORD"))
     good_port = smtp_port.isascii() and smtp_port.isdecimal() and 1 <= int(smtp_port) <= 65535
     if (values.get("MAIL_TRANSPORT") == "smtp" and smtp_host
-            and re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", from_addr)
+            and valid_mail_from(from_addr)
             and good_port and has_auth and values.get("SMTP_SECURE", "false") in ("true", "false")):
         report.pass_("smtp.config", "SMTP có cấu hình cơ bản; chưa kiểm chứng thư đến.")
     else:
