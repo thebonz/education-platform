@@ -20,6 +20,13 @@ Phạm vi được đối chiếu trên code HappyClass và bài giới thiệu 
 3. **Tìm game theo hoạt động:** trên thư viện English có *Listen & discover, Build & spell, Team challenges*; tiếng Việt có *Nghe & nhận diện, Ghép tiếng & dấu thanh, Từ & câu*. Mỗi thẻ chỉ trỏ tới các template thực tế đang có; lưu bộ lọc bằng `?skill=` để giáo viên chia sẻ. Có bộ đếm, thông báo không có kết quả và nút xóa lọc.
 4. **Thiết kế:** thẻ nhóm hoạt động lớn, responsive điện thoại/máy chiếu, nút ≥44px và trạng thái focus bàn phím. Không dùng ảnh hay logo của Easy Peasy English.
 
+## Hỗ trợ giáo viên kiểm duyệt game (PR tiếp theo)
+
+Trong Admin → Nội dung game → mở chi tiết game tiếng Việt:
+- Hiển thị tối đa **12 mẫu câu/tiếng có thể nghe thử**, tự lấy từ phiên bản đang phát hành; bấm nút để nghe bằng đường âm thanh Việt hiện có. Không tự phát khi mở trang, không gửi câu sang dịch vụ ngoài.
+- Nút **Duyệt** chỉ bật trên giao diện sau khi giáo viên chủ động xác nhận đã đọc đáp án/hình minh họa, chơi thử trên thiết bị và nghe âm thanh quan trọng. Nếu thấy sai, chọn **Yêu cầu sửa** kèm ghi chú.
+- Đây là checklist hỗ trợ thao tác; quyền duyệt vẫn do API/RBAC kiểm soát và giao diện không thể thay thế sự thẩm định của con người. Không tự đổi trạng thái của 29 game.
+
 ## Giai đoạn nội dung: cần giáo viên nghiệm thu, không tự duyệt
 
 | Ưu tiên | Công việc | Điều kiện hoàn thành |
