@@ -98,6 +98,8 @@ def status_age_hours(file: Path, *, now: dt.datetime) -> float:
     if file.is_symlink() or file.parent.is_symlink():
         raise ValueError("symlink status file")
     data = json.loads(file.read_text(encoding="utf-8"))
+    if not isinstance(data, dict):
+        raise ValueError("invalid status metadata")
     when = data.get("lastSuccess")
     if not isinstance(when, str):
         raise ValueError("missing lastSuccess")
@@ -160,7 +162,7 @@ def evaluate(env_path: Path, data_dir: Path | None, legal_file: Path,
     good_port = smtp_port.isascii() and smtp_port.isdecimal() and 1 <= int(smtp_port) <= 65535
     if (values.get("MAIL_TRANSPORT") == "smtp" and smtp_host
             and valid_mail_from(from_addr)
-            and good_port and has_auth and values.get("SMTP_SECURE", "false") in ("true", "false")):
+            and good_port and has_auth and values.get("SMTP_SECURE", "false") in ("true", "false", "1", "0")):
         report.pass_("smtp.config", "SMTP có cấu hình cơ bản; chưa kiểm chứng thư đến.")
     else:
         report.block("smtp.config", "SMTP chưa đủ điều kiện kiểm tra thực tế.",
