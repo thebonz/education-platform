@@ -11,7 +11,7 @@ const field = (id: string, value: string) => `${id}${String(value.length).padSta
 export function transferMemo(bankBin: string, rawContent: string): string {
   const clean = rawContent.normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D')
     .replace(/[^A-Za-z0-9 ]/g, '').replace(/\s+/g, ' ').trim();
-  const memo = bankBin === '970415' && !/^SEVQR(?:\s|$)/i.test(clean) ? \`SEVQR \${clean}\` : clean;
+  const memo = bankBin === '970415' && !/^SEVQR(?:\s|$)/i.test(clean) ? 'SEVQR ' + clean : clean;
   return memo.slice(0, 25);
 }
 
