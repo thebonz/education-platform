@@ -53,6 +53,30 @@ export function GameLibrary({ games, taxonomy, product, base }: { games: Catalog
           <option value="PREMIUM">Premium</option>
         </select>
       </div>
+      <div className="skill-section">
+        <div className="skill-section-heading">
+          <div><span className="eyebrow">{isEn ? 'CHOOSE YOUR ACTIVITY' : 'CHỌN CÁCH HỌC BÉ THÍCH'}</span>
+            <h2>{isEn ? 'What would you like to practice?' : 'Hôm nay bé muốn luyện gì?'}</h2></div>
+          <p>{isEn ? 'Find games by how you learn.' : 'Chọn kỹ năng để tìm trò chơi phù hợp.'}</p>
+        </div>
+        <div className="skill-chips" role="group" aria-label={isEn ? 'Learning activities' : 'Kỹ năng học'}>
+          <button type="button" data-testid="skill-chip-all" className={!selectedSkill ? 'skill-chip active' : 'skill-chip'}
+            aria-pressed={!selectedSkill} onClick={() => setParam('skill', 'all')}>
+            <span aria-hidden="true">✨</span><b>{isEn ? 'All games' : 'Tất cả'}</b><small>{games.length}</small>
+          </button>
+          {skillGroups.map((group) => {
+            const count = games.filter((g) => matchesSkill(g.templateKey, group)).length;
+            if (!count) return null;
+            return (
+              <button key={group.key} type="button" data-testid={`skill-chip-${group.key}`}
+                className={skill === group.key ? 'skill-chip active' : 'skill-chip'}
+                aria-pressed={skill === group.key} onClick={() => setParam('skill', group.key)}>
+                <span aria-hidden="true">{group.icon}</span><b>{group.label}</b><small>{count}</small>
+              </button>
+            );
+          })}
+        </div>
+      </div>
       <div className="category-chips" role="group" aria-label={isEn ? 'Categories' : 'Danh mục'}>
         <button type="button" className={category === 'all' ? 'chip active' : 'chip'} onClick={() => setParam('category', 'all')}>{isEn ? 'All' : 'Tất cả'} ({games.length})</button>
         {taxonomy.categories.map((c) => (
