@@ -65,7 +65,7 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-production-readiness.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: ESLint
         run: |
