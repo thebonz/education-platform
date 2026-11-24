@@ -6,7 +6,7 @@ import type { Product } from '@/lib/sites';
  * (xem docs/SECURITY.md). Bản dự thảo cho giai đoạn chạy thử: tên pháp nhân và chính sách hoàn tiền
  * do chủ sở hữu bổ sung trước khi mở công khai.
  */
-export const LEGAL_VERSION = '2026-11-01';
+export const LEGAL_VERSION = '2026-11-24';
 
 type Section = { h: string; p: string[] };
 type Doc = { title: string; draft: string; updated: string; sections: Section[] };
@@ -20,13 +20,23 @@ const TERMS: Record<'vi' | 'en', Doc> = {
       { h: '1. Dịch vụ', p: ['HappyClass (happyclass.asia) cung cấp trò chơi học tiếng Anh và tiếng Việt cho học sinh tiểu học, dành cho giáo viên và phụ huynh sử dụng cùng các em.'] },
       { h: '2. Tài khoản', p: ['Tài khoản chỉ dành cho người từ 18 tuổi trở lên (giáo viên, phụ huynh). Học sinh không tự tạo tài khoản; các em chơi qua thiết bị của người lớn hoặc vào lớp bằng mã lớp.', 'Bạn chịu trách nhiệm giữ bí mật mật khẩu và mọi hoạt động trong tài khoản của mình. Thấy dấu hiệu bất thường, hãy đổi mật khẩu và đăng xuất mọi thiết bị ở trang Tài khoản.'] },
       { h: '3. Gói thành viên và thanh toán', p: ['Mỗi sản phẩm (English Games, Trò chơi tiếng Việt) có gói riêng theo năm hoặc theo tháng. Giá hiện hành là giá hiển thị ở trang Bảng giá tại thời điểm đặt đơn.', 'Gói được kích hoạt khi khoản chuyển khoản khớp đúng mã đơn và số tiền. Gói không tự động gia hạn; mua thêm khi còn hạn thì thời gian được cộng nối tiếp.', 'Gói trường học, hỗ trợ thanh toán và các yêu cầu về hoàn tiền: liên hệ qua Zalo ở trang Bảng giá.'] },
-      { h: '4. Nội dung', p: ['Trò chơi, câu hỏi, hình ảnh và âm thanh trên HappyClass là nội dung do HappyClass biên soạn theo định hướng chương trình, không sao chép sách giáo khoa.', 'Bạn được dùng nội dung để dạy và học, kể cả chỉnh sửa bản sao cho lớp của mình. Không được sao chép hàng loạt, bán lại hoặc đăng lại nội dung ở nơi khác.', 'Giọng đọc tiếng Việt được tạo bằng phần mềm Piper (MIT) với mô hình giọng huấn luyện từ bộ dữ liệu VAIS-1000 (giọng Bắc, giấy phép CC BY 4.0).'] },
-      { h: '5. Lớp học', p: ['Giáo viên tự nhập biệt danh học sinh và chịu trách nhiệm về thông tin đã nhập. Hãy dùng biệt danh hoặc tên gọi ngắn, không nhập họ tên đầy đủ, ngày sinh hay thông tin liên lạc của học sinh.', 'Mã lớp nên chỉ chia sẻ cho học sinh của lớp. Có thể đổi mã lớp bất cứ lúc nào.'] },
-      { h: '6. Chơi offline', p: ['Game tải về để chơi offline đi kèm giấy phép 30 ngày; cần kết nối mạng để gia hạn. Game trả phí chỉ chơi được trong thời hạn gói.'] },
-      { h: '7. Hành vi không được phép', p: ['Truy cập trái phép, dò quét lỗ hổng, tải dữ liệu tự động hàng loạt, chia sẻ tài khoản để kinh doanh, tải lên nội dung vi phạm pháp luật hoặc không phù hợp với trẻ em. HappyClass có thể khoá tài khoản vi phạm.'] },
-      { h: '8. Giới hạn trách nhiệm', p: ['Trong giai đoạn chạy thử, dịch vụ được cung cấp theo hiện trạng và có thể tạm dừng để bảo trì. HappyClass sao lưu dữ liệu định kỳ nhưng không cam kết dịch vụ luôn liên tục.'] },
-      { h: '9. Thay đổi điều khoản', p: ['Khi điều khoản thay đổi, phiên bản mới được ghi ngày ở đầu trang. Tiếp tục sử dụng sau khi thay đổi nghĩa là bạn đồng ý với phiên bản mới.'] },
-      { h: '10. Luật áp dụng', p: ['Điều khoản này được điều chỉnh bởi pháp luật Việt Nam.'] },
+      { h: '4. Chính sách đổi, hủy và hoàn tiền', p: [
+        'Bạn có thể yêu cầu hoàn tiền trong vòng 7 ngày kể từ khi thanh toán thành công đối với lần mua gói đầu tiên nếu chưa sử dụng bất kỳ trò chơi hoặc tính năng trả phí nào. Việc hoàn tiền được xác minh dựa trên lịch sử sử dụng của tài khoản.',
+        'Nếu mua nhầm sản phẩm hoặc gói, hãy liên hệ trong vòng 24 giờ kể từ khi thanh toán và trước khi sử dụng nội dung trả phí. HappyClass sẽ hỗ trợ chuyển sang gói phù hợp; nếu không thể chuyển hoặc bạn không đồng ý phương án chuyển, bạn có thể yêu cầu hoàn tiền.',
+        'HappyClass hoàn lại toàn bộ khoản tiền bị thu trùng, khoản tiền đã nhận nhưng không thể cấp quyền thành viên do lỗi hệ thống, hoặc phần tiền thu vượt quá giá trị đơn hàng sau khi đối soát.',
+        'Nếu lỗi thuộc HappyClass khiến dịch vụ trả phí không thể sử dụng liên tục quá 72 giờ và không thể khắc phục trong thời gian hợp lý, bạn có thể yêu cầu gia hạn tương ứng hoặc hoàn tiền theo phần thời gian dịch vụ chưa được cung cấp.',
+        'Bạn có thể yêu cầu chấm dứt gói bất cứ lúc nào qua email hoặc Zalo hỗ trợ. Việc chấm dứt có hiệu lực từ thời điểm HappyClass nhận được yêu cầu; quyền truy cập trả phí kết thúc tại thời điểm đó. HappyClass tính phí phần thời gian đã cung cấp và hoàn lại phần thời gian còn lại chưa sử dụng theo tỷ lệ số ngày chưa sử dụng trên tổng thời hạn của từng đơn hàng. Với nhiều đơn hàng gia hạn nối tiếp, phần thời gian chưa sử dụng được đối soát theo từng đơn hàng.',
+        'Đối với lần mua gói đầu tiên, nếu yêu cầu trong vòng 7 ngày kể từ khi thanh toán và chưa sử dụng bất kỳ trò chơi hoặc tính năng trả phí nào, HappyClass hoàn đủ 100% số tiền. Quyền chấm dứt và nhận lại phần tiền tương ứng dịch vụ chưa sử dụng vẫn được áp dụng sau thời hạn này.',
+        'Gửi yêu cầu tới ngthithuy.hn@gmail.com hoặc Zalo hỗ trợ được hiển thị tại trang Bảng giá, kèm mã đơn hàng, email tài khoản, thời điểm và số tiền thanh toán. HappyClass xác nhận đã nhận yêu cầu trong vòng 2 ngày làm việc. Không gửi mật khẩu, mã OTP hoặc thông tin đăng nhập ngân hàng.',
+        'Sau khi xác minh, khoản hoàn tiền được chuyển về tài khoản ngân hàng đã dùng để thanh toán (hoặc phương thức hợp pháp khác được hai bên thống nhất) trong tối đa 7 ngày làm việc. HappyClass không thu phí xử lý hoàn tiền; thời gian ngân hàng ghi có có thể khác nhau.',
+      ] },
+      { h: '5. Nội dung', p: ['Trò chơi, câu hỏi, hình ảnh và âm thanh trên HappyClass là nội dung do HappyClass biên soạn theo định hướng chương trình, không sao chép sách giáo khoa.', 'Bạn được dùng nội dung để dạy và học, kể cả chỉnh sửa bản sao cho lớp của mình. Không được sao chép hàng loạt, bán lại hoặc đăng lại nội dung ở nơi khác.', 'Giọng đọc tiếng Việt được tạo bằng phần mềm Piper (MIT) với mô hình giọng huấn luyện từ bộ dữ liệu VAIS-1000 (giọng Bắc, giấy phép CC BY 4.0).'] },
+      { h: '6. Lớp học', p: ['Giáo viên tự nhập biệt danh học sinh và chịu trách nhiệm về thông tin đã nhập. Hãy dùng biệt danh hoặc tên gọi ngắn, không nhập họ tên đầy đủ, ngày sinh hay thông tin liên lạc của học sinh.', 'Mã lớp nên chỉ chia sẻ cho học sinh của lớp. Có thể đổi mã lớp bất cứ lúc nào.'] },
+      { h: '7. Chơi offline', p: ['Game tải về để chơi offline đi kèm giấy phép 30 ngày; cần kết nối mạng để gia hạn. Game trả phí chỉ chơi được trong thời hạn gói.'] },
+      { h: '8. Hành vi không được phép', p: ['Truy cập trái phép, dò quét lỗ hổng, tải dữ liệu tự động hàng loạt, chia sẻ tài khoản để kinh doanh, tải lên nội dung vi phạm pháp luật hoặc không phù hợp với trẻ em. HappyClass có thể khoá tài khoản vi phạm.'] },
+      { h: '9. Giới hạn trách nhiệm', p: ['Trong giai đoạn chạy thử, dịch vụ được cung cấp theo hiện trạng và có thể tạm dừng để bảo trì. HappyClass sao lưu dữ liệu định kỳ nhưng không cam kết dịch vụ luôn liên tục.'] },
+      { h: '10. Thay đổi điều khoản', p: ['Khi điều khoản thay đổi, phiên bản mới được ghi ngày ở đầu trang. Tiếp tục sử dụng sau khi thay đổi nghĩa là bạn đồng ý với phiên bản mới.'] },
+      { h: '11. Luật áp dụng', p: ['Điều khoản này được điều chỉnh bởi pháp luật Việt Nam.'] },
     ],
   },
   en: {
@@ -37,13 +47,23 @@ const TERMS: Record<'vi' | 'en', Doc> = {
       { h: '1. The service', p: ['HappyClass (happyclass.asia) provides English and Vietnamese learning games for primary pupils, used by teachers and parents together with children.'] },
       { h: '2. Accounts', p: ['Accounts are for adults aged 18 or over (teachers, parents). Pupils do not create accounts; they play on an adult’s device or join a class with a class code.', 'You are responsible for keeping your password secret. If something looks wrong, change your password and log out of all devices on the Account page.'] },
       { h: '3. Memberships and payment', p: ['Each product has its own yearly or monthly membership. The price that applies is the one shown on the Pricing page when you place the order.', 'A membership starts once a bank transfer matches the order code and amount. Memberships do not renew automatically; buying again while active extends the end date.', 'School plans, payment help and refund requests: contact us on Zalo via the Pricing page.'] },
-      { h: '4. Content', p: ['Games, questions, images and audio are original HappyClass content written to follow the curriculum, not copied from textbooks.', 'You may use the content for teaching and learning, including editing copies for your own classes. Do not bulk-copy, resell or republish it elsewhere.', 'Vietnamese read-aloud audio is generated with Piper (MIT) using a voice model trained on the VAIS-1000 corpus (northern accent, CC BY 4.0).'] },
-      { h: '5. Classes', p: ['Teachers enter pupil nicknames and are responsible for what they enter. Use short nicknames; do not enter full names, birth dates or contact details.', 'Share a class code only with that class. You can change the code at any time.'] },
-      { h: '6. Offline play', p: ['Downloaded offline games carry a 30-day licence that must be renewed online. Premium games work only while your membership lasts.'] },
-      { h: '7. Not allowed', p: ['Unauthorised access, vulnerability scanning, automated bulk downloading, sharing accounts commercially, or uploading unlawful or child-inappropriate content. We may lock accounts that do so.'] },
-      { h: '8. Liability', p: ['During testing the service is provided as is and may pause for maintenance. Data is backed up regularly, but uninterrupted service is not guaranteed.'] },
-      { h: '9. Changes', p: ['When these terms change, the new version date is shown at the top. Continuing to use the service means you accept the new version.'] },
-      { h: '10. Governing law', p: ['These terms are governed by the laws of Vietnam.'] },
+      { h: '4. Cancellations and refunds', p: [
+        'For a first-time membership purchase, you may request a refund within 7 days after successful payment if you have not used any paid game or paid feature. We verify eligibility against the account usage history.',
+        'If you purchased the wrong product or plan, contact us within 24 hours of payment and before using paid content. We will help move the purchase to the correct plan; if that is not possible or you do not accept the change, you may request a refund.',
+        'HappyClass will refund duplicate charges, money received where membership access cannot be granted because of a system error, and any amount collected above the order total after reconciliation.',
+        'If an issue attributable to HappyClass makes the paid service unavailable for more than 72 consecutive hours and cannot be resolved within a reasonable time, you may request an equivalent extension or a refund for the unprovided service period.',
+        'You may request termination of a membership at any time by email or support Zalo. Termination takes effect when HappyClass receives the request, and paid access ends at that time. HappyClass charges only for the period of service already provided and refunds the unused remainder, calculated by the unused days as a proportion of the total term for each order. Where multiple purchases extend a membership consecutively, unused time is reconciled against each order.',
+        'For a first-time membership purchase, if you request a refund within 7 days after payment and have not used any paid game or feature, HappyClass refunds 100% of the amount paid. The right to terminate and receive a refund for the unused service period remains available after this 7-day period.',
+        'Send requests to ngthithuy.hn@gmail.com or the support Zalo shown on the Pricing page. Include your order code, account email, payment time and amount. HappyClass will acknowledge the request within 2 business days. Never send your password, one-time code or online banking credentials.',
+        'After verification, approved refunds will be sent to the bank account used for payment (or another lawful method agreed by both parties) within 7 business days. HappyClass does not charge a refund processing fee; the receiving bank may take additional time to credit the funds.',
+      ] },
+      { h: '5. Content', p: ['Games, questions, images and audio are original HappyClass content written to follow the curriculum, not copied from textbooks.', 'You may use the content for teaching and learning, including editing copies for your own classes. Do not bulk-copy, resell or republish it elsewhere.', 'Vietnamese read-aloud audio is generated with Piper (MIT) using a voice model trained on the VAIS-1000 corpus (northern accent, CC BY 4.0).'] },
+      { h: '6. Classes', p: ['Teachers enter pupil nicknames and are responsible for what they enter. Use short nicknames; do not enter full names, birth dates or contact details.', 'Share a class code only with that class. You can change the code at any time.'] },
+      { h: '7. Offline play', p: ['Downloaded offline games carry a 30-day licence that must be renewed online. Premium games work only while your membership lasts.'] },
+      { h: '8. Not allowed', p: ['Unauthorised access, vulnerability scanning, automated bulk downloading, sharing accounts commercially, or uploading unlawful or child-inappropriate content. We may lock accounts that do so.'] },
+      { h: '9. Liability', p: ['During testing the service is provided as is and may pause for maintenance. Data is backed up regularly, but uninterrupted service is not guaranteed.'] },
+      { h: '10. Changes', p: ['When these terms change, the new version date is shown at the top. Continuing to use the service means you accept the new version.'] },
+      { h: '11. Governing law', p: ['These terms are governed by the laws of Vietnam.'] },
     ],
   },
 };
@@ -79,6 +99,7 @@ const PRIVACY: Record<'vi' | 'en', Doc> = {
         'Yêu cầu khác về dữ liệu cá nhân: liên hệ qua Zalo ở trang Bảng giá.',
       ] },
       { h: 'Trẻ em', p: ['Dịch vụ dành cho người lớn sử dụng cùng trẻ. Giáo viên nhập biệt danh học sinh cần có sự đồng ý của phụ huynh theo quy định của nhà trường, và không nhập họ tên đầy đủ hay thông tin liên lạc của học sinh.'] },
+      { h: 'Liên hệ về quyền riêng tư', p: ['Để hỏi về dữ liệu cá nhân, yêu cầu hỗ trợ hoặc gửi khiếu nại, liên hệ ngthithuy.hn@gmail.com hoặc Zalo hỗ trợ được hiển thị tại trang Bảng giá.'] },
       { h: 'Bảo mật', p: ['Kết nối HTTPS, mật khẩu băm Argon2id, phân quyền theo vai trò ở máy chủ, chống CSRF, giới hạn tần suất truy cập, cơ sở dữ liệu không mở ra Internet, bản sao lưu mã hoá.'] },
     ],
   },
@@ -112,6 +133,7 @@ const PRIVACY: Record<'vi' | 'en', Doc> = {
         'Other personal-data requests: contact us on Zalo via the Pricing page.',
       ] },
       { h: 'Children', p: ['The service is for adults using it with children. Teachers entering pupil nicknames should have parental consent as their school requires, and must not enter pupils’ full names or contact details.'] },
+      { h: 'Privacy contact', p: ['For personal-data questions, support requests or complaints, contact ngthithuy.hn@gmail.com or the support Zalo shown on the Pricing page.'] },
       { h: 'Security', p: ['HTTPS, Argon2id password hashing, server-side role-based access, CSRF protection, rate limiting, a database not exposed to the Internet, and encrypted backups.'] },
     ],
   },
