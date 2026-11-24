@@ -107,14 +107,30 @@ export function DomainEditor({ productId, domains }: { productId: string; domain
 export function ReviewActions({ gameId }: { gameId: string }) {
   const { run, busy, view } = useAction();
   const [note, setNote] = useState('');
+  const [checked, setChecked] = useState([false, false, false]);
+  const checklist = [
+    'Đã đọc từng câu hỏi, đáp án và đối chiếu hình minh họa, độ khó.',
+    'Đã chơi thử các lượt game trên thiết bị phù hợp với học sinh.',
+    'Đã kiểm tra âm đọc quan trọng (nếu có), gồm dấu thanh tiếng Việt.',
+  ];
   return (
     <form className="panel" data-testid="review-actions" onSubmit={(e) => e.preventDefault()}>
       <h2>Duyệt nội dung</h2>
+      <p className="muted">Để tránh duyệt nhầm, vui lòng xác nhận các công việc đã thực sự kiểm tra. Đây là lời xác nhận của giáo viên, không phải kiểm định tự động.</p>
+      <div className="review-checklist" role="group" aria-label="Danh sách kiểm tra trước khi duyệt">
+        {checklist.map((label, index) => (
+          <label className="check review-check" key={label}>
+            <input type="checkbox" data-testid={`review-check-${index}`} checked={checked[index]}
+              onChange={(e) => setChecked((old) => old.map((v, i) => i === index ? e.target.checked : v))} />
+            <span>{label}</span>
+          </label>
+        ))}
+      </div>
       <label>Ghi chú cho người soạn (bắt buộc khi yêu cầu sửa)
         <textarea value={note} onChange={(e) => setNote(e.target.value)} maxLength={1000} rows={3} data-testid="review-note-input" />
       </label>
       <div className="actions-row">
-        <button type="button" className="primary-button" disabled={busy} data-testid="review-approve"
+        <button type="button" className="primary-button" disabled={busy || !checked.every(Boolean)} data-testid="review-approve"
           onClick={() => run(() => apiSend('POST', `/admin/games/${gameId}/review`, { status: 'APPROVED', ...(note.trim() ? { note } : {}) }), 'Đã duyệt nội dung.')}>
           Duyệt
         </button>
