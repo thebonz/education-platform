@@ -65,7 +65,10 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/configure-mail.sh ops/test-mail.sh
+
+      - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
+        run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
 
       - name: ESLint
         run: |

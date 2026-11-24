@@ -54,6 +54,7 @@ Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, kh�
 - [ ] Theo dõi:
   - Uptime check cho `https://english.happyclass.asia/api/health`;
   - kiểm tra `backup/last-success` không cũ quá 2 ngày.
+- [ ] **Hiệu năng:** chạy `sudo bash ops/check-performance.sh`, lưu p50/p95 và ảnh chụp CPU/RAM/dung lượng; không tổ chức stress test trên DL380 dùng chung (`docs/PERFORMANCE.md`).
 - [ ] **Giọng đọc:** kiểm tra nghe thực tế trên máy tính và điện thoại; xác nhận âm thanh Piper giọng Bắc đã cache đủ cho game tiếng Việt và gói offline (xem `docs/VOICE.md`).
 
 ## Mở công khai — CHƯA ĐƯỢC THỰC HIỆN
