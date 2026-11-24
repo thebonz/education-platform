@@ -4,6 +4,7 @@ import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import { useMemo, useState } from 'react';
 import { foldForSearch } from '@happyclass/game-core/text';
 import type { CatalogGame, Taxonomy } from '@/lib/catalog';
+import { matchesSkill, SKILL_GROUPS } from '@/lib/discovery';
 import { GameCard } from './game-card';
 
 /** Thư viện game có bộ lọc theo danh mục, cấp độ, miễn phí/trả phí và tìm kiếm không dấu. Bộ lọc lưu trên URL để chia sẻ được. */
@@ -16,6 +17,9 @@ export function GameLibrary({ games, taxonomy, product, base }: { games: Catalog
   const category = params.get('category') ?? 'all';
   const level = params.get('level') ?? 'all';
   const access = params.get('access') ?? 'all';
+  const skill = params.get('skill') ?? 'all';
+  const skillGroups = SKILL_GROUPS[isEn ? 'english' : 'vietnamese'];
+  const selectedSkill = skillGroups.find((group) => group.key === skill);
 
   function setParam(key: string, value: string) {
     const next = new URLSearchParams(params.toString());
@@ -28,7 +32,9 @@ export function GameLibrary({ games, taxonomy, product, base }: { games: Catalog
     (!q || foldForSearch(`${g.title} ${g.summary} ${g.category?.name ?? ''} ${g.level?.name ?? ''}`).includes(q))
     && (category === 'all' || g.category?.slug === category)
     && (level === 'all' || g.level?.slug === level)
-    && (access === 'all' || g.accessLevel === access)), [games, q, category, level, access]);
+    && (access === 'all' || g.accessLevel === access)
+    && (!selectedSkill || matchesSkill(g.templateKey, selectedSkill))),
+    [games, q, category, level, access, selectedSkill]);
 
   return (
     <>
