@@ -408,3 +408,17 @@ label.check input{margin-top:3px;width:18px;height:18px}
 .shell-intro .voice-check p{font-size:13px;line-height:1.45;color:#527366;max-width:360px;margin:0}
 @media(max-width:600px){.skill-section{padding:15px;border-radius:18px}.skill-section-heading{display:block}.skill-section-heading p{margin-top:9px}.skill-chips{grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}.skill-chip{min-height:88px;padding:12px 9px;flex-wrap:wrap;justify-content:center;text-align:center}.skill-chip b{flex-basis:65%}.skill-chip small{margin-left:auto}.voice-check{max-width:100%;padding:13px 15px}}
 @media(prefers-reduced-motion:reduce){.skill-chip{transition:none}.skill-chip:hover{transform:none}}
+
+
+/* Giáo viên kiểm duyệt: nghe mẫu có chủ đích, checklist thực tế trước duyệt. */
+.admin-voice-review{margin-top:16px}
+.admin-voice-review .muted{max-width:760px;line-height:1.65}
+.admin-voice-samples{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:10px;margin-top:14px}
+.admin-voice-sample{display:flex;gap:11px;align-items:center;text-align:left;min-height:52px;padding:12px 15px;border:1px solid #dcebe5;border-radius:14px;background:#f6fcf9;color:#284e42;font:inherit;cursor:pointer;overflow-wrap:anywhere}
+.admin-voice-sample:hover{border-color:#159a83;background:#eaf9f3}
+.admin-voice-sample:focus-visible,.review-check input:focus-visible{outline:3px solid #159a83;outline-offset:3px}
+.admin-voice-sample span:first-child{font-size:23px;flex:none}
+.review-checklist{display:grid;gap:9px;margin:15px 0 18px}
+.review-check{display:flex;align-items:flex-start;gap:11px;border:1px solid #e5e9ee;border-radius:12px;background:#fcfdfd;padding:12px 14px;line-height:1.5;cursor:pointer}
+.review-check input{width:19px;height:19px;min-width:19px;margin-top:2px;accent-color:#159a83}
+@media(max-width:600px){.admin-voice-samples{grid-template-columns:1fr}.admin-voice-sample{font-size:14px}}
