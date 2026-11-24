@@ -83,9 +83,18 @@ export function GameLibrary({ games, taxonomy, product, base }: { games: Catalog
           <button key={c.slug} type="button" className={category === c.slug ? 'chip active' : 'chip'} onClick={() => setParam('category', c.slug)} data-testid={`chip-${c.slug}`}>{c.name} ({c.games})</button>
         ))}
       </div>
+      <p className="library-results" role="status" data-testid="library-results">
+        {isEn ? `Showing ${filtered.length} of ${games.length} games` : `Đang hiển thị ${filtered.length}/${games.length} trò chơi`}
+      </p>
       {filtered.length
         ? <div className="game-grid">{filtered.map((g) => <GameCard key={g.id} game={g} base={base} lang={isEn ? 'en' : 'vi'} />)}</div>
-        : <div className="empty-state">{isEn ? 'No games match your search.' : 'Không tìm thấy trò chơi phù hợp.'}</div>}
+        : <div className="empty-state">
+            <p>{isEn ? 'No games match your search.' : 'Không tìm thấy trò chơi phù hợp.'}</p>
+            <button type="button" className="secondary-button" data-testid="clear-library-filters"
+              onClick={() => { setQuery(''); router.replace(pathname, { scroll: false }); }}>
+              {isEn ? 'Clear filters' : 'Xóa bộ lọc'}
+            </button>
+          </div>}
     </>
   );
 }
