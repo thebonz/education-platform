@@ -30,6 +30,7 @@ describe('mã đơn và cộng tháng', () => {
   it('mã đơn không có ký tự dễ nhầm; tìm được trong nội dung chuyển khoản bị ngân hàng biến đổi', () => {
     for (let i = 0; i < 200; i++) expect(newOrderCode()).toMatch(/^HC[2-9A-HJKMNP-Z]{8}$/);
     expect(findOrderCode('MBVCB.123 hc2345abcd chuyen tien')).toBe('HC2345ABCD');
+    expect(findOrderCode('SEVQR HC2345ABCD')).toBe('HC2345ABCD');
     expect(findOrderCode('NGUYEN VAN A CHUYEN KHOAN HC 2345 ABCD')).toBe('HC2345ABCD');
     expect(findOrderCode('chuyen tien an trua')).toBeNull();
     expect(findOrderCode('HC2345ABC0')).toBeNull(); // số 0 không có trong bảng mã
