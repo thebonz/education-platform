@@ -107,7 +107,7 @@ class IncidentMonitorTests(unittest.TestCase):
         self.assertIsNone(pg["interval_minutes"])
         self.assertEqual(r.failed, 0)
         self.assertEqual(r.passed, 1)
-        self.assertIn("Chưa có mốc", r.notes[0])
+        self.assertIn("Chưa có mẫu trước", r.notes[0])
         self.assertEqual(collector.call_count, 1)
 
     def test_postgres_valid_delta_raises_new_deadlock_warning(self):
