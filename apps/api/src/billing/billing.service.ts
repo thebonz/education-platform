@@ -4,7 +4,7 @@ import { AuditService } from '../audit/audit.service';
 import { env } from '../config/env';
 import { PrismaService } from '../prisma/prisma.service';
 import { addMonths, newOrderCode } from './order-code';
-import { vietQrPayload } from './vietqr';
+import { transferMemo, vietQrPayload } from './vietqr';
 
 type Tx = Prisma.TransactionClient;
 export type PaymentInput = { method: 'sepay' | 'manual'; amountVnd: number; actorId?: string | null; note?: string | null };
@@ -21,6 +21,7 @@ export class BillingService {
   /** Thông tin chuyển khoản cho một đơn (chỉ trả cho chủ đơn). */
   transferInfo(order: { code: string; amountVnd: number }) {
     const e = env();
+    const content = transferMemo(e.PAYMENT_BANK_BIN, order.code);
     return {
       mode: e.PAYMENT_MODE,
       bankName: e.PAYMENT_BANK_NAME,
@@ -28,8 +29,8 @@ export class BillingService {
       accountNumber: e.PAYMENT_BANK_ACCOUNT,
       accountName: e.PAYMENT_BANK_ACCOUNT_NAME,
       amountVnd: order.amountVnd,
-      content: order.code,
-      qrPayload: vietQrPayload({ bankBin: e.PAYMENT_BANK_BIN, account: e.PAYMENT_BANK_ACCOUNT, amountVnd: order.amountVnd, content: order.code }),
+      content,
+      qrPayload: vietQrPayload({ bankBin: e.PAYMENT_BANK_BIN, account: e.PAYMENT_BANK_ACCOUNT, amountVnd: order.amountVnd, content }),
     };
   }
 
