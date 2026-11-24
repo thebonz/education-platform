@@ -40,7 +40,7 @@ Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, kh�
 - [ ] **Tài khoản quản trị:**
   - mỗi người một tài khoản, đúng vai trò (`ops/create-admin.sh --role …`);
   - xoá hoặc khoá tài khoản thử.
-- [ ] **Nội dung:** giáo viên phụ trách duyệt hết game ở trạng thái *Chờ duyệt* trước khi mở công khai.
+- [ ] **Nội dung:** giáo viên phụ trách duyệt hết game ở trạng thái *Chờ duyệt* trước khi mở công khai. Chạy `sudo bash ops/check-prelaunch-content-accounts.sh` để đọc số lượng game pending/changes requested, game công khai chưa duyệt, phiên bản xuất bản, Super Admin và content_reviewer; không xuất thông tin người dùng. Xem `docs/PRELAUNCH-CONTENT-ACCOUNTS.md`.
 
 ## Nên làm
 
