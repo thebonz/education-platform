@@ -75,7 +75,11 @@ def check_monitor(data: Any) -> dict[str, str]:
         if level not in ALLOWED_LEVELS or key in seen:
             raise ValueError("duplicate or bad check level")
         seen[key] = level
-    if not checks or (data["status"] == "ok" and any(x != "ok" for x in seen.values())):
+    if not checks:
+        raise ValueError("empty monitor report")
+    expected = ("critical" if "critical" in seen.values() else
+                "warning" if "warning" in seen.values() else "ok")
+    if data["status"] != expected:
         raise ValueError("inconsistent monitor report")
     return seen
 
@@ -188,7 +192,7 @@ def evaluate(previous: dict[str, Any], levels: dict[str, str], current: dt.datet
     updated: dict[str, dict[str, Any]] = {}
     transitions: list[dict[str, str]] = []
     held: list[str] = []
-    full_failure = "monitor.1" in levels and levels["monitor.1"] == "critical"
+    full_failure = levels.get("monitor.unavailable") == "critical"
     pg_missing = any(levels.get(key) == "critical" for key in
                      ("postgres.unavailable", "postgres.metadata"))
     active = {key: lev for key, lev in levels.items() if lev in ("critical", "warning")}
@@ -235,7 +239,15 @@ def evaluate(previous: dict[str, Any], levels: dict[str, str], current: dt.datet
     for key, prior in sorted(old.items()):
         if key in active:
             continue
-        if full_failure or (key.startswith("postgres.") and pg_missing):
+        # A missing check is not proof that the underlying fault resolved.
+        # Only declare recovery if the individual probe is OK or the PostgreSQL
+        # metadata query succeeded, allowing absence of an old PG warning.
+        pg_probed = (any(k.startswith("postgres.") for k in levels) and
+                     not pg_missing and not full_failure)
+        observed_clean = (levels.get(key) == "ok" or
+                          (key.startswith("postgres.") and pg_probed) or
+                          (key == "monitor.unavailable" and not full_failure))
+        if not observed_clean:
             updated[key] = dict(prior)
             held.append(key)
             continue
