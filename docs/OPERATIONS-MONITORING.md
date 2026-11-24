@@ -19,7 +19,7 @@ Báo cáo bao gồm:
 - Một lần chụp `docker stats --no-stream` của **chỉ năm container HappyClass**: CPU % và RAM % theo giới hạn container.
 - Độ mới `status/backup.json` (mục tiêu <48 giờ) và `status/restore-test.json` (mục tiêu <192 giờ).
 
-**Không có thao tác ghi, không gửi email/Telegram, không tự restart container, không chạy load test, không đăng nhập và không gửi webhook.** Không đọc/in mật khẩu SMTP, token Tunnel, khóa SePay. Việc bật lịch tự động/cảnh báo chủ động chưa được triển khai, cần quyết định vận hành riêng.
+**Không có thao tác ghi, không gửi email/Telegram, không tự restart container, không chạy load test, không đăng nhập và không gửi webhook.** Không đọc/in mật khẩu SMTP, token Tunnel, khóa SePay. Nếu cần gom kết quả runtime và PostgreSQL dạng JSON, dùng `sudo bash ops/check-operational-alerts.sh --json` (xem [INCIDENT-MONITORING.md](INCIDENT-MONITORING.md)); lệnh này vẫn chỉ chạy một lần. Việc bật lịch tự động/cảnh báo chủ động chưa được triển khai, cần quyết định vận hành riêng.
 
 ## Cách hiểu trạng thái
 
