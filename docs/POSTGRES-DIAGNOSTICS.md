@@ -40,7 +40,7 @@ Không chạy `VACUUM`, `ANALYZE`, `EXPLAIN ANALYZE`, `ALTER SYSTEM`, migration,
 | `last_autovacuum` | NULL có thể bình thường khi bảng nhỏ/chưa đủ hoạt động. |
 | `pg_total_relation_size` | Dung lượng gồm bảng, TOAST, chỉ mục; không có dữ liệu bản ghi. |
 
-Để đánh giá xu hướng, lưu các kết quả *không chứa bí mật* của hai hoặc nhiều lần chạy cách nhau. Không được công khai thông tin nhạy cảm từ `.env`, câu SQL do người dùng nhập, tài khoản ngân hàng hoặc nội dung giao dịch.
+Để đánh giá xu hướng bằng metadata an toàn, chạy `sudo bash ops/check-postgres-trend.sh` ở hai thời điểm: công cụ tính delta thực tế và lưu mốc local 0600; xem [POSTGRES-TRENDS.md](POSTGRES-TRENDS.md). Không được công khai thông tin nhạy cảm từ `.env`, câu SQL do người dùng nhập, tài khoản ngân hàng hoặc nội dung giao dịch.
 
 ## Sau khi thu kết quả
 
