@@ -85,6 +85,10 @@ test('super admin xem tổng quan, tìm và khóa người dùng; người bị 
   await expect(page.getByTestId('admin-dashboard-learning')).toContainText('Lớp học đang hoạt động');
   await expect(page.getByTestId('admin-dashboard-billing')).toBeVisible();
 
+  await page.getByRole('link', { name: 'Giáo viên' }).click();
+  await expect(page.getByTestId('admin-teachers')).toBeVisible();
+  await expect(page.getByRole('heading', { name: /Giáo viên & quản trị trường/ })).toBeVisible();
+
   await page.getByRole('link', { name: 'Người dùng' }).click();
   await page.getByPlaceholder('Tìm theo email hoặc tên').fill(email);
   await page.getByRole('button', { name: 'Tìm' }).click();
