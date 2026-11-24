@@ -285,7 +285,7 @@ def evaluate(previous: dict[str, Any], levels: dict[str, str], current: dt.datet
 def create_report(*, record: bool) -> tuple[dict[str, Any], int]:
     monitor = load_monitor()
     config = monitor.health.read_nonsecret_env(ROOT / ".env")
-    data_dir = Path(config.get("HC_DATA_DIR") or "/data/education-games-platform")
+    data_dir = Path(os.environ.get("HC_DATA_DIR") or config.get("HC_DATA_DIR") or "/data/education-games-platform")
     path = state_path(data_dir)
     if record:
         with exclusive_record_lock(path):
@@ -306,7 +306,7 @@ def create_report(*, record: bool) -> tuple[dict[str, Any], int]:
 
 def main(argv: list[str] | None = None) -> int:
     p = argparse.ArgumentParser(description="Xác nhận sự cố theo mẫu liên tiếp (thủ công).")
-    p.add_argument("--json", action="store_true", help="In JSON; không ghi dữ liệu")
+    p.add_argument("--json", action="store_true", help="In JSON; --record vẫn lưu trạng thái nếu có")
     p.add_argument("--record", action="store_true", help="Lưu trạng thái metadata tại HC_DATA_DIR/status")
     args = p.parse_args(argv)
     try:
