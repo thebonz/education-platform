@@ -36,6 +36,8 @@ export type GameShellProps = {
 
 const ACCENT_KEY = 'hc.accent';
 const SOUND_KEY = 'hc.sound';
+// Mẫu 6 thanh tiếng Việt; không phải kết quả đo chất lượng phát âm của Piper.
+const VI_VOICE_SAMPLE = 'Bé nghe sáu thanh: ma, má, mà, mả, mã, mạ.';
 
 function readPref(key: string): string | null {
   try { return window.localStorage.getItem(key); } catch { return null; }
@@ -85,6 +87,8 @@ export function GameShell(props: GameShellProps) {
     // Tiếng Việt đọc bằng giọng của máy chủ nên không phụ thuộc trình duyệt
     setSpeechOk(lang === 'vi' || audio.speechAvailable);
     audio.onUnavailable = () => setVoiceMissing(true);
+    audio.onAvailable = () => setVoiceMissing(false);
+    return () => { audio.onUnavailable = undefined; audio.onAvailable = undefined; };
   }, [audio, lang]);
   useEffect(() => { audio.enabled = sound; if (!sound) audio.stop(); }, [audio, sound]);
   useEffect(() => { if (lang === 'en') audio.voiceLang = accent; }, [audio, accent, lang]);
@@ -186,6 +190,15 @@ export function GameShell(props: GameShellProps) {
             </label>
           )}
           {!speechOk && <p className="muted">{t.soundUnavailable}</p>}
+          {lang === 'vi' && (
+            <div className="voice-check" data-testid="voice-check">
+              <button type="button" className="secondary-button" data-testid="voice-check-button"
+                aria-label={t.voiceCheck} disabled={!sound} onClick={() => audio.say(VI_VOICE_SAMPLE)}>
+                🔊 {t.voiceCheck}
+              </button>
+              <p>{sound ? t.voiceCheckHint : t.voiceCheckEnableSound}</p>
+            </div>
+          )}
           <button type="button" className="primary-button big" onClick={start} data-testid="shell-start">▶ {t.start}</button>
         </div>
       )}
