@@ -6,7 +6,7 @@ import type { Product } from '@/lib/sites';
  * (xem docs/SECURITY.md). Bản dự thảo cho giai đoạn chạy thử: tên pháp nhân và chính sách hoàn tiền
  * do chủ sở hữu bổ sung trước khi mở công khai.
  */
-export const LEGAL_VERSION = '2026-11-01';
+export const LEGAL_VERSION = '2026-11-24';
 
 type Section = { h: string; p: string[] };
 type Doc = { title: string; draft: string; updated: string; sections: Section[] };
