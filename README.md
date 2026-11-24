@@ -25,7 +25,7 @@ Tên miền **không nằm trong code**: đặt bằng biến môi trường `SI
 
 **Phần còn lại trước khi mở công khai:** cấu hình và kiểm thử SMTP thật; thiết lập sao lưu offsite và diễn tập restore trên máy chủ; kiểm thử SePay sandbox rồi mới bật live; chuyển API sang production; hoàn thiện thông tin pháp lý/chính sách hoàn tiền; rà soát tài khoản và duyệt nội dung game; cấu hình WAF/rate limit và theo dõi uptime.
 
-Checklist vận hành là tài liệu chuẩn: [docs/GO-LIVE.md](docs/GO-LIVE.md). Không bật thanh toán live hoặc gỡ Cloudflare Access chỉ dựa trên việc CI xanh.
+Checklist vận hành là tài liệu chuẩn: [docs/GO-LIVE.md](docs/GO-LIVE.md). Có thể đọc [xu hướng PostgreSQL chỉ từ metadata](docs/POSTGRES-TRENDS.md) trước khi tối ưu. Không bật thanh toán live hoặc gỡ Cloudflare Access chỉ dựa trên việc CI xanh.
 
 ## Thêm game mới
 
