@@ -26,7 +26,7 @@ DEFAULT = {
     "API_NODE_ENV": "production",
     "COOKIE_SECURE": "true",
     "MAIL_TRANSPORT": "smtp",
-    "MAIL_FROM": "HappyClass <help@example.com>",  # overridden to plain valid addr
+    "MAIL_FROM": "HappyClass <help@example.com>",
     "SMTP_HOST": "smtp.example.com",
     "SMTP_PORT": "587",
     "SMTP_SECURE": "false",
@@ -39,7 +39,6 @@ DEFAULT = {
     "OFFLINE_SIGNING_KEY": "fake-offline-key",
     "CONTACT_ZALO": "fake-zalo",
 }
-DEFAULT["MAIL_FROM"] = "help@example.com"
 
 
 class GoLiveEvidenceTests(unittest.TestCase):
@@ -113,6 +112,12 @@ class GoLiveEvidenceTests(unittest.TestCase):
             report = mod.evaluate(env, datadir, legal, check_timers=False, now=NOW)
             self.assertEqual(self.statuses(report)["payment.mode"], "block")
             self.assertFalse(report["public_release_allowed"])
+
+    def test_smtp_display_name_matches_repository_default_format(self):
+        self.assertTrue(mod.valid_mail_from("HappyClass <no-reply@happyclass.asia>"))
+        self.assertTrue(mod.valid_mail_from("help@example.com"))
+        self.assertFalse(mod.valid_mail_from("HappyClass <not-an-email>"))
+        self.assertFalse(mod.valid_mail_from("help@example.com\\r\\nBcc: someone@example.com"))
 
     def test_smtp_mismatched_auth_and_bad_port_are_blocked(self):
         for updates in ({"SMTP_PASSWORD": ""}, {"SMTP_PORT": "not-a-port"},
