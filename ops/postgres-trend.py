@@ -130,7 +130,11 @@ def print_report(sample: dict, delta: dict | None, reason: str) -> int:
     for note in errors:
         print("  ✗ " + note)
     if not warnings and not errors:
-        print("  ✓ Chưa phát hiện tín hiệu cần can thiệp trong hai mẫu.")
+        if delta is None:
+            print("  ✓ Chỉ số tại thời điểm đo chưa có tín hiệu bất thường; "
+                  "chưa đủ hai mẫu hợp lệ để đánh giá xu hướng.")
+        else:
+            print("  ✓ Chưa phát hiện tín hiệu cần can thiệp trong khoảng giữa hai mẫu.")
     print("  Chỉ số ngưỡng là gợi ý giám sát, không tự tuning/VACUUM/restart.")
     return 2 if errors else 1 if warnings else 0
 

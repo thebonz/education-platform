@@ -1,5 +1,7 @@
 """Tests for PostgreSQL read-only snapshot parsing, comparison and safe local storage."""
 import copy
+import contextlib
+import io
 import datetime as dt
 import importlib.util
 import json
@@ -87,6 +89,37 @@ class PostgresTrendTests(unittest.TestCase):
         self.assertIsNone(mod.compare(prior, curr)[0])
         curr = copy.deepcopy(prior)
         self.assertIsNone(mod.compare(prior, curr)[0])
+
+    def test_first_snapshot_does_not_claim_two_samples(self):
+        current = sample()
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = mod.print_report(current, None, "Chưa có mẫu trước; đã tạo mốc đo ban đầu.")
+        self.assertEqual(code, 0)
+        self.assertIn("chưa đủ hai mẫu hợp lệ", output.getvalue())
+        self.assertNotIn("trong khoảng giữa hai mẫu", output.getvalue())
+
+    def test_valid_interval_report_and_reset_message(self):
+        earlier = sample()
+        current = copy.deepcopy(earlier)
+        current["captured_at"] = "2026-11-24T09:01:03.000001Z"
+        current["xact_commit"] += 4
+        delta, reason = mod.compare(earlier, current)
+        self.assertIsNotNone(delta)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = mod.print_report(current, delta, reason)
+        self.assertEqual(code, 0)
+        self.assertIn("trong khoảng giữa hai mẫu", output.getvalue())
+
+        current["server_started_at"] = "2026-11-24T09:01:00.000001Z"
+        delta, reason = mod.compare(earlier, current)
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            code = mod.print_report(current, delta, reason)
+        self.assertEqual(code, 0)
+        self.assertIn("PostgreSQL đã khởi động lại", output.getvalue())
+        self.assertIn("chưa đủ hai mẫu hợp lệ", output.getvalue())
 
     def test_classification_is_advisory(self):
         healthy = sample()
