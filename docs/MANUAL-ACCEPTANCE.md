@@ -29,7 +29,7 @@ sudo bash ops/check-manual-acceptance.sh --attest smtp.auth_flows --confirm I_VE
 sudo bash ops/check-manual-acceptance.sh --attest payment.sandbox_acceptance --confirm I_VERIFIED
 ~~~
 
-Các mục còn có thể tự xác nhận sau khi thực hiện đầy đủ: `cloudflare.security` (WAF/Access/TLS và path bypass), `content.review` (duyệt game), `admin.accounts` (rà soát RBAC). Ví dụ:
+Các mục còn có thể tự xác nhận sau khi thực hiện đầy đủ: `cloudflare.security` (WAF/Access/TLS và path bypass), `content.review` (duyệt game), `admin.accounts` (rà soát RBAC). Trước khi xác nhận game và nhân sự, có thể chạy [kiểm toán tổng số nội dung và phân quyền](PRELAUNCH-CONTENT-ACCOUNTS.md) — chỉ đọc, không xuất email hoặc tên. Ví dụ:
 
 ~~~bash
 sudo bash ops/check-manual-acceptance.sh --attest cloudflare.security --confirm I_VERIFIED
