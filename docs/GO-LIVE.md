@@ -11,7 +11,7 @@ sudo bash ops/check-go-live-readiness.sh
 sudo bash ops/check-go-live-evidence.sh
 ~~~
 
-Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, khóa offline, liên hệ, backup/restore, systemd timers và nội dung dự thảo pháp lý. `ops/check-go-live-evidence.sh --json` bổ sung báo cáo chuẩn hóa `pass/block/manual`, luôn `public_release_allowed=false`; xem `docs/GO-LIVE-EVIDENCE.md`. Script không bật thanh toán Live và không thay đổi cấu hình. Các mục Cloudflare, nội dung, email thật và quyết định mở bán vẫn cần người vận hành xác nhận.
+Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, khóa offline, liên hệ, backup/restore, systemd timers và nội dung dự thảo pháp lý. `ops/check-go-live-evidence.sh --json` bổ sung báo cáo chuẩn hóa `pass/block/manual`, luôn `public_release_allowed=false`; xem `docs/GO-LIVE-EVIDENCE.md`. Sau khi thử SMTP/SePay Test Mode, có thể ghi **lời tự xác nhận có hạn 7 ngày** (không thay cho bằng chứng độc lập) theo `docs/MANUAL-ACCEPTANCE.md`. Script không bật thanh toán Live và không thay đổi cấu hình. Các mục Cloudflare, nội dung, email thật và quyết định mở bán vẫn cần người vận hành xác nhận.
 
 - [ ] **Sao lưu:**
   - chạy `ops/configure-backup.sh`, cất mật khẩu mã hoá ở hai nơi;
