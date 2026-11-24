@@ -34,6 +34,44 @@ health = load_module("happyclass_monitor_runtime", ROOT / "ops" / "runtime-healt
 postgres = load_module("happyclass_monitor_postgres", ROOT / "ops" / "postgres-trend.py")
 
 
+def stable_check_key(group: str, message: str, ordinal: int) -> str:
+    """Stable identity independent of changing metric values or warning order."""
+    if group in ("container", "resources"):
+        name = message.split(":", 1)[0].strip()
+        if name in health.SERVICES:
+            return f"{group}.{name}"
+    if group == "host":
+        if message.startswith("Ổ chứa dữ liệu"):
+            return "host.disk"
+        if message.startswith("RAM khả dụng"):
+            return "host.ram"
+    if group == "api":
+        return "api.health"
+    if group == "backup":
+        if message.startswith("Sao lưu offsite"):
+            return "backup.offsite"
+        if message.startswith("Diễn tập khôi phục"):
+            return "backup.restore"
+    if group == "postgres":
+        patterns = (
+            ("Số kết nối PostgreSQL", "connections"),
+            ("Có kết nối idle in transaction", "idle_transaction"),
+            ("Có kết nối đợi lock", "lock_wait"),
+            ("autovacuum đang tắt", "autovacuum"),
+            ("Phát sinh", "deadlocks"),
+            ("Tỷ lệ transaction rollback", "rollbacks"),
+            ("Không đọc được mốc PostgreSQL", "baseline"),
+            ("Không lấy được metadata PostgreSQL", "metadata"),
+            ("Bỏ qua truy vấn PostgreSQL", "unavailable"),
+            ("Metadata PostgreSQL hiện tại", "healthy"),
+        )
+        for prefix, token in patterns:
+            if message.startswith(prefix):
+                return f"postgres.{token}"
+    # Future checks receive a fallback identity rather than silently disappearing.
+    return f"{group}.check_{ordinal}"
+
+
 class AlertReport(health.Report):
     """Collect safely constructed health messages, never live SQL or secrets."""
 
@@ -50,6 +88,7 @@ class AlertReport(health.Report):
         safe = " ".join(str(message).split())[:240]
         self.checks.append({
             "code": f"{self.group}.{self.indices[self.group]}",
+            "key": stable_check_key(self.group, safe, self.indices[self.group]),
             "level": level,
             "message": safe,
         })
