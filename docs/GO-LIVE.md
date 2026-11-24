@@ -4,6 +4,14 @@ Hiện HappyClass chạy thử sau Cloudflare Access: chỉ email được mời
 
 ## Bắt buộc
 
+Trước khi xử lý checklist, chạy audit chỉ đọc trên DL380:
+
+~~~bash
+sudo bash ops/check-go-live-readiness.sh
+~~~
+
+Script kiểm tra `.env`, production/cookie/SMTP, trạng thái thanh toán, khóa offline, liên hệ, backup/restore, systemd timers và nội dung dự thảo pháp lý. Script không bật thanh toán Live và không thay đổi cấu hình. Các mục Cloudflare, nội dung, email thật và quyết định mở bán vẫn cần người vận hành xác nhận.
+
 - [ ] **Sao lưu:**
   - chạy `ops/configure-backup.sh`, cất mật khẩu mã hoá ở hai nơi;
   - chạy `ops/install-backup-timer.sh`;
