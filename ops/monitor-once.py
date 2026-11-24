@@ -251,7 +251,7 @@ def main(argv: list[str] | None = None) -> int:
             "captured_at": dt.datetime.now(dt.timezone.utc).isoformat(timespec="seconds"),
             "status": "critical",
             "counts": {"ok": 0, "warning": 0, "critical": 1},
-            "checks": [{"code": "monitor.1", "level": "critical",
+            "checks": [{"code": "monitor.1", "key": "monitor.unavailable", "level": "critical",
                         "message": "Không thể hoàn thành kiểm tra; xem cấu hình .env/Docker Compose."}],
             "postgres": None,
             "notes": [], "scope": "HappyClass only",
