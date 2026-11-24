@@ -198,6 +198,8 @@ describe('Gói thành viên và thanh toán', () => {
 
   it('báo cáo kinh doanh tính doanh thu, khách mua lại, gia hạn và gói sắp hết hạn', async () => {
     const before = await t.http().get('/api/admin/billing/analytics?days=30').set('Cookie', accountant).expect(200);
+    const englishBefore = await t.http().get('/api/admin/billing/analytics?days=30&product=english').set('Cookie', accountant).expect(200);
+    const vietnameseBefore = await t.http().get('/api/admin/billing/analytics?days=30&product=vietnamese').set('Cookie', accountant).expect(200);
     await t.http().get('/api/admin/billing/analytics?days=14').set('Cookie', accountant).expect(400);
     await t.http().get('/api/admin/billing/analytics').set('Cookie', member).expect(403);
 
@@ -243,9 +245,12 @@ describe('Gói thành viên và thanh toán', () => {
     expect(after.body.summary.repeatCustomers - before.body.summary.repeatCustomers).toBe(1);
     expect(after.body.summary.membershipsExpiring30d - before.body.summary.membershipsExpiring30d).toBe(1);
 
-    const englishBefore = await t.http().get('/api/admin/billing/analytics?days=30&product=english').set('Cookie', accountant).expect(200);
     const englishAfter = await t.http().get('/api/admin/billing/analytics?days=30&product=english').set('Cookie', accountant).expect(200);
-    expect(englishAfter.body.summary.revenueVnd).toBe(englishBefore.body.summary.revenueVnd);
+    const vietnameseAfter = await t.http().get('/api/admin/billing/analytics?days=30&product=vietnamese').set('Cookie', accountant).expect(200);
+    expect(englishAfter.body.summary.revenueVnd - englishBefore.body.summary.revenueVnd).toBe(654000);
+    expect(englishAfter.body.summary.paidOrders - englishBefore.body.summary.paidOrders).toBe(2);
+    expect(vietnameseAfter.body.summary.revenueVnd - vietnameseBefore.body.summary.revenueVnd).toBe(599000);
+    expect(vietnameseAfter.body.summary.paidOrders - vietnameseBefore.body.summary.paidOrders).toBe(1);
     expect(after.body.byProduct).toEqual(expect.arrayContaining([
       expect.objectContaining({ product: 'english', paidOrders: expect.any(Number) }),
       expect.objectContaining({ product: 'vietnamese', paidOrders: expect.any(Number) }),
