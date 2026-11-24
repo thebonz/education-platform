@@ -1,5 +1,14 @@
 # Trước khi mở công khai
 
+Trước khi xử lý từng mục thủ công, chạy kiểm tra chỉ đọc trên DL380:
+
+```bash
+cd /data/education-games-platform/source
+sudo bash ops/check-production-readiness.sh
+```
+
+Script kiểm tra cấu hình production, SMTP, HTTPS, sức khỏe dịch vụ, backup/restore, webhook công khai và game chờ duyệt. Script không sửa cấu hình, không khởi động lại dịch vụ, không bật thanh toán Live và không gỡ Cloudflare Access. Các mục Cloudflare, email thực nhận, SePay Test Mode và tài khoản quản trị vẫn phải được người vận hành xác nhận theo checklist bên dưới.
+
 Hiện HappyClass chạy thử sau Cloudflare Access: chỉ email được mời mới vào được. Trước khi tắt Access, cần làm xong danh sách dưới đây.
 
 ## Bắt buộc
