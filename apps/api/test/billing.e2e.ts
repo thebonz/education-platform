@@ -116,6 +116,22 @@ describe('Gói thành viên và thanh toán', () => {
     expect(await t.prisma.entitlement.count({ where: { order: { code } } })).toBe(1);
   });
 
+  it('hai webhook đồng thời cho cùng một giao dịch chỉ cấp quyền một lần', async () => {
+    const created = await post(member, '/api/billing/orders', { planId: await plan('english-year') }).expect(201);
+    const txId = 888888;
+    const payload = {
+      id: txId, transactionDate: '2026-11-08 10:25:00', accountNumber: ACCOUNT,
+      content: created.body.code, transferType: 'in', transferAmount: 599000,
+    };
+    const send = () => t.http().post('/api/webhooks/sepay').set('Authorization', `Apikey ${KEY}`).send(payload).expect(200);
+    const [first, second] = await Promise.all([send(), send()]);
+    const results = [first.body.result, second.body.result];
+    expect(results.filter((result) => result === 'matched')).toHaveLength(1);
+    expect(results.filter((result) => result === 'duplicate')).toHaveLength(1);
+    expect(await t.prisma.bankTransaction.count({ where: { provider: 'sepay', providerTxId: String(txId) } })).toBe(1);
+    expect(await t.prisma.entitlement.count({ where: { order: { code: created.body.code } } })).toBe(1);
+  });
+
   it('giao dịch ra, sai tài khoản, không có mã đơn: lưu lại để đối soát', async () => {
     expect((await webhook(code, 599000, { transferType: 'out' })).body.result).toBe('ignored');
     expect((await webhook(code, 599000, { accountNumber: '999999999' })).body.result).toBe('ignored');
