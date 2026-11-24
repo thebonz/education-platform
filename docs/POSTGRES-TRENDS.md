@@ -25,7 +25,7 @@ Chạy tại `/data/education-games-platform/source`:
 sudo bash ops/check-postgres-trend.sh
 ~~~
 
-- Lần đầu tạo **mốc metadata** (không đủ dữ liệu để tính tỷ lệ phát sinh).
+- Lần đầu tạo **mốc metadata** (không đủ dữ liệu để tính tỷ lệ phát sinh). Dòng xác nhận màu xanh ở lần đầu chỉ đánh giá **chỉ số tức thời**, chưa đánh giá được xu hướng; cần ít nhất hai mẫu hợp lệ (không reset bộ đếm/khởi động lại).
 - Lần sau đọc **cùng một database HappyClass** rồi so sánh với mốc vừa lưu. Có thể chạy lại cách vài giờ/ngày hoặc khi xuất hiện sự cố. Không có cron, systemd timer hay agent nền được tự cài.
 - File chỉ chứa thời gian, OID database, kích thước, số lượng kết nối và bộ đếm PostgreSQL; lưu tại `HC_DATA_DIR/status/postgres-trend.json` (mặc định `/data/education-games-platform/status/postgres-trend.json`), ghi nguyên tử với quyền file `0600`. **Không đưa file vào Git hoặc chia sẻ ngoài đội vận hành.**
 - Truy vấn `ops/postgres-trend.sql` chạy trong `BEGIN READ ONLY`, timeout truy vấn 5 giây, timeout lock 1 giây; kết nối bằng `docker compose exec -T postgres` của riêng project **happyclass**.
