@@ -434,7 +434,7 @@ jobs:
           [ -e "$HC_DATA_DIR/status/postgres-trend.json" ] && after=1
           test "$before" = "$after"
 
-      - name: Xác nhận sự cố thủ công: preview không ghi, record chỉ metadata bảo vệ
+      - name: Xác nhận sự cố thủ công — preview không ghi, record chỉ metadata bảo vệ
         run: |
           state="$HC_DATA_DIR/status/incident-confirmation.json"
           test ! -e "$state"
