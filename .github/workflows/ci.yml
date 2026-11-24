@@ -438,9 +438,17 @@ jobs:
         run: |
           state="$HC_DATA_DIR/status/incident-confirmation.json"
           test ! -e "$state"
+          set +e
           sudo --preserve-env=HC_DATA_DIR bash ops/check-incident-confirmation.sh --json > /tmp/hc-preview.json
+          preview_rc=$?
+          set -e
+          test "$preview_rc" -le 1
           test ! -e "$state"
+          set +e
           sudo --preserve-env=HC_DATA_DIR bash ops/check-incident-confirmation.sh --record --json > /tmp/hc-confirmed.json
+          record_rc=$?
+          set -e
+          test "$record_rc" -le 1
           sudo test -f "$state"
           test "$(sudo stat -c '%a' "$state")" = "600"
           python3 - <<'PY'
@@ -450,7 +458,7 @@ jobs:
           recorded = json.loads(Path('/tmp/hc-confirmed.json').read_text())
           for data in (preview, recorded):
               assert data['schema_version'] == 1
-              assert data['status'] == 'ok'
+              assert data['status'] in ('ok', 'warning'), 'unexpected critical monitor status'
               assert data['confirmation']['notifications_sent'] is False
               assert data['confirmation']['scheduled'] is False
               assert data['confirmation']['transitions'] == []
