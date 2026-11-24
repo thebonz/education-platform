@@ -34,7 +34,6 @@ export default async function TeachersPage({ searchParams }: { searchParams: Pro
   if (!res.ok) return <p className="form-error">Không tải được danh sách giáo viên (mã {res.status}).</p>;
 
   const { teachers, total, page, pageSize } = res.data;
-  const fmt = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short' });
   const fmtLogin = new Intl.DateTimeFormat('vi-VN', { dateStyle: 'short', timeStyle: 'short' });
   return (
     <section data-testid="admin-teachers">
