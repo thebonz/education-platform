@@ -129,8 +129,8 @@ class PrelaunchAggregateTests(unittest.TestCase):
         }), stderr="NEVER-PRINT-THIS")
         with patch.object(mod.subprocess, "run", return_value=fixture) as caller:
             result = mod.collect()
-        command, kwargs = caller.call_args
-        self.assertEqual(command[:5], ["docker", "compose", "exec", "-T", "postgres"])
+        args, kwargs = caller.call_args
+        self.assertEqual(args[0][:5], ["docker", "compose", "exec", "-T", "postgres"])
         self.assertIn("READ ONLY", kwargs["input"])
         self.assertTrue(kwargs["check"] is False)
         self.assertEqual(result, healthy())
