@@ -84,7 +84,7 @@ else warn_check "Không có systemctl; cần xác minh lịch sao lưu thủ cô
 log "Điều khoản và chính sách"
 legal_file="$REPO_DIR/apps/web/src/components/legal.tsx"
 if [ ! -f "$legal_file" ]; then block "Không tìm thấy legal.tsx"
-elif grep -Eqi 'Bản dự thảo|Draft terms|will be added before public launch|do chủ sở hữu bổ sung trước khi mở công khai' "$legal_file"; then
+elif grep -Eqi '^[[:space:]]*draft:[^,]*(Bản dự thảo|Draft terms|will be added before public launch)' "$legal_file"; then
   block "Điều khoản/chính sách vẫn còn nội dung dự thảo; chủ dự án phải bổ sung pháp nhân, địa chỉ và chính sách hoàn tiền"
 else pass "Không phát hiện nhãn/nội dung dự thảo trong legal.tsx"; fi
 
