@@ -65,10 +65,34 @@ jobs:
           echo "::notice title=game-core::$(grep -E '^# (pass|fail)' /tmp/core.log | tr '\n' ' ')"
 
       - name: Kiểm tra cú pháp shell của script vận hành
-        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/configure-mail.sh ops/test-mail.sh
+        run: bash -n ops/check-payment-sandbox.sh ops/check-go-live-readiness.sh ops/check-edge-local.sh ops/check-performance.sh ops/check-runtime-health.sh ops/check-postgres.sh ops/check-postgres-trend.sh ops/check-operational-alerts.sh ops/check-incident-confirmation.sh ops/check-go-live-evidence.sh ops/configure-mail.sh ops/test-mail.sh
 
       - name: Kiểm tra smoke-load Python (chỉ localhost, không tải hệ thống ngoài)
         run: python3 -m unittest discover -s ops/tests -p 'test_*.py'
+
+      - name: Bằng chứng go-live — cấu hình mẫu không bao giờ tự duyệt public
+        run: |
+          set +e
+          python3 ops/go-live-evidence.py --env-file .env.example --data-dir /tmp/hc-absent-evidence --no-systemd --json > /tmp/hc-go-live-evidence.json
+          rc=$?
+          set -e
+          test "$rc" -eq 2
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          data = json.loads(Path('/tmp/hc-go-live-evidence.json').read_text())
+          assert data['schema_version'] == 1
+          assert data['assessment'] == 'blocked'
+          assert data['counts']['block'] > 0
+          assert data['counts']['manual'] > 0
+          assert data['public_release_allowed'] is False
+          assert data['requires_owner_approval'] is True
+          assert data['smtp_test_email_sent'] is False
+          assert data['sepay_transaction_created'] is False
+          assert data['configuration_changed'] is False
+          assert data['notifications_sent'] is False
+          print('::notice title=Go-live::Preflight never grants public release in sample mode')
+          PY
 
       - name: ESLint
         run: |
