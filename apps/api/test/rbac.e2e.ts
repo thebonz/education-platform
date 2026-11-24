@@ -62,13 +62,13 @@ describe('Phân quyền và quản trị', () => {
     const english = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'english' } });
     const vietnamese = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'vietnamese' } });
     const englishClass = await t.prisma.classroom.create({
-      data: { ownerId: teacher.id, productId: english.id, name: 'English 2A', joinCode: 'TEA101' },
+      data: { ownerId: teacher.id, productId: english.id, name: 'English 2A', joinCode: 'TEA234' },
     });
     const vietnameseClass = await t.prisma.classroom.create({
-      data: { ownerId: teacher.id, productId: vietnamese.id, name: 'Tiếng Việt 2A', joinCode: 'TEA102' },
+      data: { ownerId: teacher.id, productId: vietnamese.id, name: 'Tiếng Việt 2A', joinCode: 'TEA235' },
     });
     await t.prisma.classroom.create({
-      data: { ownerId: teacher.id, productId: english.id, name: 'Lớp đã lưu trữ', joinCode: 'TEA103', isArchived: true },
+      data: { ownerId: teacher.id, productId: english.id, name: 'Lớp đã lưu trữ', joinCode: 'TEA236', isArchived: true },
     });
     await t.prisma.classStudent.createMany({
       data: [
@@ -100,7 +100,7 @@ describe('Phân quyền và quản trị', () => {
     });
     expect(row).not.toHaveProperty('passwordHash');
     expect(JSON.stringify(result.body)).not.toContain('HS_PRIVATE');
-    expect(JSON.stringify(result.body)).not.toContain('TEA101');
+    expect(JSON.stringify(result.body)).not.toContain('TEA234');
   });
 
   it('khóa tài khoản thu hồi phiên và chặn đăng nhập; mở khóa khôi phục', async () => {
