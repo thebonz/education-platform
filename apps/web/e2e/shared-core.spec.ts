@@ -89,8 +89,9 @@ test('super admin xem tổng quan, tìm và khóa người dùng; người bị 
   await expect(page.getByTestId('admin-teachers')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Giáo viên & quản trị trường/ })).toBeVisible();
 
-  await page.getByRole('link', { name: 'Người dùng' }).click();
-  await page.getByPlaceholder('Tìm theo email hoặc tên').fill(email);
+  await page.goto(`${ADMIN}/users`);
+  await expect(page.getByPlaceholder('Tìm theo email hoặc tên', { exact: true })).toBeVisible();
+  await page.getByPlaceholder('Tìm theo email hoặc tên', { exact: true }).fill(email);
   await page.getByRole('button', { name: 'Tìm' }).click();
   await page.getByRole('link', { name: email }).click();
   await page.getByLabel('Lý do khóa (bắt buộc)').fill('Kiểm thử E2E');
