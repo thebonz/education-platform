@@ -38,6 +38,10 @@ const domainSchema = z.object({
     .pipe(z.string().max(253).regex(/^(?=.{1,253}$)([a-z0-9]([a-z0-9-]{0,61}[a-z0-9])?\.)+[a-z]{2,63}$/)),
   isPrimary: z.boolean().default(false),
 });
+const learningAnalyticsQuery = z.object({
+  days: z.coerce.number().int().refine((n) => [7, 30, 90].includes(n), 'days phải là 7, 30 hoặc 90').default(30),
+  product: z.enum(['english', 'vietnamese']).optional(),
+});
 const auditQuery = z.object({
   entityType: z.string().max(40).optional(),
   entityId: z.string().max(80).optional(),
@@ -86,6 +90,142 @@ export class AdminSystemController {
       plays7d,
       education: { activeTeachers, activeClasses, activeStudents, classPlays7d },
       products: products.map((p) => ({ slug: p.slug, name: p.name, publishedGames: p._count.games })),
+      generatedAt: now.toISOString(),
+    };
+  }
+
+  /** Báo cáo học tập tổng hợp; tuyệt đối không trả dữ liệu định danh học sinh. */
+  @Get('learning-analytics')
+  @RequirePermissions('admin.access', 'stats.read')
+  async learningAnalytics(@Query() query: unknown) {
+    const { days, product } = parse(learningAnalyticsQuery, query);
+    const now = new Date();
+    const since = new Date(now.getTime() - days * 86_400_000);
+    const productClause = product ? Prisma.sql`AND p.slug = ${product}` : Prisma.empty;
+    const playWhere: Prisma.ClassPlayWhereInput = {
+      createdAt: { gte: since },
+      classGame: {
+        classroom: {
+          isArchived: false,
+          ...(product ? { product: { slug: product } } : {}),
+        },
+      },
+    };
+
+    const [productRows, trendRows, topGroups] = await Promise.all([
+      this.prisma.$queryRaw<Array<{
+        productSlug: string; plays: number; activeClasses: number; activeStudents: number;
+        scoreTotal: number; maxScoreTotal: number; totalMistakes: number; starsTotal: number; durationTotal: number;
+      }>>(Prisma.sql`
+        SELECT
+          p.slug AS "productSlug",
+          COUNT(*)::int AS plays,
+          COUNT(DISTINCT c.id)::int AS "activeClasses",
+          COUNT(DISTINCT cp.student_id)::int AS "activeStudents",
+          COALESCE(SUM(cp.score), 0)::float8 AS "scoreTotal",
+          COALESCE(SUM(cp.max_score), 0)::float8 AS "maxScoreTotal",
+          COALESCE(SUM(cp.mistakes), 0)::int AS "totalMistakes",
+          COALESCE(SUM(cp.stars), 0)::float8 AS "starsTotal",
+          COALESCE(SUM(cp.duration_ms), 0)::float8 AS "durationTotal"
+        FROM class_plays cp
+        JOIN class_games cg ON cg.id = cp.class_game_id
+        JOIN classrooms c ON c.id = cg.classroom_id
+        JOIN products p ON p.id = c.product_id
+        WHERE cp.created_at >= ${since}
+          AND c.is_archived = false
+          ${productClause}
+        GROUP BY p.slug
+      `),
+      this.prisma.$queryRaw<Array<{ day: string; productSlug: string; plays: number; activeClasses: number; activeStudents: number }>>(Prisma.sql`
+        SELECT
+          to_char(date_trunc('day', cp.created_at AT TIME ZONE 'Asia/Ho_Chi_Minh'), 'YYYY-MM-DD') AS day,
+          p.slug AS "productSlug",
+          COUNT(*)::int AS plays,
+          COUNT(DISTINCT c.id)::int AS "activeClasses",
+          COUNT(DISTINCT cp.student_id)::int AS "activeStudents"
+        FROM class_plays cp
+        JOIN class_games cg ON cg.id = cp.class_game_id
+        JOIN classrooms c ON c.id = cg.classroom_id
+        JOIN products p ON p.id = c.product_id
+        WHERE cp.created_at >= ${since}
+          AND c.is_archived = false
+          ${productClause}
+        GROUP BY 1, 2
+        ORDER BY 1 ASC, 2 ASC
+      `),
+      this.prisma.classPlay.groupBy({
+        by: ['classGameId'],
+        where: playWhere,
+        _count: { _all: true },
+        _avg: { stars: true },
+        orderBy: { _count: { classGameId: 'desc' } },
+        take: 10,
+      }),
+    ]);
+
+    const topGameIds = topGroups.map((g) => g.classGameId);
+    const topGameRows = topGameIds.length ? await this.prisma.classGame.findMany({
+      where: { id: { in: topGameIds } },
+      select: { id: true, title: true, classroom: { select: { product: { select: { slug: true, name: true } } } } },
+    }) : [];
+    const topGameById = new Map(topGameRows.map((g) => [g.id, g]));
+
+    const byProduct = (['english', 'vietnamese'] as const).map((slug) => {
+      const row = productRows.find((r) => r.productSlug === slug);
+      const plays = row?.plays ?? 0;
+      return {
+        product: slug,
+        plays,
+        activeClasses: row?.activeClasses ?? 0,
+        activeStudents: row?.activeStudents ?? 0,
+        averageScorePercent: row && row.maxScoreTotal > 0 ? Number((row.scoreTotal / row.maxScoreTotal * 100).toFixed(1)) : 0,
+        averageStars: plays ? Number((row!.starsTotal / plays).toFixed(2)) : 0,
+        averageDurationMs: plays ? Math.round(row!.durationTotal / plays) : 0,
+        totalMistakes: row?.totalMistakes ?? 0,
+      };
+    });
+    const totals = productRows.reduce((acc, row) => ({
+      plays: acc.plays + row.plays,
+      activeClasses: acc.activeClasses + row.activeClasses,
+      activeStudents: acc.activeStudents + row.activeStudents,
+      scoreTotal: acc.scoreTotal + row.scoreTotal,
+      maxScoreTotal: acc.maxScoreTotal + row.maxScoreTotal,
+      starsTotal: acc.starsTotal + row.starsTotal,
+      durationTotal: acc.durationTotal + row.durationTotal,
+      totalMistakes: acc.totalMistakes + row.totalMistakes,
+    }), { plays: 0, activeClasses: 0, activeStudents: 0, scoreTotal: 0, maxScoreTotal: 0, starsTotal: 0, durationTotal: 0, totalMistakes: 0 });
+
+    const daysByDate = new Map<string, { plays: number; activeClasses: number; activeStudents: number }>();
+    for (const row of trendRows) {
+      const current = daysByDate.get(row.day) ?? { plays: 0, activeClasses: 0, activeStudents: 0 };
+      current.plays += row.plays;
+      current.activeClasses += row.activeClasses;
+      current.activeStudents += row.activeStudents;
+      daysByDate.set(row.day, current);
+    }
+
+    return {
+      range: { days, from: since.toISOString(), to: now.toISOString(), product: product ?? 'all' },
+      summary: {
+        plays: totals.plays,
+        activeClasses: totals.activeClasses,
+        activeStudents: totals.activeStudents,
+        averageScorePercent: totals.maxScoreTotal > 0 ? Number((totals.scoreTotal / totals.maxScoreTotal * 100).toFixed(1)) : 0,
+        averageStars: totals.plays ? Number((totals.starsTotal / totals.plays).toFixed(2)) : 0,
+        averageDurationMs: totals.plays ? Math.round(totals.durationTotal / totals.plays) : 0,
+        totalMistakes: totals.totalMistakes,
+      },
+      byProduct,
+      trend: [...daysByDate.entries()].map(([day, value]) => ({ day, ...value })),
+      topGames: topGroups.map((g) => {
+        const game = topGameById.get(g.classGameId);
+        return game ? {
+          title: game.title,
+          product: game.classroom.product,
+          plays: g._count._all,
+          averageStars: g._avg.stars === null ? 0 : Number(g._avg.stars.toFixed(2)),
+        } : null;
+      }).filter((g): g is NonNullable<typeof g> => g !== null),
       generatedAt: now.toISOString(),
     };
   }

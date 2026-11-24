@@ -89,6 +89,11 @@ test('super admin xem tổng quan, tìm và khóa người dùng; người bị 
   await expect(page.getByTestId('admin-teachers')).toBeVisible();
   await expect(page.getByRole('heading', { name: /Giáo viên & quản trị trường/ })).toBeVisible();
 
+  await page.goto(`${ADMIN}/learning-analytics?days=30`);
+  await expect(page.getByTestId('learning-analytics-page')).toBeVisible();
+  await expect(page.getByTestId('learning-analytics-summary')).toBeVisible();
+  await expect(page.getByTestId('learning-analytics-products')).toBeVisible();
+
   await page.goto(`${ADMIN}/users`);
   await expect(page.getByPlaceholder('Tìm theo email hoặc tên', { exact: true })).toBeVisible();
   await page.getByPlaceholder('Tìm theo email hoặc tên', { exact: true }).fill(email);

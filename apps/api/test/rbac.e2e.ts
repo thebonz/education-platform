@@ -103,6 +103,55 @@ describe('Phân quyền và quản trị', () => {
     expect(JSON.stringify(result.body)).not.toContain('TEA234');
   });
 
+  it('báo cáo học tập tổng hợp theo sản phẩm, thời gian và không lộ dữ liệu học sinh', async () => {
+    const teacher = await createUser(t.prisma, 'teacher-analytics@example.com', PW, ['teacher', 'member']);
+    const english = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'english' } });
+    const vietnamese = await t.prisma.product.findUniqueOrThrow({ where: { slug: 'vietnamese' } });
+    const englishClass = await t.prisma.classroom.create({
+      data: { ownerId: teacher.id, productId: english.id, name: 'Lớp phân tích EN', joinCode: 'ANL234' },
+    });
+    const vietnameseClass = await t.prisma.classroom.create({
+      data: { ownerId: teacher.id, productId: vietnamese.id, name: 'Lớp phân tích VI', joinCode: 'ANL235' },
+    });
+    const [englishStudent, vietnameseStudent] = await Promise.all([
+      t.prisma.classStudent.create({ data: { classroomId: englishClass.id, nickname: 'HS_ANALYTICS_PRIVATE_EN' } }),
+      t.prisma.classStudent.create({ data: { classroomId: vietnameseClass.id, nickname: 'HS_ANALYTICS_PRIVATE_VI' } }),
+    ]);
+    const [englishGame, vietnameseGame] = await Promise.all([
+      t.prisma.classGame.create({
+        data: { classroomId: englishClass.id, title: 'English analytics game', templateKey: 'quiz-choice', accessLevel: 'FREE', content: {} },
+      }),
+      t.prisma.classGame.create({
+        data: { classroomId: vietnameseClass.id, title: 'Vietnamese analytics game', templateKey: 'quiz-choice', accessLevel: 'FREE', content: {} },
+      }),
+    ]);
+    await t.prisma.classPlay.createMany({
+      data: [
+        { classGameId: englishGame.id, studentId: englishStudent.id, score: 8, maxScore: 10, mistakes: 2, stars: 3, durationMs: 10_000 },
+        { classGameId: englishGame.id, studentId: englishStudent.id, score: 10, maxScore: 10, mistakes: 1, stars: 2, durationMs: 20_000 },
+        { classGameId: vietnameseGame.id, studentId: vietnameseStudent.id, score: 4, maxScore: 5, mistakes: 0, stars: 3, durationMs: 15_000 },
+      ],
+    });
+
+    const result = await admin(superCookie).get('/api/admin/learning-analytics?days=30').expect(200);
+    expect(result.body.summary).toMatchObject({
+      plays: 3, activeClasses: 2, activeStudents: 2, averageScorePercent: 88, totalMistakes: 3,
+    });
+    expect(result.body.byProduct).toEqual(expect.arrayContaining([
+      expect.objectContaining({ product: 'english', plays: 2, activeClasses: 1, activeStudents: 1, averageScorePercent: 90 }),
+      expect.objectContaining({ product: 'vietnamese', plays: 1, activeClasses: 1, activeStudents: 1, averageScorePercent: 80 }),
+    ]));
+    expect(result.body.trend).toHaveLength(1);
+    expect(result.body.trend[0].plays).toBe(3);
+    expect(result.body.topGames[0]).toMatchObject({ title: 'English analytics game', plays: 2 });
+    expect(JSON.stringify(result.body)).not.toContain('HS_ANALYTICS_PRIVATE');
+    expect(JSON.stringify(result.body)).not.toContain('ANL234');
+
+    await admin(superCookie).get('/api/admin/learning-analytics?days=14').expect(400);
+    await admin(superCookie).get('/api/admin/learning-analytics?product=invalid').expect(400);
+    await admin(memberCookie).get('/api/admin/learning-analytics').expect(403);
+  });
+
   it('khóa tài khoản thu hồi phiên và chặn đăng nhập; mở khóa khôi phục', async () => {
     await createUser(t.prisma, 'victim@example.com', PW);
     const victimCookie = await login(t, 'victim@example.com', PW);

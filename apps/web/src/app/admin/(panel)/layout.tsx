@@ -19,6 +19,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
         <div className="admin-brand">HappyClass <small>Admin</small></div>
         <Link href={base || '/'}>Tổng quan</Link>
         {can('users.read') && <Link href={`${base}/teachers`}>Giáo viên</Link>}
+        {can('stats.read') && <Link href={`${base}/learning-analytics`}>Phân tích học tập</Link>}
         {can('users.read') && <Link href={`${base}/users`}>Người dùng</Link>}
         {can('games.read_all') && <Link href={`${base}/games`}>Nội dung game</Link>}
         {can('games.read_all') && <Link href={`${base}/media`}>Thư viện media</Link>}
