@@ -1,6 +1,6 @@
 import { loadEnv } from '../../src/config/env';
 import { addMonths, findOrderCode, newOrderCode } from '../../src/billing/order-code';
-import { crc16, vietQrPayload } from '../../src/billing/vietqr';
+import { crc16, transferMemo, vietQrPayload } from '../../src/billing/vietqr';
 
 describe('VietQR', () => {
   it('CRC-16/CCITT-FALSE đúng giá trị chuẩn', () => {
@@ -13,10 +13,13 @@ describe('VietQR', () => {
     expect(p).toContain('0010A000000727');
     expect(p).toContain('0006970415011012345678900208QRIBFTTA');
     expect(p).toContain('5303704540659900058' + '02VN');
-    expect(p).toContain('62140810HC2345ABCD');
+    expect(p).toContain('62200816SEVQR HC2345ABCD');
     expect(p.slice(-8, -4)).toBe('6304');
     expect(crc16(p.slice(0, -4))).toBe(p.slice(-4));
-    expect(vietQrPayload({ bankBin: '970415', account: '1234567890', amountVnd: 1000, content: 'Thanh toán HC2345ABCD!' })).toContain('0821Thanh toan HC2345ABCD');
+    expect(transferMemo('970415', 'HC2345ABCD')).toBe('SEVQR HC2345ABCD');
+    expect(transferMemo('970415', 'SEVQR HC2345ABCD')).toBe('SEVQR HC2345ABCD');
+    expect(transferMemo('970436', 'HC2345ABCD')).toBe('HC2345ABCD');
+    expect(transferMemo('970415', 'Thanh toán')).toBe('SEVQR Thanh toan');
     expect(() => vietQrPayload({ bankBin: '97041', account: '1234567890', amountVnd: 1, content: 'x' })).toThrow();
     expect(() => vietQrPayload({ bankBin: '970415', account: '12ab', amountVnd: 1, content: 'x' })).toThrow();
     expect(() => vietQrPayload({ bankBin: '970415', account: '1234567890', amountVnd: 0, content: 'x' })).toThrow();
@@ -27,6 +30,7 @@ describe('mã đơn và cộng tháng', () => {
   it('mã đơn không có ký tự dễ nhầm; tìm được trong nội dung chuyển khoản bị ngân hàng biến đổi', () => {
     for (let i = 0; i < 200; i++) expect(newOrderCode()).toMatch(/^HC[2-9A-HJKMNP-Z]{8}$/);
     expect(findOrderCode('MBVCB.123 hc2345abcd chuyen tien')).toBe('HC2345ABCD');
+    expect(findOrderCode('SEVQR HC2345ABCD')).toBe('HC2345ABCD');
     expect(findOrderCode('NGUYEN VAN A CHUYEN KHOAN HC 2345 ABCD')).toBe('HC2345ABCD');
     expect(findOrderCode('chuyen tien an trua')).toBeNull();
     expect(findOrderCode('HC2345ABC0')).toBeNull(); // số 0 không có trong bảng mã
