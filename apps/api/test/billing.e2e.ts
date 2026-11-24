@@ -65,8 +65,8 @@ describe('Gói thành viên và thanh toán', () => {
 
     const view = await t.http().get(`/api/billing/orders/${code}`).set('Cookie', member).expect(200);
     expect(view.body).toMatchObject({ status: 'PENDING', amountVnd: 599000, months: 12, product: { slug: 'english' } });
-    expect(view.body.transfer).toMatchObject({ accountNumber: ACCOUNT, accountName: 'NGUYEN VAN TEST', bankName: 'VietinBank', content: code, amountVnd: 599000, mode: 'sandbox' });
-    expect(view.body.transfer.qrPayload).toContain(code);
+    expect(view.body.transfer).toMatchObject({ accountNumber: ACCOUNT, accountName: 'NGUYEN VAN TEST', bankName: 'VietinBank', content: `SEVQR ${code}`, amountVnd: 599000, mode: 'sandbox' });
+    expect(view.body.transfer.qrPayload).toContain(`SEVQR ${code}`);
     await t.http().get(`/api/billing/orders/${code}`).set('Cookie', other).expect(404);
   });
 
