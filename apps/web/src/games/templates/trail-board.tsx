@@ -57,8 +57,7 @@ export function TrailBoardTemplate({
     setCorrect(points);
     setMistakes(errors);
     if (ok) {
-      setPositions((previous) => previous.map((value, team) =>
-        team === activeTeam ? Math.min(data.boardLength, value + rolled) : value));
+      setPositions((previous) => advanceTrail(previous, activeTeam, rolled, data.boardLength, true));
     }
     audio.sfx(ok ? 'correct' : 'wrong');
     onProgress({ score: points, mistakes: errors });
