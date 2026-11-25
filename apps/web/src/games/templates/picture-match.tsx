@@ -76,7 +76,7 @@ export function PictureMatchTemplate({ data, t, rng, round, audio, onProgress, o
         <div className="match-col">
           {pictures.map((p) => (
             <button key={p.id} type="button" className={cls('picture', p.id)} disabled={matched.has(p.id)} data-testid="match-picture" data-id={p.id} aria-label={matched.has(p.id) ? p.word : undefined} onClick={() => choose('picture', p.id)}>
-              <PictureView picture={p.picture} size={52} />
+              <PictureView picture={p.picture} size={102} />
             </button>
           ))}
         </div>
