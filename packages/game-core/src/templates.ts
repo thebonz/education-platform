@@ -272,6 +272,94 @@ export const spellingSchema = z
   });
 
 // ---------------------------------------------------------------------------
+// Phase 12 – game mechanisms independently designed after studying public demos.
+// All three are opt-in and English only; never reuse a vendor's code/assets.
+// ---------------------------------------------------------------------------
+const phonicsWordSchema = z.object({
+  id,
+  word: text(40),
+  picture: pictureSchema,
+  say: optionalText(80),
+});
+const phonicsFamilySchemaItem = z.object({
+  id,
+  ending: text(12),
+  words: z.array(phonicsWordSchema).min(3).max(15),
+}).superRefine((family, ctx) => {
+  uniqueBy(family.words, (word) => word.id, ctx, 'words', 'id');
+  for (const [i, word] of family.words.entries()) {
+    if (!word.word.toLowerCase().endsWith(family.ending.toLowerCase())) ctx.addIssue({
+      code: z.ZodIssueCode.custom, path: ['words', i, 'word'],
+      message: 'Từ phải có phần vần (ending) như đã chọn',
+    });
+  }
+});
+export const phonicsFamilySchema = z.object({
+  instructions: optionalText(300),
+  wordsPerRound: z.number().int().min(3).max(12).default(6),
+  families: z.array(phonicsFamilySchemaItem).min(2).max(10),
+}).superRefine((data, ctx) => {
+  uniqueBy(data.families, (family) => family.id, ctx, 'families', 'id');
+  const words = data.families.flatMap((family) => family.words);
+  if (words.length < data.wordsPerRound) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['wordsPerRound'], message: 'Cần đủ từ cho mỗi lượt',
+  });
+  const seen = new Set<string>();
+  data.families.forEach((family, fi) => family.words.forEach((word, wi) => {
+    const key = word.word.toLowerCase();
+    if (seen.has(key)) ctx.addIssue({
+      code: z.ZodIssueCode.custom, path: ['families', fi, 'words', wi],
+      message: 'Một từ không được trùng ở nhiều nhóm âm',
+    });
+    seen.add(key);
+  }));
+});
+
+const classroomObjectSchema = z.object({
+  id,
+  word: text(40),
+  picture: pictureSchema,
+  clue: optionalText(120),
+  choices: z.array(text(40)).length(3),
+}).superRefine((item, ctx) => {
+  if (!item.choices.includes(item.word)) ctx.addIssue({ code: z.ZodIssueCode.custom,
+    path: ['choices'], message: 'Ba lựa chọn phải chứa từ đúng' });
+  if (new Set(item.choices).size !== 3) ctx.addIssue({ code: z.ZodIssueCode.custom,
+    path: ['choices'], message: 'Ba lựa chọn không được trùng' });
+});
+export const classroomExploreSchema = z.object({
+  instructions: optionalText(300),
+  wordsPerRound: z.number().int().min(3).max(12).default(6),
+  items: z.array(classroomObjectSchema).min(3).max(48),
+}).superRefine((data, ctx) => {
+  uniqueBy(data.items, (x) => x.id, ctx, 'items', 'id');
+  if (data.wordsPerRound > data.items.length) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['wordsPerRound'], message: 'Số từ một lượt không vượt tổng từ',
+  });
+});
+
+const shadowItemSchema = z.object({
+  id, word: text(40), picture: pictureSchema, hint: optionalText(140),
+  choices: z.array(text(40)).length(3),
+}).superRefine((item, ctx) => {
+  if (!item.choices.includes(item.word)) ctx.addIssue({ code: z.ZodIssueCode.custom,
+    path: ['choices'], message: 'Phải có đáp án đúng trong ba lựa chọn' });
+  if (new Set(item.choices).size !== 3) ctx.addIssue({ code: z.ZodIssueCode.custom,
+    path: ['choices'], message: 'Các lựa chọn phải khác nhau' });
+});
+export const shadowGuessSchema = z.object({
+  instructions: optionalText(300),
+  wordsPerRound: z.number().int().min(3).max(12).default(6),
+  maxMistakes: z.number().int().min(1).max(5).default(3),
+  items: z.array(shadowItemSchema).min(3).max(48),
+}).superRefine((data, ctx) => {
+  uniqueBy(data.items, (x) => x.id, ctx, 'items', 'id');
+  if (data.wordsPerRound > data.items.length) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['wordsPerRound'], message: 'Số từ một lượt không vượt tổng từ',
+  });
+});
+
+// ---------------------------------------------------------------------------
 // Tiếng Việt: kiểm tra chung
 // ---------------------------------------------------------------------------
 /** Một tiếng tiếng Việt hợp lệ (tách được âm đầu + vần + thanh, đúng quy tắc c/k, g/gh, ng/ngh). */
@@ -394,6 +482,9 @@ export const sentenceOrderSchema = z
 export const TEMPLATES = {
   bingo: { name: { en: 'Bingo', vi: 'Bingo' }, schema: bingoSchema, languages: ['en', 'vi'] },
   'picture-match': { name: { en: 'Picture Match', vi: 'Ghép chữ với hình' }, schema: pictureMatchSchema, languages: ['en', 'vi'] },
+  'phonics-family': { name: { en: 'Phonics Family Match', vi: 'Ghép nhóm vần' }, schema: phonicsFamilySchema, languages: ['en'] },
+  'classroom-explore': { name: { en: 'Classroom Discovery', vi: 'Khám phá lớp học' }, schema: classroomExploreSchema, languages: ['en'] },
+  'shadow-guess': { name: { en: 'Shadow Safari', vi: 'Đoán bóng hình' }, schema: shadowGuessSchema, languages: ['en'] },
   'picture-puzzle': { name: { en: 'Picture Puzzle', vi: 'Ghép mảnh bức tranh' }, schema: picturePuzzleSchema, languages: ['en', 'vi'] },
   quiz: { name: { en: 'Quiz', vi: 'Đố vui' }, schema: quizSchema, languages: ['en', 'vi'] },
   'trail-board': { name: { en: 'Star Trail Adventure', vi: 'Đường đua ngôi sao' }, schema: trailBoardSchema, languages: ['en', 'vi'] },
@@ -412,6 +503,9 @@ export const TEMPLATE_KEYS = Object.keys(TEMPLATES) as TemplateKey[];
 
 export type BingoData = z.infer<typeof bingoSchema>;
 export type PictureMatchData = z.infer<typeof pictureMatchSchema>;
+export type PhonicsFamilyData = z.infer<typeof phonicsFamilySchema>;
+export type ClassroomExploreData = z.infer<typeof classroomExploreSchema>;
+export type ShadowGuessData = z.infer<typeof shadowGuessSchema>;
 export type PicturePuzzleData = z.infer<typeof picturePuzzleSchema>;
 export type QuizData = z.infer<typeof quizSchema>;
 export type QuizQuestion = QuizData['questions'][number];
@@ -428,6 +522,9 @@ export type SentenceOrderData = z.infer<typeof sentenceOrderSchema>;
 export type TemplateDataMap = {
   bingo: BingoData;
   'picture-match': PictureMatchData;
+  'phonics-family': PhonicsFamilyData;
+  'classroom-explore': ClassroomExploreData;
+  'shadow-guess': ShadowGuessData;
   'picture-puzzle': PicturePuzzleData;
   quiz: QuizData;
   'trail-board': TrailBoardData;
