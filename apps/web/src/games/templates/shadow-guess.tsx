@@ -84,7 +84,7 @@ export function ShadowGuessTemplate({ data, rng, round, audio, onProgress, onFin
             {current.choices.map((choice, i) => (
               <button key={choice} type="button" data-testid="shadow-choice"
                 className={`choice ${revealed && choice === current.word ? 'right' : ''}`}
-                disabled={revealed} onClick={() => answer(choice)}><span>{'ABC'[i]}</span>{choice}</button>
+                disabled={revealed} onClick={() => answer(choice)}><span>{'ABC'[i]}</span> {choice}</button>
             ))}
           </div>
           <p className={`tpl-feedback ${correct ? 'correct' : lost ? 'wrong' : ''}`} role="status" data-testid="shadow-feedback">
