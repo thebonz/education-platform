@@ -93,7 +93,7 @@ const vi = {
     bank: 'Ngân hàng', accountNumber: 'Số tài khoản', accountName: 'Chủ tài khoản', amount: 'Số tiền', content: 'Nội dung',
     contentWarn: 'Ghi đúng nội dung để hệ thống tự xác nhận.',
     copy: 'Sao chép', copied: 'Đã chép',
-    waiting: 'Đang chờ tiền về… Trang tự cập nhật, bạn không cần tải lại.',
+    waiting: 'Đang chờ thanh toán… Trang tự cập nhật, bạn không cần tải lại.',
     expiresIn: 'Đơn hết hạn sau {time}',
     paid: 'Thanh toán thành công!', paidUntil: 'Gói của bạn có hiệu lực đến {date}.',
     goPlay: 'Vào thư viện game',
