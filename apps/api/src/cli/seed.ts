@@ -16,10 +16,11 @@ import { ROLES } from '../rbac/permissions';
 import { ENGLISH_GAMES } from './content/english';
 import { TAXONOMY } from './content/taxonomy';
 import { TRAIL_ADVENTURES } from './content/trail-adventures';
+import { MYSTERY_DOORS_DEMOS } from './content/mystery-doors';
 import type { GamePack } from './content/types';
 import { VIETNAMESE_GAMES } from './content/vietnamese';
 
-export const ALL_PACKS: GamePack[] = [...ENGLISH_GAMES, ...VIETNAMESE_GAMES, ...TRAIL_ADVENTURES];
+export const ALL_PACKS: GamePack[] = [...ENGLISH_GAMES, ...VIETNAMESE_GAMES, ...TRAIL_ADVENTURES, ...MYSTERY_DOORS_DEMOS];
 
 const PRODUCTS = [
   {
