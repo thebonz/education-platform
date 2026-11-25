@@ -76,12 +76,16 @@ describe('Gói chơi offline + giấy phép ký số', () => {
   it('gói kèm danh sách ảnh thư viện mà game dùng', async () => {
     const g = await t.prisma.game.findFirstOrThrow({ where: { slug: 'vocabulary-matching' }, include: { versions: { where: { isPublished: true } } } });
     const id = '11111111-2222-4333-8444-555555555555';
-    const content = JSON.parse(JSON.stringify(g.versions[0].content));
-    const json = JSON.stringify(content).replace(/"picture":\{"kind":"emoji","value":"[^"]*"\}/, `"picture":{"kind":"image","src":"/api/media/${id}","alt":"x"}`);
-    await t.prisma.gameVersion.update({ where: { id: g.versions[0].id }, data: { content: JSON.parse(json) } });
+    const original = JSON.parse(JSON.stringify(g.versions[0].content));
+    const changed = structuredClone(original);
+    changed.pairs[0].picture = { kind: 'image', src: `/api/media/${id}`, alt: 'Teacher-supplied image' };
+    await t.prisma.gameVersion.update({ where: { id: g.versions[0].id }, data: { content: changed } });
     const res = await t.http().get('/api/offline/pack?product=english').set('Cookie', free).expect(200);
-    expect(json).not.toBe(JSON.stringify(content));
-    expect(res.body.media).toEqual([`/api/media/${id}`]);
+    expect(changed).not.toEqual(original);
+    // Both teacher Media Library assets and first-party illustrated SVGs must work offline.
+    expect(res.body.media).toContain(`/api/media/${id}`);
+    expect(res.body.media).toContain('/illustrations/vocab/dog.svg');
+    expect(res.body.media).not.toContain('https://evil.example/image.jpg');
   });
 
   describe('đồng bộ kết quả chơi offline', () => {
