@@ -29,7 +29,9 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
   const pool = data.distractorPool ?? (lang === 'en' ? EN_POOL : VI_POOL);
   const seed = useMemo(() => Math.floor(rng() * 2 ** 31), [rng]);
   const unitWords = useMemo(
-    () => unit ? sessionSelection(unit.words, data.wordsPerRound, round, createRng(`word-bank-${seed}-${unit.id}`)) : [],
+    () => unit ? (data.wordsPerRound === undefined
+      ? [...unit.words]
+      : sessionSelection(unit.words, data.wordsPerRound, round, createRng(`word-bank-${seed}-${unit.id}`))) : [],
     [unit, data.wordsPerRound, round, seed],
   );
 
@@ -64,7 +66,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
           {data.units.map((u) => (
             <button key={u.id} type="button" className="unit-card" data-testid="unit-option" onClick={() => setUnitId(u.id)}>
               <PictureView picture={u.words[0].picture} size={72} />
-              <b>{u.title}</b><small>{Math.min(data.wordsPerRound, u.words.length)} / {u.words.length} {t.words} · fresh set each replay</small>
+              <b>{u.title}</b><small>{data.wordsPerRound === undefined ? u.words.length : Math.min(data.wordsPerRound, u.words.length)} / {u.words.length} {t.words}{data.wordsPerRound !== undefined ? ' · fresh set each replay' : ''}</small>
             </button>
           ))}
         </div>
