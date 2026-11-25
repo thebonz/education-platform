@@ -36,6 +36,9 @@ export type GameShellProps = {
 
 const ACCENT_KEY = 'hc.accent';
 const SOUND_KEY = 'hc.sound';
+const ENGLISH_VOICE_KEY = 'hc.english.voice';
+const ENGLISH_RATE_KEY = 'hc.english.rate';
+const ENGLISH_SAMPLE = 'Hello! Welcome to HappyClass. Listen carefully and have fun learning English.';
 // Mẫu 6 thanh tiếng Việt; không phải kết quả đo chất lượng phát âm của Piper.
 const VI_VOICE_SAMPLE = 'Bé nghe sáu thanh: ma, má, mà, mả, mã, mạ.';
 
@@ -75,7 +78,10 @@ export function GameShell(props: GameShellProps) {
   const [now, setNow] = useState(0);
   const [isFullscreen, setFullscreen] = useState(false);
   const [sound, setSound] = useState(true);
-  const [accent, setAccent] = useState<Accent>('en-GB');
+  const [accent, setAccent] = useState<Accent>('en-US');
+  const [englishVoiceURI, setEnglishVoiceURI] = useState('auto');
+  const [englishRate, setEnglishRate] = useState(0.85);
+  const [englishVoices, setEnglishVoices] = useState<{ name: string; lang: string; voiceURI: string }[]>([]);
   const [speechOk, setSpeechOk] = useState(true);
   const [voiceMissing, setVoiceMissing] = useState(false);
 
@@ -85,6 +91,10 @@ export function GameShell(props: GameShellProps) {
     const savedAccent = readPref(ACCENT_KEY);
     if (savedSound === 'off') setSound(false);
     if (savedAccent === 'en-US' || savedAccent === 'en-GB') setAccent(savedAccent);
+    const savedVoice = readPref(ENGLISH_VOICE_KEY);
+    if (savedVoice && savedVoice.length <= 300) setEnglishVoiceURI(savedVoice);
+    const rate = Number(readPref(ENGLISH_RATE_KEY));
+    if ([0.75, 0.85, 0.95].includes(rate)) setEnglishRate(rate);
     // Tiếng Việt đọc bằng giọng của máy chủ nên không phụ thuộc trình duyệt
     setSpeechOk(lang === 'vi' || audio.speechAvailable);
     audio.onUnavailable = () => setVoiceMissing(true);
@@ -92,7 +102,25 @@ export function GameShell(props: GameShellProps) {
     return () => { audio.onUnavailable = undefined; audio.onAvailable = undefined; };
   }, [audio, lang]);
   useEffect(() => { audio.enabled = sound; if (!sound) audio.stop(); }, [audio, sound]);
-  useEffect(() => { if (lang === 'en') audio.voiceLang = accent; }, [audio, accent, lang]);
+  useEffect(() => {
+    if (lang !== 'en') return;
+    audio.voiceLang = accent;
+    audio.englishVoiceURI = englishVoiceURI === 'auto' ? null : englishVoiceURI;
+    audio.englishRate = englishRate;
+  }, [audio, accent, englishVoiceURI, englishRate, lang]);
+  useEffect(() => {
+    if (lang !== 'en' || !audio.speechAvailable) return;
+    const synth = window.speechSynthesis;
+    const update = () => setEnglishVoices(audio.availableEnglishVoices()
+      .map((voice) => ({ name: voice.name, lang: voice.lang, voiceURI: voice.voiceURI })));
+    update();
+    synth.addEventListener?.('voiceschanged', update);
+    const timer = window.setTimeout(update, 700);
+    return () => {
+      synth.removeEventListener?.('voiceschanged', update);
+      window.clearTimeout(timer);
+    };
+  }, [audio, accent, lang]);
   useEffect(() => () => audio.stop(), [audio]);
 
   useEffect(() => {
@@ -191,6 +219,44 @@ export function GameShell(props: GameShellProps) {
             </label>
           )}
           {!speechOk && <p className="muted">{t.soundUnavailable}</p>}
+          {lang === 'en' && (
+            <div className="english-voice-panel" data-testid="english-voice-panel">
+              <strong>🔊 Choose your English voice</strong>
+              <p>Listen to a sample before playing. Available voices depend on your device and browser.</p>
+              <div className="english-voice-options">
+                <label htmlFor="english-voice-select">Voice
+                  <select id="english-voice-select" data-testid="english-voice-select" value={englishVoices.some((v) => v.voiceURI === englishVoiceURI) ? englishVoiceURI : 'auto'}
+                    onChange={(event) => {
+                      const selected = event.target.value;
+                      setEnglishVoiceURI(selected);
+                      writePref(ENGLISH_VOICE_KEY, selected);
+                    }}>
+                    <option value="auto">✨ Recommended English voice</option>
+                    {englishVoices.map((voice) => (
+                      <option value={voice.voiceURI} key={voice.voiceURI}>{voice.name} · {voice.lang}</option>
+                    ))}
+                  </select>
+                </label>
+                <label htmlFor="english-voice-speed">Speed
+                  <select id="english-voice-speed" data-testid="english-voice-speed" value={englishRate}
+                    onChange={(event) => {
+                      const speed = Number(event.target.value);
+                      setEnglishRate(speed);
+                      writePref(ENGLISH_RATE_KEY, String(speed));
+                    }}>
+                    <option value="0.75">Slow · phonics</option>
+                    <option value="0.85">Clear · children</option>
+                    <option value="0.95">Natural pace</option>
+                  </select>
+                </label>
+                <button type="button" className="secondary-button" disabled={!sound || !speechOk}
+                  data-testid="english-voice-test" onClick={() => audio.say(ENGLISH_SAMPLE)}>
+                  ▶ Hear sample
+                </button>
+              </div>
+              {!englishVoices.length && <p className="english-voice-note">No installed English voices were listed yet. The browser default may work; for a clearer voice, enable an English voice in your device settings.</p>}
+            </div>
+          )}
           {lang === 'vi' && (
             <div className="voice-check" data-testid="voice-check">
               <button type="button" className="secondary-button" data-testid="voice-check-button"
