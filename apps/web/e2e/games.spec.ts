@@ -195,3 +195,46 @@ test('sitemap và robots theo từng tên miền', async ({ request }) => {
   const robots = await (await request.get(`${EN}/robots.txt`)).text();
   expect(robots).toContain('Disallow: /admin');
 });
+
+test('teacher random picker: no-repeat turns, reset and browser-only privacy', async ({ page }) => {
+  await page.goto(`${EN}/`);
+  await page.getByTestId('open-student-picker').click();
+  await expect(page).toHaveURL(`${EN}/tools/random-picker`);
+  await expect(page.getByTestId('student-picker')).toBeVisible();
+  await page.getByTestId('picker-names').fill('Alex\nBen\nCharlie\nAlex');
+  await expect(page.getByTestId('picker-remaining')).toContainText('3 remaining');
+
+  const seen = new Set<string>();
+  for (let i = 0; i < 3; i++) {
+    await page.getByTestId('picker-draw').click();
+    const name = await page.getByTestId('picker-selected').innerText();
+    expect(['Alex', 'Ben', 'Charlie']).toContain(name);
+    expect(seen.has(name)).toBe(false);
+    seen.add(name);
+  }
+  expect(seen.size).toBe(3);
+  await expect(page.getByTestId('picker-draw')).toBeDisabled();
+  await expect(page.getByTestId('picker-remaining')).toContainText('0 remaining');
+  await page.getByTestId('picker-reset').click();
+  await expect(page.getByTestId('picker-draw')).toBeEnabled();
+  await page.getByTestId('picker-repeat').check();
+  await page.getByTestId('picker-draw').click();
+  await expect(page.getByTestId('picker-selected')).not.toHaveText('✨');
+  expect(await page.evaluate(() => Object.keys(window.localStorage).filter((k) => k.includes('picker')))).toEqual([]);
+  await page.reload();
+  await expect(page.getByTestId('picker-names')).toHaveValue('');
+});
+
+test('Vietnamese student picker: chặn danh sách quá dài và không ghi nhớ họ tên', async ({ page }) => {
+  const VI = process.env.E2E_VIETNAMESE_URL ?? 'http://vietnamese.happyclass.test:3100';
+  await page.goto(`${VI}/tools/random-picker`);
+  await expect(page.getByRole('heading', { name: 'Vòng quay gọi tên' })).toBeVisible();
+  await page.getByTestId('picker-names').fill(Array.from({ length: 41 }, (_, i) => `Bạn ${i + 1}`).join('\n'));
+  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByTestId('picker-draw')).toBeDisabled();
+  await page.getByTestId('picker-clear').click();
+  await expect(page.getByTestId('picker-draw')).toBeDisabled();
+  await page.getByTestId('picker-names').fill('Bé An\nBé Bình\nBé Chi');
+  await page.getByTestId('picker-draw').click();
+  await expect(page.getByTestId('picker-selected')).not.toHaveText('✨');
+});
