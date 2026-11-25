@@ -10,13 +10,20 @@ describe('Seed nội dung game', () => {
   });
   afterAll(async () => { await prisma.$disconnect(); });
 
-  it('tạo đủ 35 game (29 đã xuất bản, 6 bản thử chờ duyệt), cấp độ và danh mục; chạy lại không tạo trùng', async () => {
-    expect(await prisma.game.count()).toBe(35);
+  it('tạo đủ 38 game (29 đã xuất bản, 9 bản thử chờ duyệt), cấp độ và danh mục; chạy lại không tạo trùng', async () => {
+    expect(await prisma.game.count()).toBe(38);
     expect(await prisma.game.count({ where: { isPublished: true } })).toBe(29);
     expect(await prisma.game.count({ where: { templateKey: 'trail-board', isPublished: false, reviewStatus: 'PENDING' } })).toBe(2);
     expect(await prisma.game.count({ where: { templateKey: 'mystery-doors', isPublished: false, reviewStatus: 'PENDING' } })).toBe(1);
     expect(await prisma.game.count({ where: { templateKey: 'picture-puzzle', isPublished: false, reviewStatus: 'PENDING' } })).toBe(1);
     expect(await prisma.game.count({ where: { slug: { in: ['fruit-market-match', 'school-treasure-match'] }, isPublished: false, reviewStatus: 'PENDING' } })).toBe(2);
+    expect(await prisma.game.count({
+      where: { slug: { in: ['sound-family-village', 'little-learning-classroom', 'shadow-safari-animals'] },
+        isPublished: false, reviewStatus: 'PENDING' },
+    })).toBe(3);
+    for (const templateKey of ['phonics-family', 'classroom-explore', 'shadow-guess']) {
+      expect(await prisma.game.count({ where: { templateKey, isPublished: false } })).toBe(1);
+    }
     const animal = await prisma.game.findFirstOrThrow({ where: { slug: 'vocabulary-matching' }, include: { versions: { where: { isPublished: true } } } });
     expect(animal.seedRevision).toBe(3);
     expect((animal.versions[0].content as { pairs: unknown[]; roundSize: number }).pairs).toHaveLength(12);
@@ -26,8 +33,8 @@ describe('Seed nội dung game', () => {
     expect(await prisma.level.count()).toBe(12);
     expect(await prisma.gameCategory.count({ where: { product: { slug: 'english' } } })).toBe(20);
     const again = await seed(prisma);
-    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 35 });
-    expect(await prisma.gameVersion.count()).toBe(35);
+    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 38 });
+    expect(await prisma.gameVersion.count()).toBe(38);
   });
 
   it('nâng cấp game cũ lên phiên bản nội dung mới, giữ bản cũ', async () => {

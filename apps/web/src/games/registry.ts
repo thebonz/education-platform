@@ -6,6 +6,9 @@ import { BubbleSpellingTemplate } from './templates/bubble-spelling';
 import { HiddenPictureTemplate } from './templates/hidden-picture';
 import { MysteryDoorsTemplate } from './templates/mystery-doors';
 import { PictureMatchTemplate } from './templates/picture-match';
+import { PhonicsFamilyTemplate } from './templates/phonics-family';
+import { ClassroomExploreTemplate } from './templates/classroom-explore';
+import { ShadowGuessTemplate } from './templates/shadow-guess';
 import { PicturePuzzleTemplate } from './templates/picture-puzzle';
 import { QuizTemplate } from './templates/quiz';
 import { TrailBoardTemplate } from './templates/trail-board';
@@ -20,6 +23,9 @@ import { WordSortTemplate } from './templates/word-sort';
 export const TEMPLATE_COMPONENTS: Record<TemplateKey, ComponentType<TemplateProps<any>>> = {
   bingo: BingoTemplate,
   'picture-match': PictureMatchTemplate,
+  'phonics-family': PhonicsFamilyTemplate,
+  'classroom-explore': ClassroomExploreTemplate,
+  'shadow-guess': ShadowGuessTemplate,
   'picture-puzzle': PicturePuzzleTemplate,
   quiz: QuizTemplate,
   'trail-board': TrailBoardTemplate,

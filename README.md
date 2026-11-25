@@ -165,3 +165,5 @@ Workflow `.github/workflows/ci.yml` chạy trên mỗi pull request:
 Phiên bản đang dùng (theo `package-lock.json`): Next.js 15.5.28, NestJS 11.2.8, Prisma 6.19.3. Thay đổi schema phải đi kèm migration mới (`npx prisma migrate dev --name <tên>`); CI sẽ báo lỗi nếu migration lệch schema.
 
 - [Phase 11.2: giọng Anh-Mỹ kid-friendly, ảnh minh họa và kho từ vựng xoay vòng](docs/PHASE11-KID-VOICE-WORD-LIBRARY.md)
+
+- [Phase 12: phân tích 13 demo công khai và xây dựng độc lập 3 kiểu chơi phonics/classroom/shadow](docs/PHASE12-REFERENCE-GAME-AUDIT.md) — **không có quyền truy cập toàn bộ game Member**, các mẫu mới vẫn ẩn/chờ duyệt.
