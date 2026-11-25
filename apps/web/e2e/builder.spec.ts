@@ -250,3 +250,89 @@ test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn gi
   expect(after.isPublished).toBe(false);
   expect(after.reviewStatus).toBe('PENDING');
 });
+
+
+test('Phase 12: three new English game forms play correctly in Admin Preview and remain unpublished @mobile', async ({ page }) => {
+  test.skip(!ADMIN_PASSWORD, 'Chưa đặt E2E_ADMIN_PASSWORD');
+  test.setTimeout(150_000);
+  await page.goto(`${ADMIN}/login`);
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Mật khẩu').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByTestId('admin-dashboard')).toBeVisible();
+
+  const response = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
+  expect(response.ok()).toBeTruthy();
+  const list = (await response.json()).games as { id: string; slug: string; isPublished: boolean; reviewStatus: string }[];
+  const expected = ['sound-family-village', 'little-learning-classroom', 'shadow-safari-animals'];
+  for (const slug of expected) {
+    const game = list.find((item) => item.slug === slug);
+    expect(game, slug).toBeTruthy();
+    expect(game!.isPublished).toBe(false);
+    expect(game!.reviewStatus).toBe('PENDING');
+  }
+
+  // Picture cards and phonics endings: accessible tap rather than mouse-only drag.
+  await page.goto(`${ADMIN}/games/${list.find((item) => item.slug === expected[0])!.id}`);
+  await page.getByTestId('open-builder').click();
+  await page.getByTestId('refresh-preview').click();
+  const phonics = page.getByTestId('preview');
+  await phonics.getByTestId('shell-start').click();
+  await expect(phonics.getByTestId('phonics-word')).toHaveCount(6);
+  const used = await phonics.getByTestId('phonics-word').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-word')));
+  for (const word of used) {
+    expect(word).toBeTruthy();
+    const ending = ['at', 'og', 'an'].find((part) => word!.endsWith(part))!;
+    await phonics.locator(`[data-testid="phonics-word"][data-word="${word}"]`).click();
+    await phonics.locator(`[data-testid="phonics-house"][data-family="${ending}"]`).click();
+  }
+  await expect(phonics.getByTestId('shell-result')).toBeVisible();
+  await expect(phonics.getByTestId('result-score')).toContainText('6/6');
+  await phonics.getByTestId('play-again').click();
+  const nextWords = await phonics.getByTestId('phonics-word').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-word')));
+  expect(nextWords.some((word) => !used.includes(word))).toBe(true);
+
+  // Interactive classroom: pictures are image files, A/B/C answers are real controls.
+  await page.goto(`${ADMIN}/games/${list.find((item) => item.slug === expected[1])!.id}`);
+  await page.getByTestId('open-builder').click();
+  await page.getByTestId('refresh-preview').click();
+  const classroom = page.getByTestId('preview');
+  await classroom.getByTestId('shell-start').click();
+  await expect(classroom.getByTestId('classroom-object')).toHaveCount(6);
+  const objects = await classroom.getByTestId('classroom-object').evaluateAll((nodes) => nodes.map((node) => node.getAttribute('data-word')));
+  for (const word of objects) {
+    await classroom.locator(`[data-testid="classroom-object"][data-word="${word}"]`).click();
+    await expect(classroom.getByTestId('classroom-answer')).toHaveCount(3);
+    await classroom.getByTestId('classroom-answer').filter({
+      hasText: new RegExp(`\\b${word!.replace(/[.*+?^${}()|[\\]\\]/g, '\\$&')}$`),
+    }).click();
+  }
+  await expect(classroom.getByTestId('shell-result')).toBeVisible();
+  await expect(classroom.getByTestId('result-score')).toContainText('6/6');
+
+  // Silhouettes are actual transparent SVGs. The answer reveals the coloured picture.
+  await page.goto(`${ADMIN}/games/${list.find((item) => item.slug === expected[2])!.id}`);
+  await page.getByTestId('open-builder').click();
+  await page.getByTestId('refresh-preview').click();
+  const shadow = page.getByTestId('preview');
+  await shadow.getByTestId('shell-start').click();
+  for (let i = 0; i < 6; i++) {
+    const src = await shadow.getByTestId('shadow-picture').locator('img').getAttribute('src');
+    const word = src!.split('/').at(-1)!.replace('.svg', '');
+    expect(src).toContain('/illustrations/silhouettes/');
+    await shadow.getByTestId('shadow-choice').filter({ hasText: new RegExp(`\\b${word}$`) }).click();
+    await expect(shadow.getByTestId('shadow-picture')).toHaveClass(/revealed/);
+    await shadow.getByTestId('shadow-next').click();
+  }
+  await expect(shadow.getByTestId('shell-result')).toBeVisible();
+  await expect(shadow.getByTestId('result-score')).toContainText('6/6');
+
+  // Preview never publishes or approves seed templates.
+  const verify = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
+  const after = (await verify.json()).games as typeof list;
+  for (const slug of expected) {
+    const item = after.find((game) => game.slug === slug)!;
+    expect(item.isPublished).toBe(false);
+    expect(item.reviewStatus).toBe('PENDING');
+  }
+});
