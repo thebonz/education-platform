@@ -103,7 +103,7 @@ export const pictureMatchSchema = z
   .object({
     instructions: optionalText(300),
     pairs: z.array(z.object({ id, word: text(40), picture: pictureSchema, say: optionalText(80) })).min(3).max(60),
-    roundSize: z.number().int().min(3).max(12).default(8),
+    roundSize: z.number().int().min(3).max(12).optional(),
     timeLimitSec: z.number().int().min(0).max(600).default(0),
   })
   .superRefine((d, ctx) => {
