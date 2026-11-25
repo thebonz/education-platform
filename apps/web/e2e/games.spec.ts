@@ -136,11 +136,18 @@ test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ 
   await page.getByTestId('shell-start').click();
   await page.locator(`[data-testid=match-word][data-id="${data.pairs[0].id}"]`).click();
   await page.locator(`[data-testid=match-picture][data-id="${data.pairs[1].id}"]`).click();
-  for (const p of data.pairs) {
-    await page.locator(`[data-testid=match-word][data-id="${p.id}"]`).click();
-    await page.locator(`[data-testid=match-picture][data-id="${p.id}"]`).click();
+  const current = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
+  expect(current).toHaveLength(6);
+  await expect(page.getByTestId('match-library-count')).toContainText('12 words');
+  for (const id of current) {
+    await page.locator(`[data-testid=match-word][data-id="${id}"]`).click();
+    await page.locator(`[data-testid=match-picture][data-id="${id}"]`).click();
   }
-  expect(await expectResult(page)).toContain('You scored 8/8 points · Mistakes: 1');
+  expect(await expectResult(page)).toContain('You scored 6/6 points · Mistakes: 1');
+  await page.getByTestId('play-again').click();
+  const newSet = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
+  expect(newSet).toHaveLength(6);
+  expect(newSet.some((id) => !current.includes(id))).toBe(true);
 });
 
 test('Hidden Picture: mở hết ô và đoán đúng bức tranh', async ({ page }) => {
@@ -163,16 +170,16 @@ test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobil
   await page.getByTestId('shell-start').click();
   await page.getByTestId('unit-option').first().click();
   await expect(page.locator('.bubble-stage-header')).toBeVisible();
-  await expect(page.locator('.bubble-round-dots > span')).toHaveCount(data.units[0].words.length);
+  await expect(page.locator('.bubble-round-dots > span')).toHaveCount(data.wordsPerRound);
   const unit = data.units[0];
-  for (let i = 0; i < unit.words.length; i++) {
+  for (let i = 0; i < data.wordsPerRound; i++) {
     const id = await page.getByTestId('bubble-word').getAttribute('data-word-id');
     const word = unit.words.find((w: { id: string }) => w.id === id);
     for (const seg of word.segments ?? graphemes(word.word)) await page.locator(`[data-testid=bubble][data-value="${seg}"]:not([disabled])`).first().click();
     await expect(page.getByTestId('bubble-word-complete')).toBeVisible();
     await page.getByTestId('bubble-next').click();
   }
-  expect(await expectResult(page)).toContain(`You scored ${unit.words.length}/${unit.words.length}`);
+  expect(await expectResult(page)).toContain(`You scored ${data.wordsPerRound}/${data.wordsPerRound}`);
 });
 
 test('Spelling Challenge: điền chữ còn thiếu; đăng nhập thì kết quả được lưu và hiện ở tài khoản', async ({ page }) => {
