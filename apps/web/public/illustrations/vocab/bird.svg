@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated bird">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<path d="M124 314 62 343 113 257" fill="#8db0eb" stroke="#6a89d0" stroke-width="6"/><ellipse cx="240" cy="276" rx="118" ry="104" fill="#85bae9" stroke="#608ec9" stroke-width="7"/><path d="M199 278Q178 220 245 226 316 252 274 314 237 340 199 278Z" fill="#b6d9f4" stroke="#608ec9" stroke-width="5"/><circle cx="290" cy="230" r="13" fill="#465a7f"/><path d="M343 249 400 270 339 286" fill="#ffc172" stroke="#c99658" stroke-width="5"/><path d="M215 371v24M266 373v22" stroke="#c99658" stroke-width="8" stroke-linecap="round"/></svg>
