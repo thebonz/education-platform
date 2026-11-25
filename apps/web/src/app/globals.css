@@ -422,3 +422,74 @@ label.check input{margin-top:3px;width:18px;height:18px}
 .review-check{display:flex;align-items:flex-start;gap:11px;border:1px solid #e5e9ee;border-radius:12px;background:#fcfdfd;padding:12px 14px;line-height:1.5;cursor:pointer}
 .review-check input{width:19px;height:19px;min-width:19px;margin-top:2px;accent-color:#159a83}
 @media(max-width:600px){.admin-voice-samples{grid-template-columns:1fr}.admin-voice-sample{font-size:14px}}
+
+
+/* Phase 10 – diện mạo HappyClass nguyên bản: pastel vui tươi, không dùng asset ngoài. */
+.product-hero{
+  position:relative;
+  background:
+    radial-gradient(circle at 85% 18%,rgba(255,231,154,.55),transparent 24%),
+    radial-gradient(circle at 5% 95%,rgba(183,225,255,.45),transparent 30%),
+    linear-gradient(122deg,var(--accent-soft),#fff 76%);
+  border:2px solid #fff;
+  box-shadow:0 18px 48px rgba(40,59,98,.08)
+}
+.product-hero:before{content:'✦';position:absolute;top:20px;left:25px;color:#efadbc;font-size:26px;opacity:.8}
+.hero-actions{display:flex;gap:12px;align-items:center;flex-wrap:wrap}
+.hero-actions .secondary-button{border:1px solid color-mix(in srgb,var(--accent) 17%,#fff);background:#fff;color:var(--accent)}
+.hero-actions a:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+.hero-orb{position:relative;z-index:2;background:linear-gradient(145deg,#fff,#fff9e9);border:6px solid #fff;box-shadow:0 24px 65px rgba(40,50,70,.12),inset 0 0 0 2px rgba(239,180,205,.25)}
+.float-shape{z-index:3}
+.shape-one{transform:rotate(10deg);background:#fff0b9}
+.shape-two{background:#fff;box-shadow:0 10px 25px rgba(35,59,77,.1)}
+.shape-three{background:#e0f6ff;transform:rotate(-10deg)}
+.game-card{border:2px solid #fff;box-shadow:0 10px 26px rgba(41,57,85,.07);border-radius:24px}
+.game-card-art{isolation:isolate;background:linear-gradient(130deg,#ffe7f3,#fff3ca 58%,#dff7ff);overflow:hidden}
+.game-card-art::before,.game-card-art::after{content:'';position:absolute;border-radius:50%;z-index:-1}
+.game-card-art::before{width:155px;height:155px;left:-55px;top:-58px;background:rgba(255,255,255,.48)}
+.game-card-art::after{width:120px;height:120px;right:-40px;bottom:-52px;background:rgba(255,255,255,.42)}
+.game-card-art>span{position:relative;z-index:2;transform:rotate(-7deg);transition:transform .2s}
+.game-card:hover .game-card-art>span{transform:rotate(0) scale(1.08)}
+.art-trail-board{background:linear-gradient(135deg,#dff4ff,#ffecf5 58%,#fff3c1)}
+.art-bingo{background:linear-gradient(135deg,#ffe8ef,#fff5c7)}
+.art-quiz{background:linear-gradient(135deg,#e8ecff,#fff0df)}
+.art-picture-match{background:linear-gradient(135deg,#e4fbef,#e8f5ff)}
+.art-bubble-spelling{background:linear-gradient(135deg,#d9f9ff,#f0e9ff)}
+.vietnamese .art-trail-board{background:linear-gradient(135deg,#dcf8eb,#e6f3ff 58%,#fff2c4)}
+.game-card:focus-visible,.collection-card:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+@media(prefers-reduced-motion:reduce){.game-card-art>span{transition:none}.game-card:hover .game-card-art>span{transform:none}}
+
+/* Trail Board: câu hỏi + xúc xắc + bảng sao do HappyClass tự thiết kế. */
+.tpl-trail{display:flex;flex-direction:column;align-items:center;gap:16px;max-width:900px;margin:auto;padding:8px 0 18px}
+.trail-banner{width:100%;display:flex;align-items:center;justify-content:center;gap:14px;padding:15px 20px;border-radius:22px;background:linear-gradient(115deg,#ffedf8,#e4f6ff 50%,#fff3d2);text-align:center;color:#3c4465}
+.trail-banner h2{margin:4px 0;font-size:clamp(20px,3vw,29px);letter-spacing:-.035em}
+.trail-banner .eyebrow{font-size:9px;font-weight:900;letter-spacing:.1em;color:#a2659c}
+.trail-banner p{margin:0;color:#697288;font-size:13px}
+.trail-banner-icon{font-size:36px}
+.trail-team-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.trail-team{display:flex;align-items:center;gap:7px;border:2px solid #e6e9f0;background:#fff;border-radius:14px;padding:9px 12px;min-height:44px;opacity:.76}
+.trail-team.active{opacity:1;border-color:#e48aaf;background:#fff0f7;box-shadow:0 6px 16px rgba(213,114,156,.13)}
+.trail-team>span{color:#ec7299}.trail-team-1>span{color:#5a9aee}.trail-team-2>span{color:#60a889}.trail-team-3>span{color:#e2a451}
+.trail-team b{font-size:13px}.trail-team small{font-size:11px;font-weight:800;color:#6e7b8d}
+.trail-grid{width:100%;display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:7px;padding:13px;border-radius:22px;background:linear-gradient(130deg,#fcf6ff,#eef9ff);border:2px solid #fff;box-shadow:0 8px 24px rgba(38,59,93,.07)}
+.trail-tile{position:relative;min-height:62px;border:2px solid #fff;border-radius:15px;background:linear-gradient(140deg,#fff,#f5f4ff);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.trail-tile:nth-child(4n + 2){background:linear-gradient(140deg,#fff,#e7f9f1)}
+.trail-tile:nth-child(4n + 3){background:linear-gradient(140deg,#fff,#fff2d8)}
+.trail-tile:nth-child(4n + 4){background:linear-gradient(140deg,#fff,#ffebf5)}
+.trail-tile.start{background:#e7f7ff}.trail-tile.goal{background:#fff1c4}
+.trail-tile-number{font-size:18px;font-weight:900;color:#8a91a8}
+.trail-pawns{display:flex;justify-content:center;flex-wrap:wrap;gap:3px;min-height:16px}
+.trail-pawn{display:grid;place-items:center;width:18px;height:18px;border-radius:50%;background:#ea78a3;color:#fff;font-size:10px;font-style:normal;font-weight:900}
+.trail-pawn-1{background:#548ee0}.trail-pawn-2{background:#47a284}.trail-pawn-3{background:#d39a40}
+.trail-turn{width:100%;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;padding:0 8px;color:#65718a;font-size:13px;font-weight:800}
+.trail-turn strong{color:#c35b90}
+.trail-roll-panel{width:100%;max-width:570px;min-height:190px;border:2px dashed #f0c4dc;background:#fffafc;border-radius:23px;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:11px;padding:17px;text-align:center}
+.trail-die{font-size:42px}.trail-roll-panel p{margin:0;color:#697386;font-weight:800}
+.trail-question-area{width:100%;display:flex;align-items:center;flex-direction:column;gap:14px}
+.trail-roll-result{padding:8px 15px;border-radius:999px;background:#fff3d5;color:#835e22;font-weight:850;margin:0}
+.trail-question-area .choice-grid{width:100%;max-width:700px}
+.trail-question-area .choice{min-height:60px}
+.trail-finish{background:#fff8e6;border:2px solid #f8dfa5;border-radius:20px;padding:20px 30px;text-align:center}
+.trail-finish ol{padding-left:18px;text-align:left}
+@media(max-width:660px){.hero-actions{align-items:stretch}.hero-actions a{flex:1;min-width:155px}.trail-banner-icon{display:none}.trail-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:8px}.trail-tile{min-height:58px;border-radius:11px}.trail-team{padding:7px 9px}.trail-team b{font-size:11px}.trail-banner p{font-size:11px}}
+@media(max-width:380px){.trail-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.trail-tile{min-height:53px}}
