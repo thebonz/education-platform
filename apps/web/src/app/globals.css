@@ -618,3 +618,52 @@ label.check input{margin-top:3px;width:18px;height:18px}
 @media(max-width:760px){.bingo-play-layout{grid-template-columns:1fr}.bingo-carnival .bingo-caller{min-height:0;padding:17px}.bingo-caller-tip{max-width:100%}.bingo-board-wrap{padding:10px}.bingo-carnival .bingo-board{gap:5px}.bingo-carnival .bingo-tile{min-height:44px;border-radius:12px}.bingo-festival-heading{padding:16px}.bingo-star{display:none}}
 @media(max-width:600px){.game-poster-art{height:100%;min-height:160px}.game-poster-art .poster-center{width:77px;height:84px;border-radius:20px;border-width:3px}.game-poster-art .poster-speech{width:27px;height:27px;font-size:13px;left:-12px}.game-poster-art .poster-icon{font-size:39px}.game-poster-art>.poster-genre{font-size:7px;left:6px;bottom:8px}.game-poster-art>.poster-spark.spark-a{font-size:20px;left:7%;top:11px}.game-poster-art>.poster-spark.spark-b{font-size:25px}.bingo-settings{gap:8px}.bingo-settings label{flex:1;min-width:130px}.bingo-settings select{width:100%;min-width:0}.bingo-carnival .bingo-caller strong{width:64px;height:69px;font-size:42px}.bubble-stage-header{display:block;padding:14px}.bubble-round-dots{max-width:100%;justify-content:flex-start;margin-top:12px}.tpl-bubble .bubble{height:58px;width:58px}}
 @media(prefers-reduced-motion:reduce){.game-poster-card,.game-poster-art .poster-center,.bingo-carnival .bingo-tile,.tpl-bubble .unit-card{transition:none}.game-poster-card:hover,.game-poster-card:hover .poster-center,.tpl-bubble .unit-card:hover{transform:none}}
+
+
+/* Mystery House – original HappyClass interactive doors, no third-party assets. */
+.tpl-mystery{width:100%;max-width:950px;margin:auto;display:flex;flex-direction:column;gap:15px}
+.mystery-header{display:flex;align-items:center;justify-content:center;gap:12px;text-align:center;padding:18px 24px;border:3px solid #fff;border-radius:26px;background:linear-gradient(115deg,#e8f5ff,#ffedf4 60%,#fff6db);box-shadow:0 9px 28px rgba(66,78,115,.08)}
+.mystery-header h2{margin:6px 0;font-size:clamp(19px,3vw,29px);letter-spacing:-.04em;color:#4a527f}
+.mystery-header .eyebrow{font-size:9px;color:#a96492}
+.mystery-header p{margin:0;font-size:12px;color:#7b849e}
+.mystery-header-decor{font-size:32px;color:#e39dcc}
+.mystery-status{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:0 5px;color:#737b96;font-size:13px;font-weight:850}
+.mystery-status>span{background:#fff1da;padding:7px 13px;border-radius:999px;color:#ad7f44}
+.mystery-workspace{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:17px;align-items:stretch}
+.mystery-house{border-radius:26px;background:linear-gradient(160deg,#fff7e5,#f9eaff 70%,#e7f6ff);padding:15px;border:3px solid #fff;box-shadow:0 13px 27px rgba(64,73,114,.09)}
+.mystery-house-roof{margin:0 auto 12px;text-align:center;font-size:25px;color:#b778a2}
+.mystery-stage{width:100%;aspect-ratio:3 / 2;min-height:215px;position:relative;isolation:isolate;border-radius:21px;overflow:hidden;border:5px solid #fff;box-shadow:0 11px 24px rgba(55,66,97,.12);background:linear-gradient(130deg,#dff9f1,#eaf3ff)}
+.mystery-picture{position:absolute;inset:0;display:flex;justify-content:center;align-items:center;overflow:hidden;background:radial-gradient(circle,#fff 20%,#e9f9f0 80%)}
+.mystery-picture .pic-emoji{font-size:clamp(80px,13vw,175px)!important;line-height:1}
+.mystery-picture img{max-width:86%;max-height:88%;width:auto;height:auto;object-fit:contain}
+.mystery-door-grid{position:absolute;inset:0;display:grid;gap:5px;padding:5px}
+.mystery-door{position:relative;border:3px solid rgba(255,255,255,.95);border-bottom:7px solid #ba86b6;border-radius:18px 18px 10px 10px;background:linear-gradient(140deg,#ffa9c4,#d4a4df);color:#734b80;display:flex;align-items:center;flex-direction:column;justify-content:center;gap:7px;box-shadow:inset -7px -7px 0 rgba(115,77,149,.08),0 2px 3px rgba(73,72,110,.08);min-width:0;min-height:0;transition:transform .18s,opacity .22s}
+.mystery-door:nth-child(4n + 2){background:linear-gradient(145deg,#a8d9fd,#b4caf9);border-bottom-color:#7fa2d9}
+.mystery-door:nth-child(4n + 3){background:linear-gradient(145deg,#b2ebc9,#a5e0d4);border-bottom-color:#68baa0}
+.mystery-door:nth-child(4n + 4){background:linear-gradient(145deg,#ffe2a7,#ffd3b9);border-bottom-color:#d4aa75}
+.mystery-door>span:first-child{font-size:20px;line-height:1;color:rgba(255,255,255,.85)}
+.mystery-door-number{display:grid;place-items:center;background:rgba(255,255,255,.88);border:2px solid rgba(255,255,255,.8);width:31px;height:31px;border-radius:50%;font-size:13px;font-weight:950}
+.mystery-door:hover:not(:disabled){transform:translateY(-2px)}
+.mystery-door.opened{opacity:0;pointer-events:none}
+.mystery-door:focus-visible,.mystery-questions button:focus-visible{outline:3px solid #c963a1;outline-offset:4px}
+.mystery-reveal-count{margin:13px 0 3px;text-align:center;color:#6f7090;font-size:12px;font-weight:850}
+.mystery-questions{border:2px solid #fff;background:#fff;border-radius:24px;padding:22px 19px;box-shadow:0 10px 28px rgba(54,68,100,.06);display:flex;flex-direction:column;gap:12px}
+.mystery-kicker{font-size:10px;letter-spacing:.11em;color:#a37998;margin:0;font-weight:900}
+.mystery-questions h3{margin:0;font-size:clamp(18px,2vw,24px);line-height:1.3;color:#435071}
+.mystery-questions .mystery-listen{align-self:flex-start;min-height:43px}
+.mystery-tip{font-size:12px;color:#7b879a;margin:0;line-height:1.45}
+.mystery-hint-copy{border-radius:14px;background:#fff7df;padding:12px;font-size:12px;color:#8b703b}
+.mystery-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.mystery-option{min-height:60px;padding:10px 13px;border:2px solid #e8e9f4;border-bottom:5px solid #e7e7f1;background:#fbfaff;border-radius:15px;font-size:15px;font-weight:850;color:#5e668e;overflow-wrap:anywhere;transition:border-color .15s,transform .15s}
+.mystery-option:nth-child(2n){background:#f4fcfa;border-bottom-color:#cce6df}
+.mystery-option:hover:not(:disabled){transform:translateY(-2px);border-color:#d09cca}
+.mystery-option:disabled{opacity:.7}
+.mystery-option.right,.mystery-option.right:disabled{background:#d8f7df;color:#276a45;opacity:1;border-color:#75d5a1}
+.mystery-option.wrong,.mystery-option.wrong:disabled{background:#ffe0e9;color:#a45265;opacity:1;border-color:#ecaabb}
+.mystery-answer{display:flex;flex-direction:column;align-items:flex-start;gap:9px;padding:13px 14px;border-radius:16px;background:linear-gradient(135deg,#fef3dd,#f6e9ff);color:#7a698d}
+.mystery-answer strong{color:#a0719e;font-size:15px}
+.mystery-answer span{font-size:13px}
+.mystery-answer .primary-button{align-self:flex-start}
+@media(max-width:740px){.mystery-workspace{grid-template-columns:1fr}.mystery-house{padding:11px}.mystery-house-roof{font-size:19px}.mystery-stage{max-width:520px;margin:auto}.mystery-questions{padding:19px}.mystery-header-decor{display:none}}
+@media(max-width:380px){.mystery-header{padding:15px}.mystery-stage{min-height:180px}.mystery-door{border-radius:11px}.mystery-door-number{width:26px;height:26px;font-size:11px}.mystery-option{min-height:52px}}
+@media(prefers-reduced-motion:reduce){.mystery-door,.mystery-option{transition:none}.mystery-door:hover,.mystery-option:hover{transform:none}}
