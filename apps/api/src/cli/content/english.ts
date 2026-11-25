@@ -1,4 +1,5 @@
 import { emoji, GamePack } from './types';
+import { ENGLISH_WORD_BANK } from './english-word-bank';
 
 const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('');
 
@@ -15,20 +16,12 @@ export const ENGLISH_GAMES: GamePack[] = [
   },
   {
     product: 'english', slug: 'vocabulary-matching', title: 'Animal Match', templateKey: 'picture-match',
-    summary: 'Match each animal word with its picture.',
-    category: 'matching', level: 'pre-a1', difficulty: 'easy', accessLevel: 'FREE', sortOrder: 2, revision: 2, published: true,
+    summary: 'Explore 12 illustrated animals. Every replay brings a fresh group of 6 English words.',
+    category: 'matching', level: 'pre-a1', difficulty: 'easy', accessLevel: 'FREE', sortOrder: 2, revision: 3, published: true,
     data: {
-      instructions: 'Tap a word, then tap the matching picture.',
-      pairs: [
-        { id: 'cat', word: 'cat', picture: emoji('🐱') },
-        { id: 'dog', word: 'dog', picture: emoji('🐶') },
-        { id: 'fish', word: 'fish', picture: emoji('🐟') },
-        { id: 'bird', word: 'bird', picture: emoji('🐦') },
-        { id: 'rabbit', word: 'rabbit', picture: emoji('🐰') },
-        { id: 'duck', word: 'duck', picture: emoji('🦆') },
-        { id: 'cow', word: 'cow', picture: emoji('🐮') },
-        { id: 'pig', word: 'pig', picture: emoji('🐷') },
-      ],
+      instructions: 'Look at the illustrated animals, listen to American English and match the words. Play again for a different set!',
+      roundSize: 6,
+      pairs: ENGLISH_WORD_BANK.animals.map(({ id, word, picture }) => ({ id, word, picture })),
     },
   },
   {
@@ -50,35 +43,17 @@ export const ENGLISH_GAMES: GamePack[] = [
   },
   {
     product: 'english', slug: 'bubble-word-garden', title: 'Bubble Word Garden', templateKey: 'bubble-spelling',
-    summary: 'Pop the letter bubbles in the right order to spell each word.',
-    category: 'spelling', level: 'primary', difficulty: 'medium', accessLevel: 'FREE', sortOrder: 4, revision: 2, published: true,
+    summary: 'Grow English words from a 30-word illustrated library of animals, fruit and school objects.',
+    category: 'spelling', level: 'primary', difficulty: 'medium', accessLevel: 'FREE', sortOrder: 4, revision: 3, published: true,
     data: {
-      instructions: 'Look at the picture and listen. Pop the bubbles in order to spell the word.',
-      extraBubbles: 2,
+      instructions: 'Look at the picture and listen. Tap the bubbles in order. Choose a unit and replay to discover new words.',
+      extraBubbles: 2, wordsPerRound: 6,
       units: [
-        { id: 'fruit', title: 'Fruit', words: [
-          { id: 'apple', word: 'apple', picture: emoji('🍎'), hint: 'It can be red or green.' },
-          { id: 'banana', word: 'banana', picture: emoji('🍌'), hint: 'A long yellow fruit.' },
-          { id: 'grape', word: 'grape', picture: emoji('🍇') },
-          { id: 'lemon', word: 'lemon', picture: emoji('🍋'), hint: 'A sour yellow fruit.' },
-          { id: 'pear', word: 'pear', picture: emoji('🍐') },
-          { id: 'melon', word: 'melon', picture: emoji('🍈') },
-        ] },
-        { id: 'school', title: 'School things', words: [
-          { id: 'pen', word: 'pen', picture: emoji('🖊️') },
-          { id: 'book', word: 'book', picture: emoji('📖') },
-          { id: 'bag', word: 'bag', picture: emoji('🎒') },
-          { id: 'ruler', word: 'ruler', picture: emoji('📏') },
-          { id: 'pencil', word: 'pencil', picture: emoji('✏️') },
-          { id: 'chair', word: 'chair', picture: emoji('🪑') },
-        ] },
-        { id: 'animals', title: 'Animals', words: [
-          { id: 'cat', word: 'cat', picture: emoji('🐱') },
-          { id: 'dog', word: 'dog', picture: emoji('🐶') },
-          { id: 'duck', word: 'duck', picture: emoji('🦆') },
-          { id: 'frog', word: 'frog', picture: emoji('🐸') },
-          { id: 'bee', word: 'bee', picture: emoji('🐝') },
-        ] },
+        { id: 'fruit', title: 'Fruit Market', words: ENGLISH_WORD_BANK.fruits.map(({ id, word, picture }) => ({ id, word, picture })) },
+        { id: 'school', title: 'School Things', words: ENGLISH_WORD_BANK.school.map(({ id, word, picture }) => ({ id, word, picture })) },
+        { id: 'animals', title: 'Animal World', words: ENGLISH_WORD_BANK.animals.map(({ id, word, picture }) => ({ id, word, picture })) },
+        { id: 'farm', title: 'Farm Animals', words: ENGLISH_WORD_BANK.animals.filter(({ id }) => ['cow','pig','duck','dog','bird','bee','rabbit'].includes(id)).map(({ id, word, picture }) => ({ id, word, picture })) },
+        { id: 'pets', title: 'Pets & Wildlife', words: ENGLISH_WORD_BANK.animals.filter(({ id }) => ['cat','rabbit','fish','bird','frog','lion','turtle'].includes(id)).map(({ id, word, picture }) => ({ id, word, picture })) },
       ],
     },
   },
