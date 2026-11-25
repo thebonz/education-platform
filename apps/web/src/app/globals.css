@@ -667,3 +667,17 @@ label.check input{margin-top:3px;width:18px;height:18px}
 @media(max-width:740px){.mystery-workspace{grid-template-columns:1fr}.mystery-house{padding:11px}.mystery-house-roof{font-size:19px}.mystery-stage{max-width:520px;margin:auto}.mystery-questions{padding:19px}.mystery-header-decor{display:none}}
 @media(max-width:380px){.mystery-header{padding:15px}.mystery-stage{min-height:180px}.mystery-door{border-radius:11px}.mystery-door-number{width:26px;height:26px;font-size:11px}.mystery-option{min-height:52px}}
 @media(prefers-reduced-motion:reduce){.mystery-door,.mystery-option{transition:none}.mystery-door:hover,.mystery-option:hover{transform:none}}
+
+
+/* English read-aloud controls: speak clearly, choose a device voice before the game. */
+.english-voice-panel{width:min(100%,665px);margin:4px 0 2px;padding:17px 21px;border:2px solid #fff;border-radius:23px;background:linear-gradient(125deg,#eff8ff,#fff1f8 60%,#fff8db);box-shadow:0 9px 25px rgba(49,62,96,.07);text-align:left}
+.english-voice-panel>strong{display:block;color:#455373;font-size:15px;margin-bottom:6px}
+.shell-intro .english-voice-panel>p{font-size:12px;line-height:1.55;color:#718096;margin:0 0 13px}
+.english-voice-options{display:grid;grid-template-columns:minmax(155px,1fr) minmax(145px,.65fr) auto;gap:10px;align-items:end}
+.english-voice-options label{display:flex;flex-direction:column;gap:6px;min-width:0;color:#5b6483;font-size:11px;font-weight:850}
+.english-voice-options select{display:block;width:100%;max-width:100%;min-height:46px;border-radius:12px;border:1px solid #dfe6f2;padding:10px 12px;background:#fff;color:#3e4c6a;font-size:12px}
+.english-voice-options button{min-height:46px;border:1px solid #edc4df;background:#fff;color:#a24d83;white-space:nowrap}
+.english-voice-panel select:focus-visible,.english-voice-panel button:focus-visible{outline:3px solid #ce72a3;outline-offset:3px}
+.shell-intro .english-voice-panel .english-voice-note{margin:10px 0 0;font-size:11px;color:#8a6c7e}
+@media(max-width:720px){.english-voice-options{grid-template-columns:1fr 1fr}.english-voice-options>button{grid-column:1/-1}.english-voice-panel{padding:15px}}
+@media(max-width:390px){.english-voice-options{grid-template-columns:1fr}.english-voice-options>button{grid-column:1}.english-voice-panel{padding:12px}}
