@@ -3,6 +3,7 @@ export * from './text';
 export * from './bingo';
 export * from './scoring';
 export * from './trail';
+export * from './picture-puzzle';
 export * from './templates';
 export * from './vi/syllable';
 export * from './vi/rounds';
