@@ -4,6 +4,7 @@ import type { TemplateProps } from './shell/types';
 import { BingoTemplate } from './templates/bingo';
 import { BubbleSpellingTemplate } from './templates/bubble-spelling';
 import { HiddenPictureTemplate } from './templates/hidden-picture';
+import { MysteryDoorsTemplate } from './templates/mystery-doors';
 import { PictureMatchTemplate } from './templates/picture-match';
 import { QuizTemplate } from './templates/quiz';
 import { TrailBoardTemplate } from './templates/trail-board';
@@ -21,6 +22,7 @@ export const TEMPLATE_COMPONENTS: Record<TemplateKey, ComponentType<TemplateProp
   quiz: QuizTemplate,
   'trail-board': TrailBoardTemplate,
   'hidden-picture': HiddenPictureTemplate,
+  'mystery-doors': MysteryDoorsTemplate,
   'bubble-spelling': BubbleSpellingTemplate,
   spelling: SpellingTemplate,
   'syllable-builder': SyllableBuilderTemplate,
