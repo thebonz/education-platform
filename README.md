@@ -163,3 +163,5 @@ Workflow `.github/workflows/ci.yml` chạy trên mỗi pull request:
 5. Build Docker image và kiểm tra `docker-compose.yml`.
 
 Phiên bản đang dùng (theo `package-lock.json`): Next.js 15.5.28, NestJS 11.2.8, Prisma 6.19.3. Thay đổi schema phải đi kèm migration mới (`npx prisma migrate dev --name <tên>`); CI sẽ báo lỗi nếu migration lệch schema.
+
+- [Phase 11.2: giọng Anh-Mỹ kid-friendly, ảnh minh họa và kho từ vựng xoay vòng](docs/PHASE11-KID-VOICE-WORD-LIBRARY.md)
