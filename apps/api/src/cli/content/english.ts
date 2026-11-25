@@ -26,11 +26,21 @@ export const ENGLISH_GAMES: GamePack[] = [
   },
   {
     product: 'english', slug: 'hidden-picture', title: 'Hidden Picture', templateKey: 'hidden-picture',
-    summary: 'Answer questions to reveal a hidden animal, then guess what it is.',
-    category: 'hidden-picture', level: 'pre-a1', difficulty: 'easy', accessLevel: 'FREE', sortOrder: 3, revision: 2, published: true,
+    summary: 'Reveal an illustrated animal with six questions. Play again to discover a new picture and new questions!',
+    category: 'hidden-picture', level: 'pre-a1', difficulty: 'easy', accessLevel: 'FREE', sortOrder: 3, revision: 3, published: true,
     data: {
-      instructions: 'Every correct answer removes one tile. Can you guess the hidden animal?',
-      picture: emoji('🦁'), pictureAnswer: 'lion', pictureChoices: ['tiger', 'lion', 'bear'],
+      instructions: 'Each correct answer opens a tile. Look at the illustrated animal and guess its English name!',
+      // Legacy fallback for saved/admin-edited content; six additional scenes rotate per replay.
+      picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'cat')!.picture, pictureAnswer: 'cat', pictureChoices: ['cat', 'dog', 'rabbit'],
+      scenes: [
+        { picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'cat')!.picture, answer: 'cat', choices: ['cat', 'dog', 'rabbit'] },
+        { picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'dog')!.picture, answer: 'dog', choices: ['cow', 'dog', 'lion'] },
+        { picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'lion')!.picture, answer: 'lion', choices: ['lion', 'turtle', 'bee'] },
+        { picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'fish')!.picture, answer: 'fish', choices: ['bird', 'frog', 'fish'] },
+        { picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'bird')!.picture, answer: 'bird', choices: ['bird', 'duck', 'cow'] },
+        { picture: ENGLISH_WORD_BANK.animals.find((x) => x.id === 'rabbit')!.picture, answer: 'rabbit', choices: ['pig', 'rabbit', 'bee'] },
+      ],
+      questionsPerRound: 6,
       questions: [
         { id: 'q1', prompt: 'Which one is a colour?', choices: ['red', 'run', 'rice'], answer: 'red' },
         { id: 'q2', prompt: 'How many legs does a spider have?', choices: ['six', 'eight', 'ten'], answer: 'eight' },
@@ -38,6 +48,12 @@ export const ENGLISH_GAMES: GamePack[] = [
         { id: 'q4', prompt: 'Which animal can fly?', choices: ['fish', 'bird', 'cow'], answer: 'bird' },
         { id: 'q5', prompt: 'What do you wear on your feet?', choices: ['a hat', 'shoes', 'gloves'], answer: 'shoes' },
         { id: 'q6', prompt: 'Which number comes after nine?', choices: ['eight', 'ten', 'eleven'], answer: 'ten' },
+        { id: 'q7', prompt: 'Which fruit is yellow and curved?', choices: ['banana', 'pear', 'cherry'], answer: 'banana', picture: ENGLISH_WORD_BANK.fruits.find((x) => x.id === 'banana')!.picture },
+        { id: 'q8', prompt: 'What do you use to tell the time?', choices: ['clock', 'bag', 'pen'], answer: 'clock', picture: ENGLISH_WORD_BANK.school.find((x) => x.id === 'clock')!.picture },
+        { id: 'q9', prompt: 'What do we use to write?', choices: ['pencil', 'apple', 'turtle'], answer: 'pencil' },
+        { id: 'q10', prompt: 'What colour is grass?', choices: ['green', 'blue', 'purple'], answer: 'green' },
+        { id: 'q11', prompt: 'Which animal can swim?', choices: ['fish', 'rabbit', 'bee'], answer: 'fish' },
+        { id: 'q12', prompt: 'Which word means a group of seven days?', choices: ['week', 'year', 'hour'], answer: 'week' },
       ],
     },
   },
