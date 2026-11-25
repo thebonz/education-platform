@@ -493,3 +493,41 @@ label.check input{margin-top:3px;width:18px;height:18px}
 .trail-finish ol{padding-left:18px;text-align:left}
 @media(max-width:660px){.hero-actions{align-items:stretch}.hero-actions a{flex:1;min-width:155px}.trail-banner-icon{display:none}.trail-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;padding:8px}.trail-tile{min-height:58px;border-radius:11px}.trail-team{padding:7px 9px}.trail-team b{font-size:11px}.trail-banner p{font-size:11px}}
 @media(max-width:380px){.trail-grid{grid-template-columns:repeat(3,minmax(0,1fr))}.trail-tile{min-height:53px}}
+
+
+/* Phase 10 – Công cụ lớp học original, không lưu hoặc tải tên học sinh. */
+.teacher-tool-spotlight{display:grid;grid-template-columns:78px 1fr auto;gap:20px;align-items:center;padding:24px 27px;background:linear-gradient(120deg,#e7f8ff,#fff0f8 60%,#fff8df);border:2px solid #fff;border-radius:25px;box-shadow:0 9px 26px rgba(54,67,102,.07)}
+.teacher-tool-icon{width:70px;height:70px;border:4px solid #fff;border-radius:23px;display:grid;place-items:center;background:#fff9d7;font-size:36px}
+.teacher-tool-spotlight .eyebrow{color:#b36898;font-size:10px;letter-spacing:.13em;font-weight:850}
+.teacher-tool-spotlight h2{font-size:clamp(18px,2.3vw,24px);margin:6px 0 7px;letter-spacing:-.035em}
+.teacher-tool-spotlight p{font-size:12px;color:#667587;margin:0;max-width:590px;line-height:1.55}
+.teacher-tool-spotlight .primary-button{white-space:nowrap;min-height:46px}
+.picker-hero{background:linear-gradient(115deg,#fff2f9,#e5f6ff 70%,#fff7d7)}
+.picker-hero .back-link{margin-bottom:14px}
+.picker-app{max-width:1100px;margin:auto}
+.picker-intro{display:flex;gap:13px;align-items:center;margin:0 0 20px}
+.picker-intro>span{font-size:38px}
+.picker-intro h2{font-size:24px;margin:0 0 7px}
+.picker-intro p{font-size:13px;color:#65758a;line-height:1.55;margin:0}
+.picker-layout{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:20px}
+.picker-input,.picker-result{border:2px solid #fff;border-radius:24px;padding:26px;box-shadow:0 11px 32px rgba(48,65,106,.07)}
+.picker-input{background:#fff}
+.picker-input label:first-child{display:block;font-size:14px;font-weight:850;margin:0 0 12px;color:#3c4b68}
+.picker-input textarea{width:100%;min-height:215px;padding:13px 16px;resize:vertical;font-size:16px;line-height:1.6;color:#344052;border:2px solid #e5eaf4;border-radius:16px;background:#fcfdff}
+.picker-input textarea:focus-visible,.picker-toggle input:focus-visible,.picker-app button:focus-visible{outline:3px solid #c575a6;outline-offset:3px}
+.picker-help{font-size:11px;color:#7b8a9b;margin:10px 0}
+.picker-toggle{display:flex;gap:10px;align-items:flex-start;line-height:1.4;font-size:13px;color:#536174;margin:16px 0;cursor:pointer}
+.picker-toggle input{margin-top:4px;min-width:18px;height:18px;accent-color:#ce76a7}
+.picker-actions{display:flex;gap:10px;flex-wrap:wrap}
+.picker-actions .secondary-button{min-height:44px;font-size:12px}
+.picker-result{background:radial-gradient(circle at 50% 16%,#fff 0%,#fff5d7 24%,#f5edff 72%,#e9f8ff);display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;min-height:340px}
+.picker-result-orb{font-size:65px;margin-bottom:8px}
+.picker-result>p{color:#68748c;font-size:13px;margin:0}
+.picker-result h3{min-height:68px;font-size:clamp(28px,4vw,46px);letter-spacing:-.035em;color:#8b56a0;overflow-wrap:anywhere;margin:12px 0 20px;max-width:100%}
+.picker-result button{min-height:53px}
+.picker-result button:disabled{opacity:.5;cursor:not-allowed}
+.picker-result .picker-remaining{margin-top:17px;font-weight:800;color:#67768d}
+.picker-privacy{padding:16px 18px;margin:18px 0 0;border-radius:15px;background:#eff9f4;border:1px solid #cae7d9;color:#476857;font-size:12px;line-height:1.55}
+@media(max-width:850px){.teacher-tool-spotlight{grid-template-columns:64px 1fr}.teacher-tool-icon{width:61px;height:61px}.teacher-tool-spotlight .primary-button{grid-column:2;justify-self:start}}
+@media(max-width:650px){.teacher-tool-spotlight{grid-template-columns:1fr;padding:21px;gap:13px}.teacher-tool-spotlight .primary-button{grid-column:1;justify-self:stretch}.picker-layout{grid-template-columns:1fr}.picker-input,.picker-result{padding:19px}.picker-result{min-height:280px}.picker-intro h2{font-size:20px}}
+@media(prefers-reduced-motion:reduce){.picker-result-orb{animation:none}}
