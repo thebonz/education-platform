@@ -6,6 +6,7 @@ import { BubbleSpellingTemplate } from './templates/bubble-spelling';
 import { HiddenPictureTemplate } from './templates/hidden-picture';
 import { MysteryDoorsTemplate } from './templates/mystery-doors';
 import { PictureMatchTemplate } from './templates/picture-match';
+import { PicturePuzzleTemplate } from './templates/picture-puzzle';
 import { QuizTemplate } from './templates/quiz';
 import { TrailBoardTemplate } from './templates/trail-board';
 import { SentenceOrderTemplate } from './templates/sentence-order';
@@ -19,6 +20,7 @@ import { WordSortTemplate } from './templates/word-sort';
 export const TEMPLATE_COMPONENTS: Record<TemplateKey, ComponentType<TemplateProps<any>>> = {
   bingo: BingoTemplate,
   'picture-match': PictureMatchTemplate,
+  'picture-puzzle': PicturePuzzleTemplate,
   quiz: QuizTemplate,
   'trail-board': TrailBoardTemplate,
   'hidden-picture': HiddenPictureTemplate,

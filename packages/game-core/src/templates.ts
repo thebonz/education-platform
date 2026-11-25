@@ -80,6 +80,23 @@ export const mysteryDoorsSchema = z
   });
 
 // ---------------------------------------------------------------------------
+// picture-puzzle: Hoán đổi mảnh tranh (game gốc HappyClass)
+// ---------------------------------------------------------------------------
+const puzzleRound = z.object({
+  id,
+  picture: pictureSchema,
+  label: text(80),
+  say: optionalText(140),
+});
+export const picturePuzzleSchema = z.object({
+  instructions: optionalText(300),
+  size: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
+  rounds: z.array(puzzleRound).min(2).max(12),
+}).superRefine((data, ctx) => {
+  uniqueBy(data.rounds, (round) => round.id, ctx, 'rounds', 'id');
+});
+
+// ---------------------------------------------------------------------------
 // picture-match
 // ---------------------------------------------------------------------------
 export const pictureMatchSchema = z
@@ -351,6 +368,7 @@ export const sentenceOrderSchema = z
 export const TEMPLATES = {
   bingo: { name: { en: 'Bingo', vi: 'Bingo' }, schema: bingoSchema, languages: ['en', 'vi'] },
   'picture-match': { name: { en: 'Picture Match', vi: 'Ghép chữ với hình' }, schema: pictureMatchSchema, languages: ['en', 'vi'] },
+  'picture-puzzle': { name: { en: 'Picture Puzzle', vi: 'Ghép mảnh bức tranh' }, schema: picturePuzzleSchema, languages: ['en', 'vi'] },
   quiz: { name: { en: 'Quiz', vi: 'Đố vui' }, schema: quizSchema, languages: ['en', 'vi'] },
   'trail-board': { name: { en: 'Star Trail Adventure', vi: 'Đường đua ngôi sao' }, schema: trailBoardSchema, languages: ['en', 'vi'] },
   'hidden-picture': { name: { en: 'Hidden Picture', vi: 'Bức tranh bí mật' }, schema: hiddenPictureSchema, languages: ['en', 'vi'] },
@@ -368,6 +386,7 @@ export const TEMPLATE_KEYS = Object.keys(TEMPLATES) as TemplateKey[];
 
 export type BingoData = z.infer<typeof bingoSchema>;
 export type PictureMatchData = z.infer<typeof pictureMatchSchema>;
+export type PicturePuzzleData = z.infer<typeof picturePuzzleSchema>;
 export type QuizData = z.infer<typeof quizSchema>;
 export type QuizQuestion = QuizData['questions'][number];
 export type TrailBoardData = z.infer<typeof trailBoardSchema>;
@@ -383,6 +402,7 @@ export type SentenceOrderData = z.infer<typeof sentenceOrderSchema>;
 export type TemplateDataMap = {
   bingo: BingoData;
   'picture-match': PictureMatchData;
+  'picture-puzzle': PicturePuzzleData;
   quiz: QuizData;
   'trail-board': TrailBoardData;
   'hidden-picture': HiddenPictureData;

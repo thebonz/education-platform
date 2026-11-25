@@ -12,6 +12,24 @@ const STARTERS: Partial<Record<TemplateKey, Partial<Record<Locale, unknown>>>> =
     en: { instructions: 'Listen and tap the word you hear.', boardSize: 3, items: ['cat', 'dog', 'sun', 'pen', 'hat', 'bus', 'cup', 'map', 'egg'].map((t) => ({ id: t, text: t })) },
     vi: { instructions: 'Nghe đọc và chạm vào chữ em nghe được.', boardSize: 3, items: ['a', 'ă', 'â', 'b', 'c', 'd', 'đ', 'e', 'ê'].map((t, i) => ({ id: `c${i + 1}`, text: t })) },
   },
+  'picture-puzzle': {
+    en: {
+      instructions: 'Tap two pieces to swap them. Match the picture, then hear its English name.',
+      size: 3,
+      rounds: [
+        { id: 'cat', picture: e('🐱'), label: 'cat' },
+        { id: 'sun', picture: e('☀️'), label: 'sun' },
+      ],
+    },
+    vi: {
+      instructions: 'Chạm hai mảnh để đổi vị trí, ghép thành hình và nghe từ đúng.',
+      size: 3,
+      rounds: [
+        { id: 'meo', picture: e('🐱'), label: 'con mèo' },
+        { id: 'hoa', picture: e('🌻'), label: 'bông hoa' },
+      ],
+    },
+  },
   'picture-match': {
     en: { pairs: [{ id: 'cat', word: 'cat', picture: e('🐱') }, { id: 'dog', word: 'dog', picture: e('🐶') }, { id: 'fish', word: 'fish', picture: e('🐟') }] },
     vi: { pairs: [{ id: 'meo', word: 'con mèo', picture: e('🐱') }, { id: 'cho', word: 'con chó', picture: e('🐶') }, { id: 'ca', word: 'con cá', picture: e('🐟') }] },
