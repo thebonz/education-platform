@@ -131,7 +131,6 @@ test('Bingo Carnival: tùy chọn 5x5 chỉ hiện khi có ít nhất 25 mục',
 });
 
 test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ page }) => {
-  const data = await playData(page, 'vocabulary-matching');
   await page.goto(`${EN}/games/vocabulary-matching`);
   await page.getByTestId('shell-start').click();
   const current = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
