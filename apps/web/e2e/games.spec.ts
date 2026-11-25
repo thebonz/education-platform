@@ -154,14 +154,22 @@ test('Hidden Picture: mở hết ô và đoán đúng bức tranh', async ({ pag
   const data = await playData(page, 'hidden-picture');
   await page.goto(`${EN}/games/hidden-picture`);
   await page.getByTestId('shell-start').click();
-  for (let i = 0; i < data.questions.length; i++) {
+  const total = data.questionsPerRound ?? data.questions.length;
+  await expect(page.getByTestId('hidden-scene-library')).toContainText('6 illustrated pictures');
+  const firstArt = await page.locator('.hidden-picture img').getAttribute('src');
+  expect(firstArt).toContain('puzzle-cat.svg');
+  for (let i = 0; i < total; i++) {
     const q = await currentQuestion(page, data.questions);
     await page.getByRole('button', { name: q.answer, exact: true }).click();
     await page.getByTestId('quiz-next').click();
   }
-  await expect(page.locator('.hidden-tile.gone')).toHaveCount(data.questions.length);
-  await page.getByRole('button', { name: data.pictureAnswer, exact: true }).click();
-  expect(await expectResult(page)).toContain(`You scored ${data.questions.length + 1}/${data.questions.length + 1}`);
+  await expect(page.locator('.hidden-tile.gone')).toHaveCount(total);
+  await page.getByRole('button', { name: data.scenes[0].answer, exact: true }).click();
+  expect(await expectResult(page)).toContain(`You scored ${total + 1}/${total + 1}`);
+  await page.getByTestId('play-again').click();
+  await expect(page.locator('.hidden-picture img')).toHaveAttribute('src', /dog\.svg/);
+  const firstPromptReplay = await page.getByTestId('quiz-prompt').innerText();
+  expect(data.questions.slice(total).some((q: Q) => q.prompt === firstPromptReplay)).toBe(true);
 });
 
 test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobile', async ({ page }) => {
