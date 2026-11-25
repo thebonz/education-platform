@@ -1,4 +1,4 @@
-# Giọng đọc tiếng Việt
+# Giọng đọc HappyClass: tiếng Việt và tiếng Anh
 
 Game tiếng Việt không dùng giọng đọc của trình duyệt nữa. Trước đây, máy nào không cài giọng tiếng Việt (ví dụ Chrome trên Windows) sẽ đọc chữ Việt bằng giọng tiếng Anh, nghe sai hoàn toàn.
 
@@ -39,3 +39,19 @@ Xem [định hướng chất lượng nội dung, âm thanh, thư viện và gam
 
 - Giọng tổng hợp vẫn chưa tự nhiên bằng người thu âm. Với các mục nghe quan trọng, sau này nên tải file thu âm của giáo viên qua thư viện media.
 - Câu giáo viên vừa sửa trong lớp học có âm thanh ở lần phát đầu tiên khi có mạng. Lần tạo sẵn chỉ quét game đã xuất bản, không quét bản sao của lớp.
+
+## Giọng đọc tiếng Anh – nâng cấp lựa chọn trong game
+
+Trước đây HappyClass chỉ đặt `speechSynthesis.lang = en-GB / en-US` và dùng giọng do trình duyệt chọn, thường nghe máy móc trên một số thiết bị.
+
+Trên màn **Start** của mỗi trò chơi tiếng Anh, người học giờ có thể:
+- Nghe câu mẫu tiếng Anh trước khi bắt đầu.
+- Chọn **Recommended English voice** hoặc một giọng tiếng Anh được thiết bị/trình duyệt liệt kê; hệ thống ưu tiên giọng có nhãn `Natural`, `Neural`, giọng Google/Microsoft phổ biến khi có.
+- Chọn tốc độ **Slow (0.75), Clear (0.85), Natural pace (0.95)**.
+- Tiếp tục chọn Anh-Anh/Anh-Mỹ trên thanh công cụ (đổi vùng sẽ đặt lại lựa chọn giọng thủ công để tránh sai vùng).
+- Lưu cài đặt trên trình duyệt hiện tại (không tải lên server).
+
+**Giới hạn quan trọng:** Chất lượng vẫn phụ thuộc vào giọng đã được cài/hỗ trợ trên thiết bị. Tên `Natural` không đồng nghĩa đã được kiểm định sư phạm, và giọng trực tuyến của thiết bị có thể sử dụng dịch vụ của nhà cung cấp hệ điều hành. Trình duyệt không có giọng phù hợp sẽ hiện gợi ý; phiên bản này **không tải mô hình TTS tiếng Anh lên DL380**, không gọi API TTS bên ngoài. Không khẳng định tất cả trẻ đều nghe cùng một giọng.
+
+**Bước chất lượng tiếp theo:** với phonics và bài kiểm tra nghe, xây dựng kho âm thanh từ người thu âm/giọng được cấp phép và giáo viên duyệt (theo en-US/en-GB), có phiên bản, cache và cơ chế offline. Thử nghiệm riêng trước khi thêm model TTS server vì máy DL380 dùng chung nhiều dịch vụ.
+
