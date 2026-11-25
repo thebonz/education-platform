@@ -69,7 +69,7 @@ function mediaUrls(data: unknown, out = new Set<string>()): Set<string> {
       // Deliberately refuse third-party URLs to avoid SSRF and unintended downloads.
       if (k === 'src' && typeof v === 'string'
         && (/^\/api\/media\/[0-9a-f-]{36}$/.test(v)
-          || /^\/illustrations\/(?:vocab\/[a-z0-9-]+|puzzle-[a-z0-9-]+)\.svg$/.test(v))) out.add(v);
+          || /^\/illustrations\/(?:(?:vocab|phonics|silhouettes)\/[a-z0-9-]+|puzzle-[a-z0-9-]+)\.svg$/.test(v))) out.add(v);
       else mediaUrls(v, out);
     }
   }
