@@ -63,7 +63,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
         <div className="unit-grid">
           {data.units.map((u) => (
             <button key={u.id} type="button" className="unit-card" data-testid="unit-option" onClick={() => setUnitId(u.id)}>
-              <PictureView picture={u.words[0].picture} size={40} />
+              <PictureView picture={u.words[0].picture} size={72} />
               <b>{u.title}</b><small>{Math.min(data.wordsPerRound, u.words.length)} / {u.words.length} {t.words} · fresh set each replay</small>
             </button>
           ))}
@@ -140,7 +140,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
       <div className="bubble-target bubble-target-card">
         <span className="bubble-flower flower-one" aria-hidden="true">✿</span>
         <span className="bubble-flower flower-two" aria-hidden="true">✧</span>
-        <PictureView picture={word!.picture} size={96} />
+        <PictureView picture={word!.picture} size={154} />
         <button type="button" className="icon-button" aria-label={t.listen} onClick={() => audio.say(word!.say ?? word!.word)}>🔊</button>
       </div>
       <p className="bubble-instruction">{lang === 'vi' ? 'Chạm những bong bóng đúng thứ tự để ghép thành từ!' : 'Pop the letter bubbles in the right order to grow the word!'}</p>
