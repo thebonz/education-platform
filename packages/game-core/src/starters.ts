@@ -32,6 +32,28 @@ const STARTERS: Partial<Record<TemplateKey, Partial<Record<Locale, unknown>>>> =
       ],
     },
   },
+  'trail-board': {
+    en: {
+      instructions: 'Roll the dice, answer a question, and move your team along the star path when you get it right.',
+      boardLength: 12, defaultTeams: 2, diceSides: 4,
+      questions: [
+        { id: 's1', prompt: 'Which one is a fruit?', choices: ['pear', 'chair', 'boat'], answer: 'pear' },
+        { id: 's2', prompt: 'What colour is grass?', choices: ['green', 'purple', 'orange'], answer: 'green' },
+        { id: 's3', prompt: 'What is the opposite of hot?', choices: ['cold', 'small', 'fast'], answer: 'cold' },
+        { id: 's4', prompt: 'What animal says meow?', choices: ['cat', 'duck', 'frog'], answer: 'cat' },
+      ],
+    },
+    vi: {
+      instructions: 'Tung xúc xắc, trả lời câu hỏi. Trả lời đúng thì cả đội tiến lên theo số bước đã tung.',
+      boardLength: 12, defaultTeams: 2, diceSides: 4,
+      questions: [
+        { id: 's1', prompt: 'Tiếng nào có dấu sắc?', choices: ['má', 'mà', 'ma'], answer: 'má' },
+        { id: 's2', prompt: 'Tiếng nào có dấu huyền?', choices: ['cá', 'cà', 'ca'], answer: 'cà' },
+        { id: 's3', prompt: 'Tiếng nào có dấu nặng?', choices: ['mạ', 'má', 'mả'], answer: 'mạ' },
+        { id: 's4', prompt: 'Tiếng nào có dấu hỏi?', choices: ['ngã', 'ngả', 'nga'], answer: 'ngả' },
+      ],
+    },
+  },
   'hidden-picture': {
     en: {
       picture: e('🦁'), pictureAnswer: 'lion', pictureChoices: ['lion', 'cat', 'dog'],
