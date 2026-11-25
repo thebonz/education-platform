@@ -38,6 +38,7 @@ const ACCENT_KEY = 'hc.accent';
 const SOUND_KEY = 'hc.sound';
 const ENGLISH_VOICE_KEY = 'hc.english.voice';
 const ENGLISH_RATE_KEY = 'hc.english.rate';
+const ENGLISH_KID_DEFAULT_KEY = 'hc.english.kid-us-default.v1';
 const ENGLISH_SAMPLE = 'Hello! Welcome to HappyClass. Listen carefully and have fun learning English.';
 // Mẫu 6 thanh tiếng Việt; không phải kết quả đo chất lượng phát âm của Piper.
 const VI_VOICE_SAMPLE = 'Bé nghe sáu thanh: ma, má, mà, mả, mã, mạ.';
@@ -85,14 +86,23 @@ export function GameShell(props: GameShellProps) {
   const [speechOk, setSpeechOk] = useState(true);
   const [voiceMissing, setVoiceMissing] = useState(false);
 
-  const audio = useMemo(() => new GameAudio(lang === 'en' ? 'en-GB' : 'vi-VN'), [lang]);
+  const audio = useMemo(() => new GameAudio(lang === 'en' ? 'en-US' : 'vi-VN'), [lang]);
   useEffect(() => {
     const savedSound = readPref(SOUND_KEY);
     const savedAccent = readPref(ACCENT_KEY);
     if (savedSound === 'off') setSound(false);
-    if (savedAccent === 'en-US' || savedAccent === 'en-GB') setAccent(savedAccent);
-    const savedVoice = readPref(ENGLISH_VOICE_KEY);
-    if (savedVoice && savedVoice.length <= 300) setEnglishVoiceURI(savedVoice);
+    // One-time migration: requested default is American kid-friendly English.
+    // After the first visit, explicit language/voice changes are respected.
+    const kidDefaultSet = readPref(ENGLISH_KID_DEFAULT_KEY) === 'yes';
+    if (lang === 'en' && !kidDefaultSet) {
+      writePref(ACCENT_KEY, 'en-US');
+      writePref(ENGLISH_VOICE_KEY, 'auto');
+      writePref(ENGLISH_KID_DEFAULT_KEY, 'yes');
+    } else {
+      if (savedAccent === 'en-US' || savedAccent === 'en-GB') setAccent(savedAccent);
+      const savedVoice = readPref(ENGLISH_VOICE_KEY);
+      if (savedVoice && savedVoice.length <= 300) setEnglishVoiceURI(savedVoice);
+    }
     const rate = Number(readPref(ENGLISH_RATE_KEY));
     if ([0.75, 0.85, 0.95].includes(rate)) setEnglishRate(rate);
     // Tiếng Việt đọc bằng giọng của máy chủ nên không phụ thuộc trình duyệt
@@ -225,8 +235,8 @@ export function GameShell(props: GameShellProps) {
           {!speechOk && <p className="muted">{t.soundUnavailable}</p>}
           {lang === 'en' && (
             <div className="english-voice-panel" data-testid="english-voice-panel">
-              <strong>🔊 Choose your English voice</strong>
-              <p>Listen to a sample before playing. Available voices depend on your device and browser.</p>
+              <strong>🇺🇸 American English · Kid-friendly voice</strong>
+              <p>We prefer a real US child voice (Ana) when your browser offers one. Otherwise we use the clearest available American voice. Preview before playing.</p>
               <div className="english-voice-options">
                 <label htmlFor="english-voice-select">Voice
                   <select id="english-voice-select" data-testid="english-voice-select" value={englishVoices.some((v) => v.voiceURI === englishVoiceURI) ? englishVoiceURI : 'auto'}
@@ -235,7 +245,7 @@ export function GameShell(props: GameShellProps) {
                       setEnglishVoiceURI(selected);
                       writePref(ENGLISH_VOICE_KEY, selected);
                     }}>
-                    <option value="auto">✨ Recommended English voice</option>
+                    <option value="auto">✨ Best available US kid-friendly voice</option>
                     {englishVoices.map((voice) => (
                       <option value={voice.voiceURI} key={voice.voiceURI}>{voice.name} · {voice.lang}</option>
                     ))}
@@ -259,6 +269,8 @@ export function GameShell(props: GameShellProps) {
                 </button>
               </div>
               {!englishVoices.length && <p className="english-voice-note">No installed English voices were listed yet. The browser default may work; for a clearer voice, enable an English voice in your device settings.</p>}
+              {englishVoices.length > 0 && accent === 'en-US' && !englishVoices.some((v) => /(?:ana\s*(?:online|neural)|en-us-ana|\b(child|kid|children|youth)\b)/i.test(v.name) && v.lang.toLowerCase().replace('_', '-') === 'en-us') &&
+                <p className="english-voice-note" data-testid="english-kid-fallback">A real American child voice is not available on this device. Using a clear US English voice with a gentle tone instead.</p>}
             </div>
           )}
           {lang === 'vi' && (
@@ -277,7 +289,7 @@ export function GameShell(props: GameShellProps) {
       {voiceMissing && sound && <p className="voice-missing" role="status" data-testid="voice-missing">{t.voiceMissing}</p>}
       {phase === 'playing' && Template && (
         <div className="shell-stage">
-          <Template key={round} data={props.data as never} lang={lang} t={t} rng={rng} audio={audio} settings={settings} onProgress={onProgress} onFinish={onFinish} />
+          <Template key={round} data={props.data as never} lang={lang} t={t} rng={rng} round={round} audio={audio} settings={settings} onProgress={onProgress} onFinish={onFinish} />
         </div>
       )}
 

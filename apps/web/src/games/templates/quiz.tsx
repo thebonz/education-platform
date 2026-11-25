@@ -3,18 +3,22 @@
 import { useEffect, useMemo, useState } from 'react';
 import { shuffle } from '@happyclass/game-core/rng';
 import { rankTeams } from '@happyclass/game-core/scoring';
+import { sessionSelection } from '@happyclass/game-core/learning-session';
 import type { QuizData } from '@happyclass/game-core/templates';
 import { PictureView } from '../picture';
 import type { TemplateProps } from '../shell/types';
 
 const TEAM_COLORS = ['#e85d9e', '#3b82f6', '#16a34a', '#f59e0b'];
 
-export function QuizTemplate({ data, t, rng, audio, settings, onProgress, onFinish }: TemplateProps<QuizData>) {
+export function QuizTemplate({ data, t, rng, round, audio, settings, onProgress, onFinish }: TemplateProps<QuizData>) {
   const teamMode = data.mode === 'teams';
   const teamCount = teamMode ? settings.teamCount : 1;
   const questions = useMemo(
-    () => data.questions.map((q) => ({ ...q, choices: data.shuffleChoices ? shuffle(q.choices, rng) : q.choices })),
-    [data.questions, data.shuffleChoices, rng],
+    () => (data.questionsPerRound !== undefined
+      ? sessionSelection(data.questions, data.questionsPerRound, round, rng)
+      : [...data.questions])
+      .map((q) => ({ ...q, choices: data.shuffleChoices ? shuffle(q.choices, rng) : q.choices })),
+    [data.questions, data.questionsPerRound, data.shuffleChoices, round, rng],
   );
   const [index, setIndex] = useState(0);
   const [chosen, setChosen] = useState<string | null>(null);
@@ -99,6 +103,11 @@ export function QuizTemplate({ data, t, rng, audio, settings, onProgress, onFini
             </div>
           ))}
         </div>
+      )}
+      {data.questions.length > questions.length && (
+        <p className="learning-bank-note" data-testid="quiz-bank-count">
+          📚 {data.questions.length} questions in the library · {questions.length} this round · Replay for a new challenge!
+        </p>
       )}
       <div className="quiz-meta">
         <span>{t.question} {index + 1} {t.of} {questions.length}</span>

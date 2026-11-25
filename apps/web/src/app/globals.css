@@ -721,3 +721,23 @@ label.check input{margin-top:3px;width:18px;height:18px}
 @media(max-width:740px){.puzzle-workspace{grid-template-columns:1fr}.puzzle-board-panel{padding:13px}.puzzle-side{padding:18px;min-height:auto}.puzzle-spark{display:none}.puzzle-header{padding:18px}.puzzle-tile-emoji{font-size:clamp(130px,50vw,320px)}}
 @media(max-width:440px){.puzzle-board{gap:2px;border-width:3px;border-radius:13px}.puzzle-piece{border-width:2px;border-radius:5px}.puzzle-position{width:14px;height:14px;font-size:8px}.puzzle-header h2{font-size:22px}.puzzle-metrics>span{font-size:10px}}
 @media(prefers-reduced-motion:reduce){.puzzle-piece{transition:none}.puzzle-piece:hover{transform:none}}
+
+
+/* Phase 11.2: first-party illustrated words and truly rotating learning sessions. */
+.learning-bank-note{max-width:760px;margin:3px auto 16px;text-align:center;background:#eff8ff;border:1px solid #d5eafa;border-radius:14px;padding:10px 14px;font-size:12px;line-height:1.5;color:#587a93;font-weight:750}
+.poster-icon img,.poster-illustration{display:block;max-width:100%;width:112px;height:107px;object-fit:contain;border-radius:23px;box-shadow:0 8px 18px rgba(77,76,106,.12);border:3px solid #fff;background:#fff}
+.game-poster-art .poster-center .poster-illustration{width:113px;height:106px;object-fit:contain;border-radius:22px}
+.tpl-match .match-columns{max-width:860px;gap:16px}
+.tpl-match .match-card{min-height:116px;display:flex;justify-content:center;align-items:center;padding:8px 14px;text-align:center;border:2px solid #fff;border-bottom:5px solid #e4ddf0;background:linear-gradient(130deg,#fff7fb,#f2f9ff);box-shadow:0 8px 22px rgba(50,61,108,.06);border-radius:21px;font-size:clamp(19px,2.2vw,28px);transition:transform .16s,border-color .16s}
+.tpl-match .match-card img{width:102px;height:102px;object-fit:contain;border-radius:18px;box-shadow:0 4px 14px rgba(50,61,108,.11);background:#fff}
+.tpl-match .match-card:hover:not(:disabled){transform:translateY(-2px);border-color:#dba7cd}
+.tpl-match .match-card.picked{border-color:#cb81bb;background:linear-gradient(130deg,#fff0f7,#e9f1ff)}
+.tpl-match .match-card.matched{background:#dcfbe9;border-color:#6fcc9c;opacity:.75}
+.tpl-match .match-card:focus-visible{outline:3px solid #b65b9d;outline-offset:3px}
+.tpl-bubble .bubble-target-card{min-height:207px}
+.tpl-bubble .bubble-target-card img{display:block;width:154px;height:154px;max-width:55%;object-fit:contain;border-radius:25px;border:5px solid #fff;box-shadow:0 11px 22px rgba(48,69,91,.11)}
+.tpl-bubble .unit-card img{width:72px;height:72px;object-fit:contain;border-radius:16px;border:3px solid #fff;box-shadow:0 5px 12px rgba(48,69,91,.09)}
+.tpl-hidden .hidden-picture img{max-width:93%;max-height:93%;object-fit:contain;border-radius:22px;border:5px solid rgba(255,255,255,.87)}
+.tpl-hidden .hidden-frame{width:min(100%,500px);border:5px solid #fff;box-shadow:0 12px 30px rgba(50,65,101,.1)}
+@media(max-width:640px){.tpl-match .match-columns{gap:9px}.tpl-match .match-col{gap:8px}.tpl-match .match-card{min-height:98px;padding:7px;border-radius:15px;font-size:18px}.tpl-match .match-card img{width:min(100%,88px);height:86px}.tpl-bubble .bubble-target-card img{width:125px;height:125px}.learning-bank-note{font-size:11px}.game-poster-art .poster-center .poster-illustration{width:75px;height:76px;border-width:2px}}
+@media(prefers-reduced-motion:reduce){.tpl-match .match-card{transition:none}.tpl-match .match-card:hover{transform:none}}

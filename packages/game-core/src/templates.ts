@@ -102,12 +102,14 @@ export const picturePuzzleSchema = z.object({
 export const pictureMatchSchema = z
   .object({
     instructions: optionalText(300),
-    pairs: z.array(z.object({ id, word: text(40), picture: pictureSchema, say: optionalText(80) })).min(3).max(12),
+    pairs: z.array(z.object({ id, word: text(40), picture: pictureSchema, say: optionalText(80) })).min(3).max(60),
+    roundSize: z.number().int().min(3).max(12).optional(),
     timeLimitSec: z.number().int().min(0).max(600).default(0),
   })
   .superRefine((d, ctx) => {
     uniqueBy(d.pairs, (x) => x.id, ctx, 'pairs', 'id');
     uniqueBy(d.pairs, (x) => x.word, ctx, 'pairs', 'Từ');
+    if (d.roundSize !== undefined && d.roundSize > d.pairs.length) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['roundSize'], message: 'Số cặp mỗi lượt không vượt số từ trong thư viện' });
   });
 
 // ---------------------------------------------------------------------------
@@ -135,9 +137,14 @@ export const quizSchema = z
     timePerQuestionSec: z.number().int().min(0).max(120).default(0),
     pointsPerCorrect: z.number().int().min(1).max(10).default(1),
     shuffleChoices: z.boolean().default(true),
-    questions: z.array(choiceQuestion).min(3).max(50),
+    questions: z.array(choiceQuestion).min(3).max(60),
+    questionsPerRound: z.number().int().min(3).max(25).optional(),
   })
-  .superRefine((d, ctx) => uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id'));
+  .superRefine((d, ctx) => {
+    uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id');
+    if (d.questionsPerRound !== undefined && d.questionsPerRound > d.questions.length)
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questionsPerRound'], message: 'Số câu mỗi lượt không vượt ngân hàng câu hỏi' });
+  });
 
 // ---------------------------------------------------------------------------
 // trail-board: trò chơi thám hiểm theo lượt, luật tự xây dựng cho HappyClass
@@ -158,17 +165,35 @@ export const trailBoardSchema = z
 // ---------------------------------------------------------------------------
 // hidden-picture
 // ---------------------------------------------------------------------------
+const hiddenSceneSchema = z.object({
+  picture: pictureSchema,
+  answer: text(60),
+  choices: z.array(text(60)).min(2).max(4),
+}).superRefine((scene, ctx) => {
+  if (!scene.choices.includes(scene.answer)) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['answer'], message: 'Đáp án phải nằm trong lựa chọn',
+  });
+  if (new Set(scene.choices).size !== scene.choices.length) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['choices'], message: 'Lựa chọn trùng',
+  });
+});
 export const hiddenPictureSchema = z
   .object({
     instructions: optionalText(300),
+    // Legacy single scene stays valid for teacher-edited games and offline packs.
     picture: pictureSchema,
     pictureAnswer: text(60),
     pictureChoices: z.array(text(60)).min(2).max(4),
-    questions: z.array(choiceQuestion).min(4).max(16),
+    scenes: z.array(hiddenSceneSchema).min(2).max(12).optional(),
+    questionsPerRound: z.number().int().min(4).max(16).optional(),
+    questions: z.array(choiceQuestion).min(4).max(40),
   })
   .superRefine((d, ctx) => {
     if (!d.pictureChoices.includes(d.pictureAnswer)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['pictureAnswer'], message: 'Đáp án bức tranh phải nằm trong lựa chọn' });
     uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id');
+    if (d.questionsPerRound !== undefined && d.questionsPerRound > d.questions.length) ctx.addIssue({
+      code: z.ZodIssueCode.custom, path: ['questionsPerRound'], message: 'Số câu mỗi lượt không vượt thư viện câu hỏi',
+    });
   });
 
 // ---------------------------------------------------------------------------
@@ -194,6 +219,7 @@ export const bubbleSpellingSchema = z
     /** Số bong bóng gây nhiễu thêm vào mỗi từ. */
     extraBubbles: z.number().int().min(0).max(6).default(2),
     distractorPool: z.array(text(10)).min(1).max(40).optional(),
+    wordsPerRound: z.number().int().min(1).max(12).optional(),
     units: z
       .array(z.object({ id, title: text(60), words: z.array(bubbleWord).min(1).max(20) }))
       .min(1)

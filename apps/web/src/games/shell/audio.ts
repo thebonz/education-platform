@@ -65,7 +65,10 @@ export class GameAudio {
     const utterance = new SpeechSynthesisUtterance(text);
     utterance.lang = voice?.lang ?? this.voiceLang;
     utterance.rate = norm(this.voiceLang).startsWith('en') ? this.englishRate : 0.85;
-    utterance.pitch = 1;
+    // Child-friendly tone only when a real American child voice is unavailable.
+    // A pitch tweak is not a substitute for a genuine licensed child voice.
+    const childVoice = voice && /(?:ana\s*(?:online|neural)|en-us-ana|\b(child|kid|children|youth)\b)/i.test(voice.name);
+    utterance.pitch = norm(this.voiceLang) === 'en-us' && !childVoice ? 1.07 : 1;
     if (voice) utterance.voice = voice;
     utterance.onstart = () => {
       if (id === this.seq && this.enabled) this.onAvailable?.();

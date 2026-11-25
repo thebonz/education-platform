@@ -65,7 +65,11 @@ function mediaUrls(data: unknown, out = new Set<string>()): Set<string> {
   if (Array.isArray(data)) data.forEach((x) => mediaUrls(x, out));
   else if (data && typeof data === 'object') {
     for (const [k, v] of Object.entries(data)) {
-      if (k === 'src' && typeof v === 'string' && /^\/api\/media\/[0-9a-f-]{36}$/.test(v)) out.add(v);
+      // Only cache owner-created static illustrations or validated media IDs.
+      // Deliberately refuse third-party URLs to avoid SSRF and unintended downloads.
+      if (k === 'src' && typeof v === 'string'
+        && (/^\/api\/media\/[0-9a-f-]{36}$/.test(v)
+          || /^\/illustrations\/(?:vocab\/[a-z0-9-]+|puzzle-[a-z0-9-]+)\.svg$/.test(v))) out.add(v);
       else mediaUrls(v, out);
     }
   }

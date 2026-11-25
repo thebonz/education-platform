@@ -131,30 +131,47 @@ test('Bingo Carnival: tùy chọn 5x5 chỉ hiện khi có ít nhất 25 mục',
 });
 
 test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ page }) => {
-  const data = await playData(page, 'vocabulary-matching');
   await page.goto(`${EN}/games/vocabulary-matching`);
   await page.getByTestId('shell-start').click();
-  await page.locator(`[data-testid=match-word][data-id="${data.pairs[0].id}"]`).click();
-  await page.locator(`[data-testid=match-picture][data-id="${data.pairs[1].id}"]`).click();
-  for (const p of data.pairs) {
-    await page.locator(`[data-testid=match-word][data-id="${p.id}"]`).click();
-    await page.locator(`[data-testid=match-picture][data-id="${p.id}"]`).click();
+  const current = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
+  await expect(page.getByTestId('match-picture').first().locator('img')).toHaveAttribute('src', /\/illustrations\//);
+  await expect.poll(async () => page.getByTestId('match-picture').first().locator('img')
+    .evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
+  await page.locator(`[data-testid=match-word][data-id="${current[0]}"]`).click();
+  await page.locator(`[data-testid=match-picture][data-id="${current[1]}"]`).click();
+  expect(current).toHaveLength(6);
+  await expect(page.getByTestId('match-library-count')).toContainText('12 words');
+  for (const id of current) {
+    await page.locator(`[data-testid=match-word][data-id="${id}"]`).click();
+    await page.locator(`[data-testid=match-picture][data-id="${id}"]`).click();
   }
-  expect(await expectResult(page)).toContain('You scored 8/8 points · Mistakes: 1');
+  expect(await expectResult(page)).toContain('You scored 6/6 points · Mistakes: 1');
+  await page.getByTestId('play-again').click();
+  const newSet = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
+  expect(newSet).toHaveLength(6);
+  expect(newSet.some((id) => !current.includes(id))).toBe(true);
 });
 
 test('Hidden Picture: mở hết ô và đoán đúng bức tranh', async ({ page }) => {
   const data = await playData(page, 'hidden-picture');
   await page.goto(`${EN}/games/hidden-picture`);
   await page.getByTestId('shell-start').click();
-  for (let i = 0; i < data.questions.length; i++) {
+  const total = data.questionsPerRound ?? data.questions.length;
+  await expect(page.getByTestId('hidden-scene-library')).toContainText('6 illustrated pictures');
+  const firstArt = await page.locator('.hidden-picture img').getAttribute('src');
+  expect(firstArt).toContain('puzzle-cat.svg');
+  for (let i = 0; i < total; i++) {
     const q = await currentQuestion(page, data.questions);
     await page.getByRole('button', { name: q.answer, exact: true }).click();
     await page.getByTestId('quiz-next').click();
   }
-  await expect(page.locator('.hidden-tile.gone')).toHaveCount(data.questions.length);
-  await page.getByRole('button', { name: data.pictureAnswer, exact: true }).click();
-  expect(await expectResult(page)).toContain(`You scored ${data.questions.length + 1}/${data.questions.length + 1}`);
+  await expect(page.locator('.hidden-tile.gone')).toHaveCount(total);
+  await page.getByRole('button', { name: data.scenes[0].answer, exact: true }).click();
+  expect(await expectResult(page)).toContain(`You scored ${total + 1}/${total + 1}`);
+  await page.getByTestId('play-again').click();
+  await expect(page.locator('.hidden-picture img')).toHaveAttribute('src', /dog\.svg/);
+  const firstPromptReplay = await page.getByTestId('quiz-prompt').innerText();
+  expect(data.questions.slice(total).some((q: Q) => q.prompt === firstPromptReplay)).toBe(true);
 });
 
 test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobile', async ({ page }) => {
@@ -163,16 +180,16 @@ test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobil
   await page.getByTestId('shell-start').click();
   await page.getByTestId('unit-option').first().click();
   await expect(page.locator('.bubble-stage-header')).toBeVisible();
-  await expect(page.locator('.bubble-round-dots > span')).toHaveCount(data.units[0].words.length);
+  await expect(page.locator('.bubble-round-dots > span')).toHaveCount(data.wordsPerRound);
   const unit = data.units[0];
-  for (let i = 0; i < unit.words.length; i++) {
+  for (let i = 0; i < data.wordsPerRound; i++) {
     const id = await page.getByTestId('bubble-word').getAttribute('data-word-id');
     const word = unit.words.find((w: { id: string }) => w.id === id);
     for (const seg of word.segments ?? graphemes(word.word)) await page.locator(`[data-testid=bubble][data-value="${seg}"]:not([disabled])`).first().click();
     await expect(page.getByTestId('bubble-word-complete')).toBeVisible();
     await page.getByTestId('bubble-next').click();
   }
-  expect(await expectResult(page)).toContain(`You scored ${unit.words.length}/${unit.words.length}`);
+  expect(await expectResult(page)).toContain(`You scored ${data.wordsPerRound}/${data.wordsPerRound}`);
 });
 
 test('Spelling Challenge: điền chữ còn thiếu; đăng nhập thì kết quả được lưu và hiện ở tài khoản', async ({ page }) => {
@@ -210,7 +227,8 @@ test('Team Quiz: 3 đội thay phiên, đếm giờ, công bố đội thắng',
   await page.getByTestId('team-count').selectOption('3');
   await page.getByTestId('shell-start').click();
   await expect(page.locator('.countdown')).toBeVisible();
-  for (let i = 0; i < data.questions.length; i++) {
+  await expect(page.getByTestId('quiz-bank-count')).toContainText('20 questions');
+  for (let i = 0; i < data.questionsPerRound; i++) {
     await expect(page.getByTestId('active-team')).toContainText(`Team ${'ABC'[i % 3]}`);
     const q = await currentQuestion(page, data.questions);
     // Đội A luôn trả lời đúng, đội B và C luôn sai → A thắng

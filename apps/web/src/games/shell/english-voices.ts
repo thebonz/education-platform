@@ -21,6 +21,10 @@ function qualityScore(voice: BrowserVoice, accent: string): number {
   const actual = normalize(voice.lang);
   const wanted = normalize(accent);
   let score = actual === wanted ? 120 : actual.startsWith('en-') ? 20 : 8;
+  // Microsoft en-US-AnaNeural is specifically categorized as a child voice.
+  // Only select it when it really appears in the browser's voice inventory.
+  if (wanted === 'en-us' && actual === 'en-us'
+    && /(?:ana\s*(?:online|neural)|en-us-ana|\b(child|kid|children|youth)\b)/.test(name)) score += 310;
   if (/\b(natural|neural|enhanced|premium)\b/.test(name)) score += 90;
   if (/google.*english|google us english|google uk english/.test(name)) score += 55;
   if (/microsoft.*(aria|jenny|guy|sonia|ryan|libby)/.test(name)) score += 45;

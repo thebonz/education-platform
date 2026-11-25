@@ -49,6 +49,10 @@
       "types": "./dist/picture-puzzle.d.ts",
       "default": "./dist/picture-puzzle.js"
     },
+    "./learning-session": {
+      "types": "./dist/learning-session.d.ts",
+      "default": "./dist/learning-session.js"
+    },
     "./templates": {
       "types": "./dist/templates.d.ts",
       "default": "./dist/templates.js"

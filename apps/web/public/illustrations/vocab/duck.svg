@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated duck">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<ellipse cx="219" cy="317" rx="139" ry="87" fill="#ffe083" stroke="#d6b062" stroke-width="7"/><circle cx="298" cy="217" r="90" fill="#ffdf83" stroke="#d6b062" stroke-width="7"/><path d="M347 239Q405 219 410 256 396 280 346 267Z" fill="#ffab72" stroke="#d48a62" stroke-width="5"/><circle cx="320" cy="207" r="10" fill="#66526b"/><path d="M147 320Q196 256 243 308 206 364 147 320Z" fill="#ffeeb8" stroke="#e6c576" stroke-width="5"/><path d="M169 390V415M246 393V417" stroke="#e4a770" stroke-width="7" stroke-linecap="round"/></svg>

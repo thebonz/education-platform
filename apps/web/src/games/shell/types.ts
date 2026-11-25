@@ -18,6 +18,7 @@ export type TemplateProps<D> = {
   lang: GameLang;
   t: GameStrings;
   rng: Rng;
+  round: number;
   audio: GameAudio;
   settings: ShellSettings;
   /** Báo điểm hiện tại để Shell hiển thị trên thanh trên cùng. */

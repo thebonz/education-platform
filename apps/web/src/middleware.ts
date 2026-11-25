@@ -14,5 +14,6 @@ export function middleware(request: NextRequest) {
 
 export const config = {
   runtime: 'nodejs',
-  matcher: ['/((?!api/|_next/|favicon.ico|robots.txt|sitemap.xml|sw.js).*)'],
+  // First-party educational artwork is static/public; never rewrite it under /english or /vietnamese.
+  matcher: ['/((?!api/|_next/|illustrations/|favicon.ico|robots.txt|sitemap.xml|sw.js).*)'],
 };

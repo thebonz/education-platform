@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- First-party SVG assets; no bitmap optimization required. */
 import Link from 'next/link';
 import { CatalogGame, TEMPLATE_EMOJI } from '@/lib/catalog';
 
@@ -17,6 +18,15 @@ const POSTER_TITLES: Record<string, [string, string]> = {
   'sentence-order': ['Aa', 'STORY'],
 };
 
+const ENGLISH_COVERS: Record<string, string> = {
+  'vocabulary-matching': '/illustrations/puzzle-cat.svg',
+  'hidden-picture': '/illustrations/vocab/lion.svg',
+  'bubble-word-garden': '/illustrations/vocab/strawberry.svg',
+  'fruit-market-match': '/illustrations/puzzle-apple.svg',
+  'school-treasure-match': '/illustrations/puzzle-bus.svg',
+  'happyclass-picture-puzzle': '/illustrations/puzzle-bus.svg',
+};
+
 /**
  * Tất cả poster là layout/CSS gốc của HappyClass. Không dùng ảnh, tranh, thương
  * hiệu hoặc asset của bất kỳ site tham khảo nào.
@@ -33,7 +43,9 @@ export function GameCard({ game, base, lang }: { game: CatalogGame; base: string
         <span className="poster-spark spark-c" aria-hidden="true">✧</span>
         <div className="poster-center" aria-hidden="true">
           <span className="poster-speech">{letter}</span>
-          <span className="poster-icon">{TEMPLATE_EMOJI[game.templateKey] || '🎮'}</span>
+          {lang === 'en' && ENGLISH_COVERS[game.slug]
+            ? <img className="poster-illustration" src={ENGLISH_COVERS[game.slug]} alt="" width="120" height="110" />
+            : <span className="poster-icon">{TEMPLATE_EMOJI[game.templateKey] || '🎮'}</span>}
         </div>
         <span className="poster-genre" aria-hidden="true">{label}</span>
         <i className={free ? 'badge-free' : 'badge-premium'}>{free ? (lang === 'en' ? 'FREE' : 'MIỄN PHÍ') : 'PREMIUM'}</i>

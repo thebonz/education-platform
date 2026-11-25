@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated cow">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<path d="M157 173 125 136 122 199M335 173 374 136 370 198" fill="#f1d9a7" stroke="#b0a88c" stroke-width="6"/><path d="M168 207Q96 167 113 254 141 298 175 268M323 208Q398 159 392 246 366 301 325 266" fill="#eee9e3" stroke="#a8aaa8" stroke-width="6"/><rect x="145" y="168" width="206" height="204" rx="89" fill="#faf7ec" stroke="#a5aaa5" stroke-width="7"/><path d="M169 195Q189 170 214 207L204 257Q166 249 169 195ZM303 178Q352 195 327 238L285 235Z" fill="#6e737b"/><ellipse cx="209" cy="244" rx="10" ry="15" fill="#4f4a60"/><ellipse cx="281" cy="244" rx="10" ry="15" fill="#4f4a60"/><ellipse cx="245" cy="309" rx="78" ry="52" fill="#f4b9bc"/><ellipse cx="216" cy="308" rx="11" ry="15" fill="#c98c94"/><ellipse cx="270" cy="308" rx="11" ry="15" fill="#c98c94"/></svg>
