@@ -5,6 +5,9 @@ import { CatalogGame, TEMPLATE_EMOJI } from '@/lib/catalog';
 const POSTER_TITLES: Record<string, [string, string]> = {
   bingo: ['B', 'I N G O'],
   'picture-match': ['A', 'MATCH'],
+  'phonics-family': ['at', 'PHONICS'],
+  'classroom-explore': ['ABC', 'DISCOVER'],
+  'shadow-guess': ['?', 'ANIMAL SHADOW'],
   'picture-puzzle': ['✦', 'JIGSAW'],
   'hidden-picture': ['?', 'DISCOVER'],
   'mystery-doors': ['?', 'MYSTERY'],
@@ -20,6 +23,9 @@ const POSTER_TITLES: Record<string, [string, string]> = {
 
 const ENGLISH_COVERS: Record<string, string> = {
   'vocabulary-matching': '/illustrations/puzzle-cat.svg',
+  'sound-family-village': '/illustrations/phonics/hat.svg',
+  'little-learning-classroom': '/illustrations/vocab/book.svg',
+  'shadow-safari-animals': '/illustrations/vocab/rabbit.svg',
   'hidden-picture': '/illustrations/vocab/lion.svg',
   'bubble-word-garden': '/illustrations/vocab/strawberry.svg',
   'fruit-market-match': '/illustrations/puzzle-apple.svg',
