@@ -230,7 +230,7 @@ test('Vietnamese student picker: chặn danh sách quá dài và không ghi nh�
   await page.goto(`${VI}/tools/random-picker`);
   await expect(page.getByRole('heading', { name: 'Vòng quay gọi tên' })).toBeVisible();
   await page.getByTestId('picker-names').fill(Array.from({ length: 41 }, (_, i) => `Bạn ${i + 1}`).join('\n'));
-  await expect(page.getByRole('alert')).toBeVisible();
+  await expect(page.getByTestId('student-picker').getByRole('alert')).toBeVisible();
   await expect(page.getByTestId('picker-draw')).toBeDisabled();
   await page.getByTestId('picker-clear').click();
   await expect(page.getByTestId('picker-draw')).toBeDisabled();
