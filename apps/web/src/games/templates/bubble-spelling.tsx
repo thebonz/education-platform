@@ -50,7 +50,11 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
   if (!unit) {
     return (
       <div className="tpl tpl-bubble">
-        <h3>{t.chooseUnit}</h3>
+        <div className="bubble-unit-intro">
+          <span aria-hidden="true">🌼 ✦ 🫧</span>
+          <h3>{t.chooseUnit}</h3>
+          <p>{lang === 'vi' ? 'Mỗi khu vườn là một bộ từ mới. Chọn một khu vườn để bắt đầu!' : 'Every garden has new words to discover. Pick your first adventure!'}</p>
+        </div>
         <div className="unit-grid">
           {data.units.map((u) => (
             <button key={u.id} type="button" className="unit-card" data-testid="unit-option" onClick={() => setUnitId(u.id)}>
@@ -111,20 +115,42 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
 
   return (
     <div className="tpl tpl-bubble">
-      <p className="tpl-sub" data-testid="bubble-word" data-word-id={word!.id}>{unit.title} · {wordIndex + 1} {t.of} {unit.words.length}</p>
-      <div className="bubble-target">
+      <div className="bubble-stage-header">
+        <div className="bubble-stage-title">
+          <span className="eyebrow">{lang === 'vi' ? 'KHU VƯỜN TỪ NGỮ' : 'THE WORD GARDEN'}</span>
+          <h3>🌻 {unit.title}</h3>
+          <p className="tpl-sub" data-testid="bubble-word" data-word-id={word!.id}>
+            {lang === 'vi' ? 'Từ' : 'Word'} {wordIndex + 1} {t.of} {unit.words.length}
+          </p>
+        </div>
+        <div className="bubble-round-dots" role="group" aria-label={lang === 'vi' ? 'Tiến độ các từ' : 'Word progress'}>
+          {unit.words.map((item, index) => (
+            <span key={item.id} className={index < wordIndex ? 'complete' : index === wordIndex ? 'active' : ''}
+              aria-label={`${lang === 'vi' ? 'Từ' : 'Word'} ${index + 1}: ${index < wordIndex ? (lang === 'vi' ? 'hoàn thành' : 'complete') : index === wordIndex ? (lang === 'vi' ? 'đang chơi' : 'current') : (lang === 'vi' ? 'chưa đến' : 'upcoming')}`}>
+              {index < wordIndex ? '✓' : '✦'}
+            </span>
+          ))}
+        </div>
+      </div>
+      <div className="bubble-target bubble-target-card">
+        <span className="bubble-flower flower-one" aria-hidden="true">✿</span>
+        <span className="bubble-flower flower-two" aria-hidden="true">✧</span>
         <PictureView picture={word!.picture} size={96} />
         <button type="button" className="icon-button" aria-label={t.listen} onClick={() => audio.say(word!.say ?? word!.word)}>🔊</button>
       </div>
+      <p className="bubble-instruction">{lang === 'vi' ? 'Chạm những bong bóng đúng thứ tự để ghép thành từ!' : 'Pop the letter bubbles in the right order to grow the word!'}</p>
       <div className="bubble-slots" data-testid="bubble-slots">
         {segments.map((_, i) => <span key={i} className={`slot ${built[i] ? 'filled' : ''}`}>{built[i] ?? ''}</span>)}
       </div>
-      <div className="bubble-field">
+      <div className="bubble-field" aria-label={lang === 'vi' ? 'Các chữ cái bong bóng' : 'Letter bubbles'}>
         {bubbles.map((b, i) => (
           <button key={b.key} type="button" data-testid="bubble" data-value={b.value} disabled={usedKeys.has(b.key) || wordDone}
             className={`bubble b${i % 6} ${usedKeys.has(b.key) ? 'popped' : ''} ${wrongKey === b.key ? 'shake' : ''}`} onClick={() => pop(b)}>{b.value}</button>
         ))}
       </div>
+      {wordDone && <div className="bubble-celebrate" data-testid="bubble-word-complete" aria-live="polite">
+        🌟 {lang === 'vi' ? 'Giỏi lắm! Thêm một bông hoa trong khu vườn!' : 'Wonderful! You grew another word!'} 🌷
+      </div>}
       <FeedbackLine feedback={feedback} />
       <div className="tpl-footer">
         <button type="button" className="secondary-button" onClick={hint} disabled={wordDone}>💡 {t.hint}</button>
