@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated bee">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<ellipse cx="196" cy="199" rx="59" ry="76" transform="rotate(-35 196 199)" fill="#d8f0ff" stroke="#84bbd8" stroke-width="5" opacity=".85"/><ellipse cx="294" cy="199" rx="59" ry="76" transform="rotate(35 294 199)" fill="#d8f0ff" stroke="#84bbd8" stroke-width="5" opacity=".85"/><ellipse cx="249" cy="286" rx="113" ry="79" fill="#ffe085" stroke="#ceab6a" stroke-width="6"/><path d="M211 213Q196 284 211 352M268 207Q282 286 264 356" stroke="#5a5d66" stroke-width="28"/><circle cx="314" cy="267" r="11" fill="#594f62"/><path d="M323 304Q306 321 287 309" stroke="#665b67" stroke-width="5" fill="none"/><path d="M194 213 163 175M296 212 322 171" stroke="#7b7981" stroke-width="5" stroke-linecap="round"/></svg>
