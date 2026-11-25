@@ -30,6 +30,39 @@ const STARTERS: Partial<Record<TemplateKey, Partial<Record<Locale, unknown>>>> =
       ],
     },
   },
+  'phonics-family': {
+    en: { instructions: 'Listen to a word, then choose the house with the same ending.',
+      wordsPerRound: 6, families: [
+        { id: 'at', ending: 'at', words: [
+          { id: 'cat', word: 'cat', picture: e('🐱') }, { id: 'hat', word: 'hat', picture: e('🎩') },
+          { id: 'mat', word: 'mat', picture: e('🟫') },
+        ] },
+        { id: 'og', ending: 'og', words: [
+          { id: 'dog', word: 'dog', picture: e('🐶') }, { id: 'log', word: 'log', picture: e('🪵') },
+          { id: 'fog', word: 'fog', picture: e('🌫️') },
+        ] },
+      ] },
+  },
+  'classroom-explore': {
+    en: { instructions: 'Tap an object, listen and choose A, B or C.',
+      wordsPerRound: 3,
+      items: [
+        { id: 'book', word: 'book', picture: e('📖'), choices: ['book', 'bag', 'pen'] },
+        { id: 'pen', word: 'pen', picture: e('🖊️'), choices: ['book', 'pen', 'bag'] },
+        { id: 'bag', word: 'bag', picture: e('🎒'), choices: ['pen', 'book', 'bag'] },
+      ],
+    },
+  },
+  'shadow-guess': {
+    en: { instructions: 'Name the dark silhouette before it reveals the picture.',
+      wordsPerRound: 3, maxMistakes: 3,
+      items: [
+        { id: 'cat', word: 'cat', picture: e('🐱'), silhouette: e('🐈'), choices: ['cat', 'dog', 'fish'] },
+        { id: 'dog', word: 'dog', picture: e('🐶'), silhouette: e('🐕'), choices: ['dog', 'bird', 'cat'] },
+        { id: 'fish', word: 'fish', picture: e('🐟'), silhouette: e('🐠'), choices: ['fish', 'dog', 'rabbit'] },
+      ],
+    },
+  },
   'picture-match': {
     en: { pairs: [{ id: 'cat', word: 'cat', picture: e('🐱') }, { id: 'dog', word: 'dog', picture: e('🐶') }, { id: 'fish', word: 'fish', picture: e('🐟') }] },
     vi: { pairs: [{ id: 'meo', word: 'con mèo', picture: e('🐱') }, { id: 'cho', word: 'con chó', picture: e('🐶') }, { id: 'ca', word: 'con cá', picture: e('🐟') }] },
