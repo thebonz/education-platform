@@ -14,7 +14,9 @@ export function QuizTemplate({ data, t, rng, round, audio, settings, onProgress,
   const teamMode = data.mode === 'teams';
   const teamCount = teamMode ? settings.teamCount : 1;
   const questions = useMemo(
-    () => sessionSelection(data.questions, data.questionsPerRound ?? data.questions.length, round, rng)
+    () => (data.questionsPerRound !== undefined
+      ? sessionSelection(data.questions, data.questionsPerRound, round, rng)
+      : [...data.questions])
       .map((q) => ({ ...q, choices: data.shuffleChoices ? shuffle(q.choices, rng) : q.choices })),
     [data.questions, data.questionsPerRound, data.shuffleChoices, round, rng],
   );
