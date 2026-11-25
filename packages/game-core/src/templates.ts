@@ -219,7 +219,7 @@ export const bubbleSpellingSchema = z
     /** Số bong bóng gây nhiễu thêm vào mỗi từ. */
     extraBubbles: z.number().int().min(0).max(6).default(2),
     distractorPool: z.array(text(10)).min(1).max(40).optional(),
-    wordsPerRound: z.number().int().min(1).max(12).default(6),
+    wordsPerRound: z.number().int().min(1).max(12).optional(),
     units: z
       .array(z.object({ id, title: text(60), words: z.array(bubbleWord).min(1).max(20) }))
       .min(1)
