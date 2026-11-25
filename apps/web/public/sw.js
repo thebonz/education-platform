@@ -53,5 +53,6 @@ self.addEventListener('fetch', (event) => {
 
   if (url.pathname.startsWith('/_next/static/')) return cacheFirst(STATIC);
   if (/^\/api\/media\/[0-9a-f-]{36}$/.test(url.pathname)) return cacheFirst(MEDIA);
+  if (/^\/illustrations\/(?:vocab\/[a-z0-9-]+|puzzle-[a-z0-9-]+)\.svg$/.test(url.pathname)) return cacheFirst(MEDIA);
   if (url.pathname === '/api/tts') return cacheFirst(MEDIA);
 });
