@@ -135,6 +135,9 @@ test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ 
   await page.goto(`${EN}/games/vocabulary-matching`);
   await page.getByTestId('shell-start').click();
   const current = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
+  await expect(page.getByTestId('match-picture').first().locator('img')).toHaveAttribute('src', /\/illustrations\//);
+  await expect.poll(async () => page.getByTestId('match-picture').first().locator('img')
+    .evaluate((img) => (img as HTMLImageElement).naturalWidth)).toBeGreaterThan(0);
   await page.locator(`[data-testid=match-word][data-id="${current[0]}"]`).click();
   await page.locator(`[data-testid=match-picture][data-id="${current[1]}"]`).click();
   expect(current).toHaveLength(6);
