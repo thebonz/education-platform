@@ -289,7 +289,7 @@ export function GameShell(props: GameShellProps) {
       {voiceMissing && sound && <p className="voice-missing" role="status" data-testid="voice-missing">{t.voiceMissing}</p>}
       {phase === 'playing' && Template && (
         <div className="shell-stage">
-          <Template key={round} data={props.data as never} lang={lang} t={t} rng={rng} audio={audio} settings={settings} onProgress={onProgress} onFinish={onFinish} />
+          <Template key={round} data={props.data as never} lang={lang} t={t} rng={rng} round={round} audio={audio} settings={settings} onProgress={onProgress} onFinish={onFinish} />
         </div>
       )}
 
