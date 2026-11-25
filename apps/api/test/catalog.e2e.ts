@@ -64,7 +64,8 @@ describe('Thư viện game và kiểm tra quyền chơi ở backend', () => {
   it('game miễn phí chơi được không cần đăng nhập; dữ liệu đã điền mặc định theo template', async () => {
     const res = await t.http().get('/api/catalog/products/english/games/team-quiz/play').expect(200);
     expect(res.body.game.templateKey).toBe('quiz');
-    expect(res.body.data.questions).toHaveLength(10);
+    expect(res.body.data.questions).toHaveLength(20);
+    expect(res.body.data.questionsPerRound).toBe(10);
     expect(res.body.data.mode).toBe('teams');
     const bingo = await t.http().get('/api/catalog/products/english/games/alphabet-bingo/play').expect(200);
     expect(bingo.body.data.items).toHaveLength(26);
