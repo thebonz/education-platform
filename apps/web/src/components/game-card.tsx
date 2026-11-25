@@ -1,3 +1,4 @@
+/* eslint-disable @next/next/no-img-element -- First-party SVG assets; no bitmap optimization required. */
 import Link from 'next/link';
 import { CatalogGame, TEMPLATE_EMOJI } from '@/lib/catalog';
 
