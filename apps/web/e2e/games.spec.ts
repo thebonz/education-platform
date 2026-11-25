@@ -217,7 +217,8 @@ test('Team Quiz: 3 đội thay phiên, đếm giờ, công bố đội thắng',
   await page.getByTestId('team-count').selectOption('3');
   await page.getByTestId('shell-start').click();
   await expect(page.locator('.countdown')).toBeVisible();
-  for (let i = 0; i < data.questions.length; i++) {
+  await expect(page.getByTestId('quiz-bank-count')).toContainText('20 questions');
+  for (let i = 0; i < data.questionsPerRound; i++) {
     await expect(page.getByTestId('active-team')).toContainText(`Team ${'ABC'[i % 3]}`);
     const q = await currentQuestion(page, data.questions);
     // Đội A luôn trả lời đúng, đội B và C luôn sai → A thắng
