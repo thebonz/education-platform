@@ -195,7 +195,11 @@ export function GameShell(props: GameShellProps) {
         </div>
         <div className="shell-controls">
           {lang === 'en' && (
-            <select aria-label={t.accent} value={accent} onChange={(e) => { const v = e.target.value as Accent; setAccent(v); writePref(ACCENT_KEY, v); }}>
+            <select aria-label={t.accent} value={accent} onChange={(e) => {
+                const v = e.target.value as Accent;
+                setAccent(v); writePref(ACCENT_KEY, v);
+                setEnglishVoiceURI('auto'); writePref(ENGLISH_VOICE_KEY, 'auto');
+              }}>
               <option value="en-GB">🇬🇧 {t.british}</option>
               <option value="en-US">🇺🇸 {t.american}</option>
             </select>
