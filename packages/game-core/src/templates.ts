@@ -165,17 +165,35 @@ export const trailBoardSchema = z
 // ---------------------------------------------------------------------------
 // hidden-picture
 // ---------------------------------------------------------------------------
+const hiddenSceneSchema = z.object({
+  picture: pictureSchema,
+  answer: text(60),
+  choices: z.array(text(60)).min(2).max(4),
+}).superRefine((scene, ctx) => {
+  if (!scene.choices.includes(scene.answer)) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['answer'], message: 'Đáp án phải nằm trong lựa chọn',
+  });
+  if (new Set(scene.choices).size !== scene.choices.length) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['choices'], message: 'Lựa chọn trùng',
+  });
+});
 export const hiddenPictureSchema = z
   .object({
     instructions: optionalText(300),
+    // Legacy single scene stays valid for teacher-edited games and offline packs.
     picture: pictureSchema,
     pictureAnswer: text(60),
     pictureChoices: z.array(text(60)).min(2).max(4),
-    questions: z.array(choiceQuestion).min(4).max(16),
+    scenes: z.array(hiddenSceneSchema).min(2).max(12).optional(),
+    questionsPerRound: z.number().int().min(4).max(16).optional(),
+    questions: z.array(choiceQuestion).min(4).max(40),
   })
   .superRefine((d, ctx) => {
     if (!d.pictureChoices.includes(d.pictureAnswer)) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['pictureAnswer'], message: 'Đáp án bức tranh phải nằm trong lựa chọn' });
     uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id');
+    if (d.questionsPerRound !== undefined && d.questionsPerRound > d.questions.length) ctx.addIssue({
+      code: z.ZodIssueCode.custom, path: ['questionsPerRound'], message: 'Số câu mỗi lượt không vượt thư viện câu hỏi',
+    });
   });
 
 // ---------------------------------------------------------------------------
