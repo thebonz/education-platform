@@ -43,7 +43,7 @@ export function PictureMatchTemplate({ data, t, rng, round, audio, onProgress, o
       onProgress({ score: next.size, mistakes });
       audio.sfx('correct');
       show({ kind: 'correct', text: t.correct });
-      if (next.size === activePairs.length) window.setTimeout(() => onFinish({ score: next.size, maxScore: data.pairs.length, mistakes }), 700);
+      if (next.size === activePairs.length) window.setTimeout(() => onFinish({ score: next.size, maxScore: activePairs.length, mistakes }), 700);
       return;
     }
     const m = mistakes + 1;
