@@ -3,6 +3,7 @@
 import { useMemo, useRef, useState } from 'react';
 import { shuffle } from '@happyclass/game-core/rng';
 import { rankTeams } from '@happyclass/game-core/scoring';
+import { advanceTrail } from '@happyclass/game-core/trail';
 import type { TrailBoardData } from '@happyclass/game-core/templates';
 import { PictureView } from '../picture';
 import type { TemplateProps } from '../shell/types';
