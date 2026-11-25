@@ -9,7 +9,9 @@ import type { TemplateProps } from '../shell/types';
 
 export function HiddenPictureTemplate({ data, t, rng, round, audio, onProgress, onFinish }: TemplateProps<HiddenPictureData>) {
   const questions = useMemo(
-    () => sessionSelection(data.questions, data.questionsPerRound ?? data.questions.length, round, rng),
+    () => data.questionsPerRound !== undefined
+      ? sessionSelection(data.questions, data.questionsPerRound, round, rng)
+      : [...data.questions],
     [data.questions, data.questionsPerRound, round, rng],
   );
   const total = questions.length;
