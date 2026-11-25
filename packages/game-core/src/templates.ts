@@ -339,7 +339,7 @@ export const classroomExploreSchema = z.object({
 });
 
 const shadowItemSchema = z.object({
-  id, word: text(40), picture: pictureSchema, hint: optionalText(140),
+  id, word: text(40), picture: pictureSchema, silhouette: pictureSchema, hint: optionalText(140),
   choices: z.array(text(40)).length(3),
 }).superRefine((item, ctx) => {
   if (!item.choices.includes(item.word)) ctx.addIssue({ code: z.ZodIssueCode.custom,
