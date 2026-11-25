@@ -681,3 +681,43 @@ label.check input{margin-top:3px;width:18px;height:18px}
 .shell-intro .english-voice-panel .english-voice-note{margin:10px 0 0;font-size:11px;color:#8a6c7e}
 @media(max-width:720px){.english-voice-options{grid-template-columns:1fr 1fr}.english-voice-options>button{grid-column:1/-1}.english-voice-panel{padding:15px}}
 @media(max-width:390px){.english-voice-options{grid-template-columns:1fr}.english-voice-options>button{grid-column:1}.english-voice-panel{padding:12px}}
+
+
+/* Phase 11 — HappyClass original image jigsaw, with author-owned illustration assets. */
+.game-poster-art.art-picture-puzzle{background:linear-gradient(125deg,#d9f7f1,#efe2ff 57%,#fff1c2)}
+.tpl-picture-puzzle{display:flex;flex-direction:column;gap:16px;width:100%;max-width:940px;margin:auto}
+.puzzle-header{padding:18px 24px;background:linear-gradient(115deg,#ebfbf5,#fff0fa 62%,#ffefce);border:3px solid #fff;box-shadow:0 10px 26px rgba(48,67,112,.07);border-radius:25px;display:flex;gap:13px;justify-content:center;align-items:center;text-align:center}
+.puzzle-header .eyebrow{font-size:9px;color:#a76b9b;letter-spacing:.14em}
+.puzzle-header h2{font-size:clamp(20px,3vw,29px);color:#55627f;margin:4px 0 6px}
+.puzzle-header p{font-size:12px;color:#6d8096;margin:0}
+.puzzle-spark{font-size:34px;color:#e39fb4}
+.puzzle-metrics{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:0 7px}
+.puzzle-metrics>span{padding:8px 12px;border-radius:999px;background:#fff;font-weight:900;font-size:12px;color:#826c91;box-shadow:0 3px 12px rgba(40,60,90,.06)}
+.puzzle-workspace{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(0,.85fr);gap:18px;align-items:start}
+.puzzle-board-panel{background:linear-gradient(145deg,#e9f8ff,#fff3e5 67%,#f9e9ff);border:3px solid #fff;border-radius:25px;padding:18px;box-shadow:0 12px 33px rgba(49,67,105,.1)}
+.puzzle-board{width:100%;max-width:490px;margin:auto;aspect-ratio:1;display:grid;gap:5px;border:5px solid #fff;border-radius:20px;overflow:hidden;background:#fff}
+.puzzle-piece{position:relative;overflow:hidden;aspect-ratio:1;min-width:0;min-height:0;border:3px solid rgba(255,255,255,.88);border-radius:9px;padding:0;background:#f6e7f3;box-shadow:inset 0 0 0 2px rgba(255,255,255,.55);transition:transform .16s,border-color .16s}
+.puzzle-piece:hover:not(:disabled){border-color:#ecb9da;transform:scale(.97)}
+.puzzle-piece.selected{border-color:#d46da4;box-shadow:inset 0 0 0 4px #dd7eab,0 0 0 3px #ffe8b4;z-index:2}
+.puzzle-piece:focus-visible{outline:3px solid #b95f9d;outline-offset:-4px;z-index:3}
+.puzzle-piece-crop{display:block;position:absolute;inset:0;overflow:hidden}
+.puzzle-tile-image{position:absolute;inset:0;background-repeat:no-repeat;background-color:#fff7eb}
+.puzzle-tile-emoji{position:absolute;display:flex;align-items:center;justify-content:center;font-size:clamp(130px,30vw,380px);background:radial-gradient(circle,#e6f8ff,#ffe9ed);line-height:1}
+.puzzle-position{position:absolute;z-index:2;top:3px;left:4px;display:grid;place-items:center;background:rgba(255,255,255,.78);width:18px;height:18px;border-radius:50%;color:#81658d;font-size:9px;font-weight:900}
+.puzzle-piece.completed{border-color:transparent;border-radius:0}
+.puzzle-complete{margin:15px auto 2px;border-radius:15px;padding:11px 16px;background:#effbe9;color:#4f9561;border:1px solid #c8eabd;text-align:center;font-weight:850}
+.puzzle-side{padding:24px 22px;border-radius:25px;border:3px solid #fff;background:#fff;box-shadow:0 8px 29px rgba(49,66,102,.06);display:flex;flex-direction:column;gap:13px;min-height:310px}
+.puzzle-side .puzzle-kicker{font-size:10px;font-weight:900;letter-spacing:.1em;color:#b27f9c;margin:0}
+.puzzle-side h3{font-size:21px;line-height:1.35;color:#56647d;margin:0}
+.puzzle-side>p:not(.puzzle-kicker){font-size:13px;line-height:1.6;color:#8290a2;margin:0}
+.puzzle-side-actions{display:flex;gap:10px;flex-wrap:wrap}
+.puzzle-side-actions button{min-height:45px;background:#fff0f7;border:1px solid #f2d6e6;color:#9c668a;flex:1}
+.puzzle-side button:focus-visible{outline:3px solid #ca79a8;outline-offset:3px}
+.puzzle-peek-card{border-radius:18px;background:#f0fafc;min-height:175px;display:grid;place-items:center;border:2px dashed #b2dbe5}
+.puzzle-next-card{padding:16px;border-radius:18px;background:linear-gradient(120deg,#fff3df,#f7ecff);display:flex;flex-direction:column;gap:10px}
+.puzzle-next-card h3{font-size:19px;color:#ba769b}
+.puzzle-next-card p{margin:0;color:#85758d;font-size:12px}
+.puzzle-next-card .primary-button{align-self:flex-start}
+@media(max-width:740px){.puzzle-workspace{grid-template-columns:1fr}.puzzle-board-panel{padding:13px}.puzzle-side{padding:18px;min-height:auto}.puzzle-spark{display:none}.puzzle-header{padding:18px}.puzzle-tile-emoji{font-size:clamp(130px,50vw,320px)}}
+@media(max-width:440px){.puzzle-board{gap:2px;border-width:3px;border-radius:13px}.puzzle-piece{border-width:2px;border-radius:5px}.puzzle-position{width:14px;height:14px;font-size:8px}.puzzle-header h2{font-size:22px}.puzzle-metrics>span{font-size:10px}}
+@media(prefers-reduced-motion:reduce){.puzzle-piece{transition:none}.puzzle-piece:hover{transform:none}}
