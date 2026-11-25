@@ -12,7 +12,7 @@ type Pick = { side: 'word' | 'picture'; id: string } | null;
 
 export function PictureMatchTemplate({ data, t, rng, round, audio, onProgress, onFinish }: TemplateProps<PictureMatchData>) {
   // Round 1 uses the first group, Replay uses the next group: not the same eight words forever.
-  const activePairs = useMemo(() => sessionSelection(data.pairs, data.roundSize, round, rng),
+  const activePairs = useMemo(() => sessionSelection(data.pairs, data.roundSize ?? data.pairs.length, round, rng),
     [data.pairs, data.roundSize, round, rng]);
   const words = useMemo(() => shuffle(activePairs, rng), [activePairs, rng]);
   const pictures = useMemo(() => shuffle(activePairs, rng), [activePairs, rng]);
