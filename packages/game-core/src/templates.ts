@@ -137,9 +137,14 @@ export const quizSchema = z
     timePerQuestionSec: z.number().int().min(0).max(120).default(0),
     pointsPerCorrect: z.number().int().min(1).max(10).default(1),
     shuffleChoices: z.boolean().default(true),
-    questions: z.array(choiceQuestion).min(3).max(50),
+    questions: z.array(choiceQuestion).min(3).max(60),
+    questionsPerRound: z.number().int().min(3).max(25).optional(),
   })
-  .superRefine((d, ctx) => uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id'));
+  .superRefine((d, ctx) => {
+    uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id');
+    if (d.questionsPerRound !== undefined && d.questionsPerRound > d.questions.length)
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questionsPerRound'], message: 'Số câu mỗi lượt không vượt ngân hàng câu hỏi' });
+  });
 
 // ---------------------------------------------------------------------------
 // trail-board: trò chơi thám hiểm theo lượt, luật tự xây dựng cho HappyClass
