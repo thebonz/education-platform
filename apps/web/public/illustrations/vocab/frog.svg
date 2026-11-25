@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated frog">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<circle cx="179" cy="206" r="42" fill="#9dde9d" stroke="#65b783" stroke-width="6"/><circle cx="308" cy="206" r="42" fill="#9dde9d" stroke="#65b783" stroke-width="6"/><ellipse cx="245" cy="292" rx="138" ry="94" fill="#a9e7aa" stroke="#65b783" stroke-width="7"/><circle cx="178" cy="204" r="16" fill="#426c5b"/><circle cx="306" cy="204" r="16" fill="#426c5b"/><path d="M205 303Q246 343 288 301" stroke="#53966e" stroke-width="6" fill="none" stroke-linecap="round"/><circle cx="169" cy="288" r="14" fill="#f4a7af" opacity=".6"/><circle cx="319" cy="288" r="14" fill="#f4a7af" opacity=".6"/></svg>
