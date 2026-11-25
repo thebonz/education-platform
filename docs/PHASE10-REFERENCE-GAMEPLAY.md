@@ -14,7 +14,8 @@ Tham khảo công khai **https://easypeasyenglish.asia/** (ngày 25/11/2026) và
 | Bộ game theo từng Unit/khối lớp | Có hệ taxonomy và level, các unit ví dụ ban đầu; **chưa có lộ trình Global Success 1–5 hoàn chỉnh**, không sao chép sách | Cần phát triển học liệu gốc, kiểm tra quyền sử dụng |
 | Giáo viên biên soạn / nhân bản nội dung | Có Game Builder, nhân bản, phân quyền `content_reviewer`, checklist chất lượng | Đã có |
 | Offline cho thành viên | Có offline package/Player và SePay Sandbox | Đã có; chưa mở live |
-| Random Student Picker / building/camera | Chưa triển khai trong PR này; sẽ phát triển riêng sau khi hoàn thành chất lượng 29 game | Kế hoạch, không gắn nhãn đã có |
+| Random Student Picker | **Vòng quay gọi tên** gốc HappyClass tại `/tools/random-picker`: tối đa 40 tên, không lặp trong một lượt hoặc bật cho phép lặp; chọn ngẫu nhiên với Web Crypto, **không gửi tên đi hay lưu danh sách** | Đã triển khai mã nguồn Phase 10.3; chưa đưa lên DL380 |
+| Building / camera games | Chưa triển khai; cần thiết kế và đánh giá riêng về an toàn khi dùng camera trẻ em | Kế hoạch, không gắn nhãn đã có |
 
 ## Triển khai gameplay mới
 
@@ -26,6 +27,12 @@ Hai game nháp tự soạn, **không có game nào được duyệt tự động
 2. **Đường sao dấu thanh** – Lớp 1, Vietnamese, 10 câu về sáu thanh và từ thông dụng; `isPublished=false`, `reviewStatus=PENDING`. TTS tiếng Việt sử dụng Piper hiện có; cần **nghe thử thực tế** trước khi phát hành.
 
 **Không dùng câu hỏi/ảnh/sound của Easy Peasy English**. Các asset trang chủ và bảng sao được tạo bằng CSS/emoji phổ biến, không tải ảnh từ site tham khảo.
+
+## Tiện ích giáo viên: chọn học sinh ngẫu nhiên
+
+Trang English/Vietnamese có thẻ **Teacher Toolbox / Góc giáo viên** trỏ vào `/tools/random-picker`. Giáo viên tự nhập hoặc dán tên, một tên mỗi dòng, tối đa **40** bạn (36 ký tự/tên). Danh sách trùng tên (không phân biệt hoa/thường) được gộp. Bấm chọn lượt tiếp theo, mặc định không lặp đến khi chọn hết; có tùy chọn cho phép lặp và nút bắt đầu lượt mới.
+
+**Riêng tư:** tên chỉ lưu trong state React của tab đang mở; không gọi API, không lưu localStorage/cookie/database, không đưa tên vào URL, không gửi danh sách tới Piper hay bên thứ ba. Làm mới trang sẽ xóa danh sách. Thử nghiệm bằng Playwright có kiểm tra các ràng buộc này. Dữ liệu thật do giáo viên tự nhập; không seed tên học sinh.
 
 ## Lộ trình kiểm tra chất lượng
 
