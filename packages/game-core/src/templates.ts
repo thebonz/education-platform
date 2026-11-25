@@ -109,7 +109,7 @@ export const pictureMatchSchema = z
   .superRefine((d, ctx) => {
     uniqueBy(d.pairs, (x) => x.id, ctx, 'pairs', 'id');
     uniqueBy(d.pairs, (x) => x.word, ctx, 'pairs', 'Từ');
-    if (d.roundSize > d.pairs.length) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['roundSize'], message: 'Số cặp mỗi lượt không vượt số từ trong thư viện' });
+    if (d.roundSize !== undefined && d.roundSize > d.pairs.length) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['roundSize'], message: 'Số cặp mỗi lượt không vượt số từ trong thư viện' });
   });
 
 // ---------------------------------------------------------------------------
