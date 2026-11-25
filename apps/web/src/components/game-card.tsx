@@ -5,6 +5,7 @@ const POSTER_TITLES: Record<string, [string, string]> = {
   bingo: ['B', 'I N G O'],
   'picture-match': ['A', 'MATCH'],
   'hidden-picture': ['?', 'DISCOVER'],
+  'mystery-doors': ['?', 'MYSTERY'],
   'bubble-spelling': ['A', 'SPELL'],
   spelling: ['Aa', 'WORDS'],
   quiz: ['?', 'QUIZ TIME'],

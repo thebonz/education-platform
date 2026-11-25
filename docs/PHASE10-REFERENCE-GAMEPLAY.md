@@ -10,7 +10,7 @@ Tham khảo công khai **https://easypeasyenglish.asia/** (ngày 25/11/2026) và
 | Bộ sưu tập game và tìm theo chủ đề | Đã có library tìm kiếm, filter cấp độ/danh mục, nhóm kỹ năng; trang chủ dùng các liên kết trò chơi thật | Đã có |
 | Alphabet Bingo / ghép hình, ghép từ | Có Bingo, picture-match, bubble-spelling, spelling và Game Builder | Đã có |
 | Trò chơi bảng đi và trả lời theo đội | **Star Trail Adventure / Đường sao dấu thanh**: cơ chế do HappyClass tự phát triển, tung xúc xắc rồi chọn đáp án; đúng mới tiến, 2–4 đội, điểm và xếp hạng | Game mới, **ẩn khi nạp seed**, chờ giáo viên duyệt |
-| Nhìn hình bí mật để đoán | Có Hidden Picture, khác luật và hình của site tham khảo | Đã có |
+| Nhìn hình bí mật để đoán | Có Hidden Picture, và **Mystery House** (mở cửa từng phần để đoán tranh) sử dụng thiết kế riêng | Hidden Picture đã có, Mystery House bản nháp đang ẩn |
 | Bộ game theo từng Unit/khối lớp | Có hệ taxonomy và level, các unit ví dụ ban đầu; **chưa có lộ trình Global Success 1–5 hoàn chỉnh**, không sao chép sách | Cần phát triển học liệu gốc, kiểm tra quyền sử dụng |
 | Giáo viên biên soạn / nhân bản nội dung | Có Game Builder, nhân bản, phân quyền `content_reviewer`, checklist chất lượng | Đã có |
 | Offline cho thành viên | Có offline package/Player và SePay Sandbox | Đã có; chưa mở live |
@@ -21,10 +21,11 @@ Tham khảo công khai **https://easypeasyenglish.asia/** (ngày 25/11/2026) và
 
 Đăng ký template `trail-board` trong `packages/game-core`; frontend `trail-board.tsx` dùng GameShell sẵn có. Schema giới hạn **8–24 ô, xúc xắc 2–6 mặt, 2–4 đội và 4–40 câu hỏi**. Câu hỏi có đáp án nằm trong lựa chọn, không lặp ID, Unicode NFC. Đội trả lời đúng tiến số ô vừa tung, trả lời sai đứng yên, không có đội đi qua đích. Sau lượt cuối, xếp hạng theo vị trí trên bảng; bảng điểm kết quả cá nhân lưu theo số câu đúng.
 
-Hai game nháp tự soạn, **không có game nào được duyệt tự động**:
+Ba game nháp tự soạn trong Phase 10, **không có game nào được duyệt tự động**:
 
 1. **Star Trail Adventure** – Pre-A1, English, 10 câu về con vật, màu sắc, từ vựng; `isPublished=false`, `reviewStatus=PENDING`.
 2. **Đường sao dấu thanh** – Lớp 1, Vietnamese, 10 câu về sáu thanh và từ thông dụng; `isPublished=false`, `reviewStatus=PENDING`. TTS tiếng Việt sử dụng Piper hiện có; cần **nghe thử thực tế** trước khi phát hành.
+3. **Mystery House: Find the Picture** – Kindergarten English, 4 lượt, 6 cánh cửa, nghe câu hỏi rồi mở tranh và đoán từ; **`isPublished=false`, `reviewStatus=PENDING`**. Hỗ trợ ảnh từ thư viện Game Builder; dùng ảnh/emoji nguyên bản.
 
 **Không dùng câu hỏi/ảnh/sound của Easy Peasy English**. Các asset trang chủ và bảng sao được tạo bằng CSS/emoji phổ biến, không tải ảnh từ site tham khảo.
 

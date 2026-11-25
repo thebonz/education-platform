@@ -154,3 +154,48 @@ test('Star Trail: 2 bản mẫu ở chế độ ẩn, chơi bằng Game Builder 
   }
   // Không bấm duyệt, không phát hành: vẫn là mẫu thử để giáo viên kiểm nội dung.
 });
+
+test('Mystery Doors: mẫu English ẩn, mở cửa và đoán trọn 4 vòng trong Admin Preview', async ({ page }) => {
+  test.skip(!ADMIN_PASSWORD, 'Chưa đặt E2E_ADMIN_PASSWORD');
+  await page.goto(`${ADMIN}/login`);
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Mật khẩu').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByTestId('admin-dashboard')).toBeVisible();
+
+  const response = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
+  expect(response.ok()).toBeTruthy();
+  const list = await response.json();
+  const game = list.games.find((g: { slug: string }) => g.slug === 'mystery-house-animals');
+  expect(game).toBeTruthy();
+  expect(game.reviewStatus).toBe('PENDING');
+  expect(game.isPublished).toBe(false);
+
+  await page.goto(`${ADMIN}/games/${game.id}`);
+  await page.getByTestId('open-builder').click();
+  await page.getByTestId('refresh-preview').click();
+  const preview = page.getByTestId('preview');
+  await preview.getByTestId('shell-start').click();
+  await expect(preview.getByTestId('mystery-doors')).toBeVisible();
+
+  for (const [index, answer] of ['cat', 'apple', 'ball', 'bus'].entries()) {
+    await expect(preview.getByTestId('mystery-round')).toContainText(`${index + 1}/4`);
+    await expect(preview.getByTestId('mystery-option')).toHaveCount(3);
+    await expect(preview.getByTestId('mystery-option').first()).toBeDisabled();
+    await preview.getByTestId('mystery-door').first().click();
+    await expect(preview.getByTestId('mystery-opened')).toContainText('1/6');
+    await preview.getByRole('button', { name: answer, exact: true }).click();
+    await expect(preview.getByTestId('mystery-feedback')).toContainText(answer);
+    await preview.getByTestId('mystery-next').click();
+  }
+  await expect(preview.getByTestId('shell-result')).toBeVisible();
+  await expect(preview.getByTestId('result-score')).toContainText('4/4');
+
+  // Xem trước không phát hành hoặc duyệt dữ liệu mẫu.
+  const verify = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
+  expect(verify.ok()).toBeTruthy();
+  const after = (await verify.json()).games.find((g: { slug: string }) => g.slug === 'mystery-house-animals');
+  expect(after).toBeTruthy();
+  expect(after.isPublished).toBe(false);
+  expect(after.reviewStatus).toBe('PENDING');
+});

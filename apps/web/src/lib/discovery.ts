@@ -8,7 +8,7 @@ export type SkillGroup = {
 
 export const SKILL_GROUPS: Record<'english' | 'vietnamese', readonly SkillGroup[]> = {
   english: [
-    { key: 'listen', label: 'Listen & discover', icon: '🎧', templateKeys: ['bingo', 'picture-match', 'hidden-picture'] },
+    { key: 'listen', label: 'Listen & discover', icon: '🎧', templateKeys: ['bingo', 'picture-match', 'hidden-picture', 'mystery-doors'] },
     { key: 'words', label: 'Build & spell', icon: '🔤', templateKeys: ['bubble-spelling', 'spelling'] },
     { key: 'teams', label: 'Team challenges', icon: '🏆', templateKeys: ['quiz', 'trail-board'] },
   ],

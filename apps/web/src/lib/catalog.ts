@@ -26,6 +26,6 @@ export type PlayPayload = {
 };
 
 export const TEMPLATE_EMOJI: Record<string, string> = {
-  bingo: '🎯', 'picture-match': '🧩', 'hidden-picture': '🖼️', 'bubble-spelling': '🫧', spelling: '✍️', quiz: '⚡', 'trail-board': '🌈',
+  bingo: '🎯', 'picture-match': '🧩', 'hidden-picture': '🖼️', 'mystery-doors': '🚪', 'bubble-spelling': '🫧', spelling: '✍️', quiz: '⚡', 'trail-board': '🌈',
   'syllable-builder': '🔤', 'tone-finder': '🎵', 'word-sort': '🗂️', 'sentence-order': '🧱',
 };

@@ -25,6 +25,10 @@ Anh muốn nâng HappyClass theo trải nghiệm trò chơi tiếng Anh thú v�
 - Không cập nhật máy chủ DL380 tự động. Merge mã nguồn **không phải deploy**; thay đổi Web cần một lần build riêng có kiểm soát.
 - Trên DL380 còn CMMS/Airdrop; thao tác triển khai chỉ giới hạn HappyClass, cần sao lưu/kiểm tra sau deploy.
 
+## Game mới: Mystery House (mã nguồn giai đoạn kế tiếp)
+
+Đã phát triển template `mystery-doors`: các cửa tạo bằng CSS che tranh, học sinh mở từng cửa rồi chọn đáp án từ vựng. Game Builder dùng được ảnh thư viện hoặc emoji, hỗ trợ 4/6/9 cửa và 3–12 vòng, audio câu hỏi và gợi ý. Mẫu English gồm bốn vòng gốc (cat/apple/ball/bus), luôn **ẩn + PENDING** để giáo viên chơi thử. Không sao chép asset/code/nội dung từ website khác.
+
 ## Mục tiêu chất lượng giai đoạn kế tiếp
 
 1. **Nội dung:** giáo viên chấm rubric từng game English/VI (mục tiêu học, câu hỏi/đáp án, âm thanh, mức độ, chất lượng hình).

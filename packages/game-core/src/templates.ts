@@ -48,6 +48,38 @@ export const bingoSchema = z
   });
 
 // ---------------------------------------------------------------------------
+// mystery-doors: khám phá hình ảnh từng cửa và đoán từ bằng gợi ý
+// ---------------------------------------------------------------------------
+const mysteryRoundSchema = z
+  .object({
+    id,
+    picture: pictureSchema,
+    question: text(140),
+    choices: z.array(text(60)).min(3).max(4),
+    answer: text(60),
+    say: optionalText(160),
+    hint: optionalText(140),
+  })
+  .superRefine((round, ctx) => {
+    if (!round.choices.includes(round.answer)) ctx.addIssue({
+      code: z.ZodIssueCode.custom, path: ['answer'], message: 'Đáp án phải thuộc danh sách lựa chọn',
+    });
+    if (new Set(round.choices).size !== round.choices.length) ctx.addIssue({
+      code: z.ZodIssueCode.custom, path: ['choices'], message: 'Đáp án lựa chọn bị trùng',
+    });
+  });
+
+export const mysteryDoorsSchema = z
+  .object({
+    instructions: optionalText(300),
+    doorCount: z.union([z.literal(4), z.literal(6), z.literal(9)]).default(6),
+    rounds: z.array(mysteryRoundSchema).min(3).max(12),
+  })
+  .superRefine((data, ctx) => {
+    uniqueBy(data.rounds, (round) => round.id, ctx, 'rounds', 'id');
+  });
+
+// ---------------------------------------------------------------------------
 // picture-match
 // ---------------------------------------------------------------------------
 export const pictureMatchSchema = z
@@ -322,6 +354,7 @@ export const TEMPLATES = {
   quiz: { name: { en: 'Quiz', vi: 'Đố vui' }, schema: quizSchema, languages: ['en', 'vi'] },
   'trail-board': { name: { en: 'Star Trail Adventure', vi: 'Đường đua ngôi sao' }, schema: trailBoardSchema, languages: ['en', 'vi'] },
   'hidden-picture': { name: { en: 'Hidden Picture', vi: 'Bức tranh bí mật' }, schema: hiddenPictureSchema, languages: ['en', 'vi'] },
+  'mystery-doors': { name: { en: 'Mystery Doors', vi: 'Những cánh cửa bí mật' }, schema: mysteryDoorsSchema, languages: ['en', 'vi'] },
   'bubble-spelling': { name: { en: 'Bubble Spelling', vi: 'Bong bóng đánh vần' }, schema: bubbleSpellingSchema, languages: ['en', 'vi'] },
   spelling: { name: { en: 'Spelling', vi: 'Chính tả' }, schema: spellingSchema, languages: ['en', 'vi'] },
   'syllable-builder': { name: { en: 'Syllable Builder', vi: 'Ghép tiếng' }, schema: syllableBuilderSchema, languages: ['vi'] },
@@ -339,6 +372,7 @@ export type QuizData = z.infer<typeof quizSchema>;
 export type QuizQuestion = QuizData['questions'][number];
 export type TrailBoardData = z.infer<typeof trailBoardSchema>;
 export type HiddenPictureData = z.infer<typeof hiddenPictureSchema>;
+export type MysteryDoorsData = z.infer<typeof mysteryDoorsSchema>;
 export type BubbleSpellingData = z.infer<typeof bubbleSpellingSchema>;
 export type SpellingData = z.infer<typeof spellingSchema>;
 export type SyllableBuilderData = z.infer<typeof syllableBuilderSchema>;
@@ -352,6 +386,7 @@ export type TemplateDataMap = {
   quiz: QuizData;
   'trail-board': TrailBoardData;
   'hidden-picture': HiddenPictureData;
+  'mystery-doors': MysteryDoorsData;
   'bubble-spelling': BubbleSpellingData;
   spelling: SpellingData;
   'syllable-builder': SyllableBuilderData;

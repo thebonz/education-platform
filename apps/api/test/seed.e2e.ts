@@ -10,15 +10,16 @@ describe('Seed nội dung game', () => {
   });
   afterAll(async () => { await prisma.$disconnect(); });
 
-  it('tạo đủ 31 game (29 đã xuất bản, 2 bản thử chờ duyệt), cấp độ và danh mục; chạy lại không tạo trùng', async () => {
-    expect(await prisma.game.count()).toBe(31);
+  it('tạo đủ 32 game (29 đã xuất bản, 3 bản thử chờ duyệt), cấp độ và danh mục; chạy lại không tạo trùng', async () => {
+    expect(await prisma.game.count()).toBe(32);
     expect(await prisma.game.count({ where: { isPublished: true } })).toBe(29);
     expect(await prisma.game.count({ where: { templateKey: 'trail-board', isPublished: false, reviewStatus: 'PENDING' } })).toBe(2);
+    expect(await prisma.game.count({ where: { templateKey: 'mystery-doors', isPublished: false, reviewStatus: 'PENDING' } })).toBe(1);
     expect(await prisma.level.count()).toBe(12);
     expect(await prisma.gameCategory.count({ where: { product: { slug: 'english' } } })).toBe(20);
     const again = await seed(prisma);
-    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 31 });
-    expect(await prisma.gameVersion.count()).toBe(31);
+    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 32 });
+    expect(await prisma.gameVersion.count()).toBe(32);
   });
 
   it('nâng cấp game cũ lên phiên bản nội dung mới, giữ bản cũ', async () => {
