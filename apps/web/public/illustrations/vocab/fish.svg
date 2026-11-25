@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated fish">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<path d="M148 271 75 190V352Z" fill="#ffb38e" stroke="#d58281" stroke-width="6"/><ellipse cx="251" cy="274" rx="141" ry="96" fill="#72c8e6" stroke="#429ac4" stroke-width="7"/><path d="M192 204Q237 128 292 206M194 342Q233 402 293 344" fill="#5db6dc" stroke="#429ac4" stroke-width="5"/><circle cx="324" cy="254" r="13" fill="#304f79"/><circle cx="326" cy="250" r="4" fill="white"/><path d="M356 297Q338 319 315 306" stroke="#287994" stroke-width="6" fill="none" stroke-linecap="round"/><g fill="none" stroke="#a4e2f1" stroke-width="5"><path d="M210 251Q240 276 208 300M246 241Q277 271 246 309"/></g></svg>
