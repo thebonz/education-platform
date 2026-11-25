@@ -102,12 +102,14 @@ export const picturePuzzleSchema = z.object({
 export const pictureMatchSchema = z
   .object({
     instructions: optionalText(300),
-    pairs: z.array(z.object({ id, word: text(40), picture: pictureSchema, say: optionalText(80) })).min(3).max(12),
+    pairs: z.array(z.object({ id, word: text(40), picture: pictureSchema, say: optionalText(80) })).min(3).max(60),
+    roundSize: z.number().int().min(3).max(12).default(8),
     timeLimitSec: z.number().int().min(0).max(600).default(0),
   })
   .superRefine((d, ctx) => {
     uniqueBy(d.pairs, (x) => x.id, ctx, 'pairs', 'id');
     uniqueBy(d.pairs, (x) => x.word, ctx, 'pairs', 'Từ');
+    if (d.roundSize > d.pairs.length) ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['roundSize'], message: 'Số cặp mỗi lượt không vượt số từ trong thư viện' });
   });
 
 // ---------------------------------------------------------------------------
@@ -194,6 +196,7 @@ export const bubbleSpellingSchema = z
     /** Số bong bóng gây nhiễu thêm vào mỗi từ. */
     extraBubbles: z.number().int().min(0).max(6).default(2),
     distractorPool: z.array(text(10)).min(1).max(40).optional(),
+    wordsPerRound: z.number().int().min(1).max(12).default(6),
     units: z
       .array(z.object({ id, title: text(60), words: z.array(bubbleWord).min(1).max(20) }))
       .min(1)
