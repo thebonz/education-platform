@@ -59,7 +59,8 @@ export function GameShell(props: GameShellProps) {
   const lang: GameLang = props.product === 'english' ? 'en' : 'vi';
   const t = gameStrings(lang);
   const Template = TEMPLATE_COMPONENTS[props.templateKey];
-  const isTeamGame = props.templateKey === 'quiz' && (props.data as { mode?: string }).mode === 'teams';
+  const isTeamGame = props.templateKey === 'trail-board'
+    || (props.templateKey === 'quiz' && (props.data as { mode?: string }).mode === 'teams');
   const defaultTeams = (props.data as { defaultTeams?: number }).defaultTeams ?? 2;
 
   const rootRef = useRef<HTMLDivElement>(null);
