@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-labelledby="title">
+<title id="title">HappyClass original: peach cat on a flower meadow</title>
+<defs><linearGradient id="bg" x2="1" y2="1"><stop stop-color="#d8f8ff"/><stop offset="1" stop-color="#fff0d7"/></linearGradient><linearGradient id="fur" x2=".2" y2="1"><stop stop-color="#ffc895"/><stop offset="1" stop-color="#fa9f83"/></linearGradient></defs>
+<rect width="480" height="480" fill="url(#bg)"/>
+<circle cx="395" cy="84" r="48" fill="#ffefa8"/>
+<g opacity=".9" fill="#fff"><ellipse cx="94" cy="82" rx="61" ry="26"/><ellipse cx="60" cy="70" rx="31" ry="25"/><ellipse cx="338" cy="137" rx="66" ry="23"/><ellipse cx="375" cy="122" rx="32" ry="26"/></g>
+<path d="M0 345Q95 298 193 350T480 332V480H0Z" fill="#b2eac8"/>
+<path d="M0 405Q145 360 269 408T480 391V480H0Z" fill="#91d8b4"/>
+<g><path d="M98 408v43M355 374v44M407 423v34" stroke="#4eaa84" stroke-width="6"/><g fill="#fff5b5"><circle cx="98" cy="404" r="17"/><circle cx="355" cy="371" r="16"/><circle cx="407" cy="418" r="15"/></g><g fill="#fa91aa"><circle cx="98" cy="403" r="8"/><circle cx="355" cy="369" r="8"/><circle cx="407" cy="416" r="8"/></g></g>
+<path d="M180 329C153 360 167 426 226 439H284C349 427 359 359 322 329Z" fill="url(#fur)" stroke="#b97966" stroke-width="6"/>
+<path d="M193 196 177 125 234 162Q256 157 286 161L341 124 328 202" fill="#ffba91" stroke="#b97966" stroke-width="6" stroke-linejoin="round"/>
+<path d="M197 170 189 149 220 166M303 166 331 148 320 172" fill="#e98a98"/>
+<ellipse cx="258" cy="254" rx="105" ry="93" fill="url(#fur)" stroke="#b97966" stroke-width="6"/>
+<ellipse cx="223" cy="251" rx="12" ry="19" fill="#5b4b61"/><ellipse cx="298" cy="251" rx="12" ry="19" fill="#5b4b61"/>
+<path d="M254 268 265 268 259 277Z" fill="#cc7086"/><path d="M259 278Q242 294 232 283M259 278Q274 296 288 282" fill="none" stroke="#80586b" stroke-width="4" stroke-linecap="round"/>
+<circle cx="192" cy="277" r="15" fill="#ff97a4" opacity=".65"/><circle cx="325" cy="277" r="15" fill="#ff97a4" opacity=".65"/>
+<path d="M174 291 130 278M174 305 130 305M343 291 389 278M344 305 393 305" stroke="#9b6571" stroke-width="4" stroke-linecap="round"/>
+<path d="M190 407Q173 395 172 367M311 408Q329 392 326 366" stroke="#b97966" stroke-width="6" fill="none" stroke-linecap="round"/>
+</svg>
