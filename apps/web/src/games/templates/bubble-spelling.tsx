@@ -5,6 +5,7 @@ import { createRng, shuffle } from '@happyclass/game-core/rng';
 import type { Rng } from '@happyclass/game-core/rng';
 import type { BubbleSpellingData } from '@happyclass/game-core/templates';
 import { graphemes } from '@happyclass/game-core/text';
+import { sessionSelection } from '@happyclass/game-core/learning-session';
 import { PictureView } from '../picture';
 import type { TemplateProps } from '../shell/types';
 import { FeedbackLine, useFeedback } from './feedback';
@@ -22,11 +23,15 @@ function makeBubbles(word: Word, extra: number, pool: string[], rng: Rng): Bubbl
   return shuffle([...segments, ...extras], rng).map((value, i) => ({ key: `${i}-${value}`, value }));
 }
 
-export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, onFinish }: TemplateProps<BubbleSpellingData>) {
+export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onProgress, onFinish }: TemplateProps<BubbleSpellingData>) {
   const [unitId, setUnitId] = useState<string | null>(data.units.length === 1 ? data.units[0].id : null);
   const unit = data.units.find((u) => u.id === unitId) ?? null;
   const pool = data.distractorPool ?? (lang === 'en' ? EN_POOL : VI_POOL);
   const seed = useMemo(() => Math.floor(rng() * 2 ** 31), [rng]);
+  const unitWords = useMemo(
+    () => unit ? sessionSelection(unit.words, data.wordsPerRound, round, createRng(`word-bank-${seed}-${unit.id}`)) : [],
+    [unit, data.wordsPerRound, round, seed],
+  );
 
   const [wordIndex, setWordIndex] = useState(0);
   const [built, setBuilt] = useState<string[]>([]);
@@ -38,7 +43,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
   const [wordDone, setWordDone] = useState(false);
   const { feedback, show } = useFeedback();
 
-  const word = unit?.words[wordIndex];
+  const word = unitWords[wordIndex];
   const segments = useMemo(() => (word ? word.segments ?? graphemes(word.word) : []), [word]);
   const bubbles = useMemo(
     () => (word ? makeBubbles(word, data.extraBubbles, pool, createRng(`${seed}-${unitId}-${wordIndex}`)) : []),
@@ -59,7 +64,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
           {data.units.map((u) => (
             <button key={u.id} type="button" className="unit-card" data-testid="unit-option" onClick={() => setUnitId(u.id)}>
               <PictureView picture={u.words[0].picture} size={40} />
-              <b>{u.title}</b><small>{u.words.length} {t.words}</small>
+              <b>{u.title}</b><small>{Math.min(data.wordsPerRound, u.words.length)} / {u.words.length} {t.words} · fresh set each replay</small>
             </button>
           ))}
         </div>
@@ -106,10 +111,10 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
   }
 
   function nextWord() {
-    if (wordIndex + 1 < unit!.words.length) {
+    if (wordIndex + 1 < unitWords.length) {
       setWordIndex(wordIndex + 1); retry();
     } else {
-      onFinish({ score, maxScore: unit!.words.length, mistakes: mistakes + hints });
+      onFinish({ score, maxScore: unitWords.length, mistakes: mistakes + hints });
     }
   }
 
@@ -120,11 +125,11 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
           <span className="eyebrow">{lang === 'vi' ? 'KHU VƯỜN TỪ NGỮ' : 'THE WORD GARDEN'}</span>
           <h3>🌻 {unit.title}</h3>
           <p className="tpl-sub" data-testid="bubble-word" data-word-id={word!.id}>
-            {lang === 'vi' ? 'Từ' : 'Word'} {wordIndex + 1} {t.of} {unit.words.length}
+            {lang === 'vi' ? 'Từ' : 'Word'} {wordIndex + 1} {t.of} {unitWords.length}
           </p>
         </div>
         <div className="bubble-round-dots" role="group" aria-label={lang === 'vi' ? 'Tiến độ các từ' : 'Word progress'}>
-          {unit.words.map((item, index) => (
+          {unitWords.map((item, index) => (
             <span key={item.id} className={index < wordIndex ? 'complete' : index === wordIndex ? 'active' : ''}
               aria-label={`${lang === 'vi' ? 'Từ' : 'Word'} ${index + 1}: ${index < wordIndex ? (lang === 'vi' ? 'hoàn thành' : 'complete') : index === wordIndex ? (lang === 'vi' ? 'đang chơi' : 'current') : (lang === 'vi' ? 'chưa đến' : 'upcoming')}`}>
               {index < wordIndex ? '✓' : '✦'}
@@ -155,7 +160,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, audio, onProgress, 
       <div className="tpl-footer">
         <button type="button" className="secondary-button" onClick={hint} disabled={wordDone}>💡 {t.hint}</button>
         <button type="button" className="secondary-button" onClick={retry}>↺ {t.retry}</button>
-        {wordDone && <button type="button" className="primary-button" onClick={nextWord} data-testid="bubble-next">{wordIndex + 1 < unit.words.length ? `${t.next} →` : t.finish}</button>}
+        {wordDone && <button type="button" className="primary-button" onClick={nextWord} data-testid="bubble-next">{wordIndex + 1 < unitWords.length ? `${t.next} →` : t.finish}</button>}
       </div>
     </div>
   );
