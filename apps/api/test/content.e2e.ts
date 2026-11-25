@@ -33,8 +33,8 @@ describe('Duyệt nội dung game (giáo viên duyệt)', () => {
 
   it('lọc theo sản phẩm và trạng thái duyệt; đếm số game chờ duyệt', async () => {
     const res = await as(editor).get('/api/admin/games?product=vietnamese&review=PENDING&pageSize=100').expect(200);
-    expect(res.body.total).toBe(23);
-    expect(res.body.reviewCounts).toEqual({ PENDING: 23 });
+    expect(res.body.total).toBe(24);
+    expect(res.body.reviewCounts).toEqual({ PENDING: 24 });
     expect(res.body.games[0]).toMatchObject({ product: { slug: 'vietnamese' }, reviewStatus: 'PENDING', version: 1 });
     expect(res.body.games[0]).not.toHaveProperty('content');
     await as(editor).get('/api/admin/games?review=KHONG_CO').expect(400);
@@ -71,7 +71,7 @@ describe('Duyệt nội dung game (giáo viên duyệt)', () => {
     const pub = await t.http().get('/api/catalog/products/vietnamese/games/ghep-tieng-co-ban').expect(200);
     expect(pub.body.reviewStatus).toBe('APPROVED');
     const counts = await as(editor).get('/api/admin/games?product=vietnamese').expect(200);
-    expect(counts.body.reviewCounts).toEqual({ APPROVED: 1, PENDING: 22 });
+    expect(counts.body.reviewCounts).toEqual({ APPROVED: 1, PENDING: 23 });
   });
 
   it('id không hợp lệ hoặc không tồn tại', async () => {

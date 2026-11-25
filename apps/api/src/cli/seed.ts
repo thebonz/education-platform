@@ -15,10 +15,11 @@ import { AccessLevel, Prisma, PrismaClient } from '@prisma/client';
 import { ROLES } from '../rbac/permissions';
 import { ENGLISH_GAMES } from './content/english';
 import { TAXONOMY } from './content/taxonomy';
+import { TRAIL_ADVENTURES } from './content/trail-adventures';
 import type { GamePack } from './content/types';
 import { VIETNAMESE_GAMES } from './content/vietnamese';
 
-export const ALL_PACKS: GamePack[] = [...ENGLISH_GAMES, ...VIETNAMESE_GAMES];
+export const ALL_PACKS: GamePack[] = [...ENGLISH_GAMES, ...VIETNAMESE_GAMES, ...TRAIL_ADVENTURES];
 
 const PRODUCTS = [
   {

@@ -41,6 +41,10 @@
       "types": "./dist/scoring.d.ts",
       "default": "./dist/scoring.js"
     },
+    "./trail": {
+      "types": "./dist/trail.d.ts",
+      "default": "./dist/trail.js"
+    },
     "./templates": {
       "types": "./dist/templates.d.ts",
       "default": "./dist/templates.js"

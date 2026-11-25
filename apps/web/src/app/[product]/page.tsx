@@ -43,10 +43,21 @@ export default async function ProductHome({ params }: { params: Promise<{ produc
           <span className="eyebrow">{copy.eyebrow}</span>
           <h1>{copy.headline.split('\n').map((line) => <span key={line}>{line}<br /></span>)}</h1>
           <p>{copy.description}</p>
-          <Link href={`${base}/games`} className="primary-button">{copy.button} <b>→</b></Link>
+          <div className="hero-actions">
+            <Link href={`${base}/games`} className="primary-button">{copy.button} <b>→</b></Link>
+            <Link href={`${base}/pricing`} className="secondary-button">
+              {isEnglish ? 'Explore membership' : 'Khám phá gói học'} ↗
+            </Link>
+          </div>
           {games.ok && <div className="hero-proof"><span>✦</span>{isEnglish ? `${games.data.length} games · ${freeCount} free to play` : `${games.data.length} trò chơi · ${freeCount} trò miễn phí`}</div>}
         </div>
-        <div className="hero-illustration"><div className="orbit orbit-one" /><div className="orbit orbit-two" /><div className="hero-orb">{isEnglish ? 'Aa' : 'Ăă'}<small>{isEnglish ? 'PLAY' : 'HỌC VUI'}</small></div></div>
+        <div className="hero-illustration" aria-hidden="true">
+          <div className="orbit orbit-one" /><div className="orbit orbit-two" />
+          <div className="hero-orb">{isEnglish ? 'Aa' : 'Ăă'}<small>{isEnglish ? 'PLAY' : 'HỌC VUI'}</small></div>
+          <div className="float-shape shape-one">✨</div>
+          <div className="float-shape shape-two">{isEnglish ? 'A · B · C' : 'A · Ă · Â'}</div>
+          <div className="float-shape shape-three">🌈</div>
+        </div>
       </section>
 
       {activities.length > 0 && (

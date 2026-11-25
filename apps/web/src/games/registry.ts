@@ -6,6 +6,7 @@ import { BubbleSpellingTemplate } from './templates/bubble-spelling';
 import { HiddenPictureTemplate } from './templates/hidden-picture';
 import { PictureMatchTemplate } from './templates/picture-match';
 import { QuizTemplate } from './templates/quiz';
+import { TrailBoardTemplate } from './templates/trail-board';
 import { SentenceOrderTemplate } from './templates/sentence-order';
 import { SpellingTemplate } from './templates/spelling';
 import { SyllableBuilderTemplate } from './templates/syllable-builder';
@@ -18,6 +19,7 @@ export const TEMPLATE_COMPONENTS: Record<TemplateKey, ComponentType<TemplateProp
   bingo: BingoTemplate,
   'picture-match': PictureMatchTemplate,
   quiz: QuizTemplate,
+  'trail-board': TrailBoardTemplate,
   'hidden-picture': HiddenPictureTemplate,
   'bubble-spelling': BubbleSpellingTemplate,
   spelling: SpellingTemplate,
