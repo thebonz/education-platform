@@ -45,6 +45,10 @@
       "types": "./dist/trail.d.ts",
       "default": "./dist/trail.js"
     },
+    "./picture-puzzle": {
+      "types": "./dist/picture-puzzle.d.ts",
+      "default": "./dist/picture-puzzle.js"
+    },
     "./templates": {
       "types": "./dist/templates.d.ts",
       "default": "./dist/templates.js"
