@@ -99,12 +99,12 @@ test('Bingo Carnival: thay kích thước, mục tiêu và trộn bảng; chơi 
   await expect(page.getByTestId('bingo-progress')).toHaveAttribute('max', '9');
   await page.getByTestId('bingo-new-card').click();
   await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '0');
-  const firstCall = await page.getByTestId('bingo-call').getAttribute('data-call-text');
+  const firstCall = (await page.getByTestId('bingo-call').getAttribute('data-call-text')) ?? '';
   await page.locator(`[data-testid=bingo-cell][data-text="${firstCall}"]`).click();
   await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '1');
 
   // Không thể đánh dấu một ô khác khi người gọi chưa đọc đến chữ đó.
-  const nextCall = await page.getByTestId('bingo-call').getAttribute('data-call-text');
+  const nextCall = (await page.getByTestId('bingo-call').getAttribute('data-call-text')) ?? '';
   const wrong = page.getByTestId('bingo-cell').filter({ hasNotText: nextCall }).filter({ hasNotText: firstCall }).first();
   await wrong.click();
   await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '1');
