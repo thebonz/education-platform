@@ -13,8 +13,9 @@ export function HiddenPictureTemplate({ data, t, rng, round, audio, onProgress, 
     [data.questions, data.questionsPerRound, round, rng],
   );
   const total = questions.length;
-  const scenes = data.scenes?.length ? data.scenes :
-    [{ picture: data.picture, answer: data.pictureAnswer, choices: data.pictureChoices }];
+  const scenes = useMemo(() => data.scenes?.length ? data.scenes :
+    [{ picture: data.picture, answer: data.pictureAnswer, choices: data.pictureChoices }],
+    [data]);
   const scene = scenes[(round - 1) % scenes.length];
   const cols = Math.ceil(Math.sqrt(total));
   const rows = Math.ceil(total / cols);
