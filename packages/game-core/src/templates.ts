@@ -91,6 +91,22 @@ export const quizSchema = z
   .superRefine((d, ctx) => uniqueBy(d.questions, (x) => x.id, ctx, 'questions', 'id'));
 
 // ---------------------------------------------------------------------------
+// trail-board: trò chơi thám hiểm theo lượt, luật tự xây dựng cho HappyClass
+// ---------------------------------------------------------------------------
+export const trailBoardSchema = z
+  .object({
+    instructions: optionalText(300),
+    boardLength: z.number().int().min(8).max(24).default(12),
+    diceSides: z.number().int().min(2).max(6).default(4),
+    defaultTeams: z.number().int().min(2).max(4).default(2),
+    shuffleChoices: z.boolean().default(true),
+    questions: z.array(choiceQuestion).min(4).max(40),
+  })
+  .superRefine((d, ctx) => {
+    uniqueBy(d.questions, (q) => q.id, ctx, 'questions', 'id');
+  });
+
+// ---------------------------------------------------------------------------
 // hidden-picture
 // ---------------------------------------------------------------------------
 export const hiddenPictureSchema = z
@@ -304,6 +320,7 @@ export const TEMPLATES = {
   bingo: { name: { en: 'Bingo', vi: 'Bingo' }, schema: bingoSchema, languages: ['en', 'vi'] },
   'picture-match': { name: { en: 'Picture Match', vi: 'Ghép chữ với hình' }, schema: pictureMatchSchema, languages: ['en', 'vi'] },
   quiz: { name: { en: 'Quiz', vi: 'Đố vui' }, schema: quizSchema, languages: ['en', 'vi'] },
+  'trail-board': { name: { en: 'Star Trail Adventure', vi: 'Đường đua ngôi sao' }, schema: trailBoardSchema, languages: ['en', 'vi'] },
   'hidden-picture': { name: { en: 'Hidden Picture', vi: 'Bức tranh bí mật' }, schema: hiddenPictureSchema, languages: ['en', 'vi'] },
   'bubble-spelling': { name: { en: 'Bubble Spelling', vi: 'Bong bóng đánh vần' }, schema: bubbleSpellingSchema, languages: ['en', 'vi'] },
   spelling: { name: { en: 'Spelling', vi: 'Chính tả' }, schema: spellingSchema, languages: ['en', 'vi'] },
@@ -320,6 +337,7 @@ export type BingoData = z.infer<typeof bingoSchema>;
 export type PictureMatchData = z.infer<typeof pictureMatchSchema>;
 export type QuizData = z.infer<typeof quizSchema>;
 export type QuizQuestion = QuizData['questions'][number];
+export type TrailBoardData = z.infer<typeof trailBoardSchema>;
 export type HiddenPictureData = z.infer<typeof hiddenPictureSchema>;
 export type BubbleSpellingData = z.infer<typeof bubbleSpellingSchema>;
 export type SpellingData = z.infer<typeof spellingSchema>;
@@ -332,6 +350,7 @@ export type TemplateDataMap = {
   bingo: BingoData;
   'picture-match': PictureMatchData;
   quiz: QuizData;
+  'trail-board': TrailBoardData;
   'hidden-picture': HiddenPictureData;
   'bubble-spelling': BubbleSpellingData;
   spelling: SpellingData;
