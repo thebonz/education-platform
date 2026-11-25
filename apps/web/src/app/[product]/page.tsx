@@ -78,6 +78,22 @@ export default async function ProductHome({ params }: { params: Promise<{ produc
         </section>
       )}
 
+      <section className="featured-section">
+        <div className="teacher-tool-spotlight" data-testid="teacher-picker-link">
+          <div className="teacher-tool-icon" aria-hidden="true">🎡</div>
+          <div>
+            <span className="eyebrow">{isEnglish ? 'TEACHER TOOLBOX' : 'GÓC GIÁO VIÊN'}</span>
+            <h2>{isEnglish ? 'Make every student part of the game' : 'Cả lớp cùng tham gia thật vui'}</h2>
+            <p>{isEnglish
+              ? 'Pick a student at random, without repeating names. No roster upload or sign-in needed.'
+              : 'Gọi tên ngẫu nhiên, không lặp trong một lượt. Không cần tải danh sách học sinh lên máy chủ.'}</p>
+          </div>
+          <Link href={`${base}/tools/random-picker`} className="primary-button" data-testid="open-student-picker">
+            {isEnglish ? 'Try student picker' : 'Thử gọi tên'} ↗
+          </Link>
+        </div>
+      </section>
+
       {taxonomy.ok && taxonomy.data.categories.length > 0 && (
         <section className="featured-section">
           <div className="section-heading"><div><span className="eyebrow">{isEnglish ? 'GAME COLLECTIONS' : 'BỘ SƯU TẬP'}</span><h2>{isEnglish ? 'Browse by category' : 'Chọn theo chủ đề'}</h2></div></div>
