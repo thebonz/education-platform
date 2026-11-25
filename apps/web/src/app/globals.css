@@ -531,3 +531,90 @@ label.check input{margin-top:3px;width:18px;height:18px}
 @media(max-width:850px){.teacher-tool-spotlight{grid-template-columns:64px 1fr}.teacher-tool-icon{width:61px;height:61px}.teacher-tool-spotlight .primary-button{grid-column:2;justify-self:start}}
 @media(max-width:650px){.teacher-tool-spotlight{grid-template-columns:1fr;padding:21px;gap:13px}.teacher-tool-spotlight .primary-button{grid-column:1;justify-self:stretch}.picker-layout{grid-template-columns:1fr}.picker-input,.picker-result{padding:19px}.picker-result{min-height:280px}.picker-intro h2{font-size:20px}}
 @media(prefers-reduced-motion:reduce){.picker-result-orb{animation:none}}
+
+
+/* Phase 10.4 – Original HappyClass illustrated game posters: no copied images/assets. */
+.game-poster-card{border-radius:25px;border:2px solid #fff;box-shadow:0 13px 32px rgba(69,72,124,.09);overflow:hidden;transition:transform .18s ease,box-shadow .18s ease}
+.game-poster-card:hover{transform:translateY(-5px);box-shadow:0 20px 40px rgba(69,72,124,.14)}
+.game-poster-art{height:178px;position:relative;isolation:isolate;display:flex;align-items:center;justify-content:center;overflow:hidden;background:linear-gradient(127deg,#ffebf3,#ebf7ff 58%,#fff2c8)}
+.game-poster-art .poster-center{position:relative;display:grid;place-items:center;z-index:2;width:130px;height:118px;transform:rotate(-6deg);border:5px solid rgba(255,255,255,.87);border-radius:30px;background:linear-gradient(145deg,rgba(255,255,255,.96),rgba(255,255,255,.73));box-shadow:0 14px 27px rgba(59,63,102,.14),inset 0 -7px 14px rgba(195,211,240,.15);transition:transform .18s}
+.game-poster-card:hover .poster-center{transform:rotate(0) scale(1.05)}
+.game-poster-art .poster-speech{position:absolute;left:-17px;top:4px;display:grid;place-items:center;width:43px;height:43px;border-radius:15px;background:#fff2c0;border:3px solid #fff;box-shadow:0 4px 10px rgba(50,65,95,.12);color:#b65e83;font-size:20px;font-weight:900}
+.game-poster-art .poster-icon{font-size:59px;line-height:1;filter:drop-shadow(0 7px 5px rgba(52,63,86,.12))}
+.game-poster-art>.poster-spark{position:absolute;display:block;z-index:1;font-size:30px;line-height:1;font-weight:800;filter:none;transform:none;color:rgba(255,255,255,.88)}
+.game-poster-art>.poster-spark.spark-a{top:20px;left:16%;font-size:35px}
+.game-poster-art>.poster-spark.spark-b{bottom:12px;right:12%;font-size:46px;color:rgba(255,255,255,.7)}
+.game-poster-art>.poster-spark.spark-c{top:23px;right:19%;font-size:24px;color:#fff3a4}
+.game-poster-art>.poster-genre{z-index:3;position:absolute;bottom:10px;left:12px;font-size:9px;letter-spacing:.13em;font-weight:950;color:#625e88;background:rgba(255,255,255,.8);padding:5px 9px;border-radius:999px;filter:none;transform:none}
+.game-poster-art>.poster-genre:hover{transform:none}
+.game-poster-art i{z-index:4}
+.game-poster-art.art-bingo{background:radial-gradient(circle at 75% 25%,#fff9c8,transparent 36%),linear-gradient(130deg,#ffc4dc,#ffe7b4)}
+.game-poster-art.art-picture-match{background:linear-gradient(120deg,#b9f4e6,#d8ecff 54%,#fff4db)}
+.game-poster-art.art-hidden-picture{background:linear-gradient(120deg,#d8d0ff,#ffdff6 60%,#fdf1b7)}
+.game-poster-art.art-bubble-spelling{background:linear-gradient(120deg,#c2f4fa,#fce7fa 57%,#ffefb8)}
+.game-poster-art.art-spelling{background:linear-gradient(120deg,#e1f9dc,#d3f3ff,#ffecde)}
+.game-poster-art.art-quiz{background:linear-gradient(120deg,#d2d8ff,#ffe2eb,#fff0ca)}
+.game-poster-art.art-trail-board{background:linear-gradient(120deg,#e1eaff,#fbd8ee,#f9efb8)}
+.game-poster-art.art-word-sort,.game-poster-art.art-sentence-order{background:linear-gradient(120deg,#fff1d2,#ddedff,#f8d9ff)}
+.game-review-pill{display:inline-flex;align-items:center;gap:4px;margin-top:10px;padding:5px 9px;border-radius:999px;background:#fff8e4;border:1px solid #f2dfad;color:#8f6e31;font-size:10px;font-weight:750}
+.game-poster-card:focus-visible{outline:3px solid var(--accent);outline-offset:4px}
+
+/* HappyClass Bingo Carnival: accessible educational game and options. */
+.bingo-carnival{width:100%;max-width:900px;margin:auto;display:flex;flex-direction:column;gap:14px;align-items:stretch}
+.bingo-festival-heading{display:flex;gap:17px;align-items:center;justify-content:center;padding:18px 21px;text-align:center;background:linear-gradient(125deg,#fff0f8,#e9f7ff 56%,#fff5cd);border-radius:25px;border:2px solid #fff;box-shadow:0 8px 22px rgba(74,84,140,.06)}
+.bingo-festival-heading h2{font-size:clamp(22px,3vw,30px);margin:5px 0 4px;letter-spacing:-.045em;color:#48517b}
+.bingo-festival-heading p{margin:0;font-size:12px;color:#7681a0}
+.bingo-festival-heading .eyebrow{font-size:9px;color:#b86d9b}
+.bingo-star{color:#df7fac;font-size:30px}
+.bingo-settings{display:flex;gap:12px;align-items:end;justify-content:center;flex-wrap:wrap;border-radius:17px;background:#fff;border:1px solid #ebedf5;padding:12px 15px}
+.bingo-settings label{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#758099;font-weight:800}
+.bingo-settings select{min-height:43px;border:1px solid #dce4ef;background:#faffff;border-radius:11px;padding:7px 10px;color:#4c5a75;font-size:13px;font-weight:800;min-width:130px}
+.bingo-settings>.secondary-button{min-height:43px;border:1px solid #f4d1e4;background:#fff0f8;color:#a3578b}
+.bingo-settings select:focus-visible,.bingo-carnival button:focus-visible{outline:3px solid #ce76a7;outline-offset:3px}
+.bingo-play-layout{display:grid;grid-template-columns:minmax(210px,.8fr) minmax(0,1.25fr);align-items:start;gap:17px}
+.bingo-carnival .bingo-caller{min-height:100%;padding:22px 15px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:11px;border-radius:24px;border:3px solid #fff;background:linear-gradient(160deg,#ffefda,#fff9e5 45%,#ffe5ec);box-shadow:0 10px 24px rgba(140,90,75,.08)}
+.bingo-caller-icon{font-size:39px;line-height:1}
+.bingo-carnival .bingo-caller strong{width:86px;height:91px;line-height:1;display:grid;place-items:center;border-radius:22px;background:#fff;color:#a65584;box-shadow:0 12px 22px rgba(168,110,121,.14);font-size:54px}
+.bingo-carnival .bingo-caller strong.hidden-clue{color:#e3c4d0}
+.bingo-caller-tip{font-size:12px;text-align:center;color:#817d8e;max-width:235px;line-height:1.45;margin:0}
+.bingo-carnival .caller-actions .secondary-button{font-size:11px;min-height:44px;padding:11px 13px;background:#fff;color:#7d6384}
+.bingo-progress-box{width:100%;max-width:245px;padding:11px 14px;background:rgba(255,255,255,.82);border-radius:17px;text-align:center}
+.bingo-progress-box>div{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:#a26994}
+.bingo-progress-box progress{display:block;width:100%;height:13px;accent-color:#df81ae;margin:9px 0}
+.bingo-progress-box small{font-size:10px;line-height:1.5;color:#817f91;display:block}
+.bingo-board-wrap{padding:15px;background:#fff;border:2px solid #e9ebfa;border-radius:23px;box-shadow:0 12px 30px rgba(48,63,100,.08)}
+.bingo-board-label{display:flex;justify-content:space-between;align-items:center;gap:10px;padding:3px 4px 12px;font-weight:900;letter-spacing:.06em;font-size:10px;color:#83789b}
+.bingo-carnival .bingo-board{width:100%;gap:8px}
+.bingo-carnival .bingo-tile{position:relative;isolation:isolate;min-width:0;min-height:50px;border:2px solid #edf0fa;border-bottom:5px solid #e5e8f4;border-radius:15px;background:linear-gradient(145deg,#fff,#f8f8ff);font-size:clamp(17px,3.4vw,34px);color:#515a86;transition:transform .15s,border-color .15s,background .15s}
+.bingo-carnival .bingo-tile:nth-child(5n + 2){background:linear-gradient(145deg,#fff,#fff3f8)}
+.bingo-carnival .bingo-tile:nth-child(5n + 3){background:linear-gradient(145deg,#fff,#f1fbf8)}
+.bingo-carnival .bingo-tile:hover:not(:disabled):not(.marked){transform:translateY(-2px);border-color:#eeb6d4}
+.bingo-carnival .bingo-tile.marked{color:#fff;background:linear-gradient(135deg,#da72aa,#aa71d2);border-color:#d785b4;border-bottom-color:#8a55ad;transform:scale(.97)}
+.bingo-carnival .bingo-tile.in-line{box-shadow:inset 0 0 0 3px #ffe7a3,0 0 0 3px #eeb968}
+.bingo-stamp{position:absolute;right:3px;top:0;font-size:12px;line-height:1;color:#fff4ac}
+.bingo-victory{display:flex;flex-direction:column;gap:6px;align-items:center;padding:15px;border-radius:19px;background:linear-gradient(115deg,#ffe3f4,#fff4ca,#e7f8ff);color:#a75b9a;font-size:17px;font-weight:900;text-align:center}
+.bingo-victory>span{font-size:27px}
+
+/* Word Garden: strengthen the lesson loop without changing answers or learning content. */
+.bubble-unit-intro{text-align:center;padding:17px;border-radius:21px;background:linear-gradient(110deg,#fff0f8,#ecf8ff);margin:0 0 14px}
+.bubble-unit-intro>span{font-size:32px}.bubble-unit-intro h3{font-size:23px;margin:8px 0 5px}
+.bubble-unit-intro p{margin:0;font-size:12px;color:#75829b}
+.tpl-bubble .unit-card{background:linear-gradient(145deg,#fff,#fff8e9);border:3px solid #fff;box-shadow:0 8px 20px rgba(61,63,103,.09);min-height:140px;transition:transform .18s}
+.tpl-bubble .unit-card:hover{transform:translateY(-4px);border-color:#efb6d4}
+.tpl-bubble .unit-card:focus-visible,.tpl-bubble button:focus-visible{outline:3px solid var(--accent);outline-offset:3px}
+.bubble-stage-header{width:100%;display:flex;gap:20px;justify-content:space-between;align-items:center;background:linear-gradient(110deg,#fef3db,#edfbf4 64%,#eaf6ff);border:2px solid #fff;border-radius:21px;padding:15px 19px}
+.bubble-stage-title .eyebrow{font-size:9px;color:#a17c55}.bubble-stage-title h3{font-size:22px;margin:4px 0;color:#59705a}.bubble-stage-title .tpl-sub{margin:0;font-size:12px;color:#7e8c84}
+.bubble-round-dots{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:5px;max-width:50%}
+.bubble-round-dots>span{width:23px;height:23px;border-radius:50%;background:#fff;color:#b5bbc6;display:grid;place-items:center;font-size:10px;border:1px solid #e2e8df}
+.bubble-round-dots>span.complete{background:#82c9a2;color:#fff;border-color:#6aae8a}
+.bubble-round-dots>span.active{background:#f7b96e;color:#fff;border-color:#e4aa6c}
+.bubble-target-card{position:relative;width:min(100%,500px);min-height:145px;display:flex;justify-content:center;align-items:center;padding:16px;background:linear-gradient(140deg,#f0faff,#fff7f5);border:3px solid #fff;border-radius:26px;box-shadow:0 10px 28px rgba(50,73,111,.07)}
+.bubble-flower{position:absolute;font-size:30px;color:#f4a7cb}.flower-one{top:10px;left:20px}.flower-two{bottom:7px;right:16px;color:#94d6b6}
+.bubble-instruction{margin:0;color:#7a8499;text-align:center;font-size:13px;font-weight:700}
+.tpl-bubble .bubble-slots .slot{border-bottom-width:5px;border-color:#edc1de;border-radius:9px 9px 0 0;background:#fffdfa}
+.tpl-bubble .bubble-slots .slot.filled{color:#b05a99;background:#fff0f8;border-color:#d58cb8}
+.tpl-bubble .bubble{box-shadow:inset -6px -8px 0 rgba(255,255,255,.25),0 8px 16px rgba(69,71,121,.12);border:3px solid rgba(255,255,255,.9)}
+.bubble-celebrate{border:2px solid #f5d8a4;border-radius:17px;background:#fff9e9;color:#9b763f;text-align:center;font-weight:850;font-size:13px;padding:13px}
+@media(max-width:760px){.bingo-play-layout{grid-template-columns:1fr}.bingo-carnival .bingo-caller{min-height:0;padding:17px}.bingo-caller-tip{max-width:100%}.bingo-board-wrap{padding:10px}.bingo-carnival .bingo-board{gap:5px}.bingo-carnival .bingo-tile{min-height:44px;border-radius:12px}.bingo-festival-heading{padding:16px}.bingo-star{display:none}}
+@media(max-width:600px){.game-poster-art{height:100%;min-height:160px}.game-poster-art .poster-center{width:77px;height:84px;border-radius:20px;border-width:3px}.game-poster-art .poster-speech{width:27px;height:27px;font-size:13px;left:-12px}.game-poster-art .poster-icon{font-size:39px}.game-poster-art>.poster-genre{font-size:7px;left:6px;bottom:8px}.game-poster-art>.poster-spark.spark-a{font-size:20px;left:7%;top:11px}.game-poster-art>.poster-spark.spark-b{font-size:25px}.bingo-settings{gap:8px}.bingo-settings label{flex:1;min-width:130px}.bingo-settings select{width:100%;min-width:0}.bingo-carnival .bingo-caller strong{width:64px;height:69px;font-size:42px}.bubble-stage-header{display:block;padding:14px}.bubble-round-dots{max-width:100%;justify-content:flex-start;margin-top:12px}.tpl-bubble .bubble{height:58px;width:58px}}
+@media(prefers-reduced-motion:reduce){.game-poster-card,.game-poster-art .poster-center,.bingo-carnival .bingo-tile,.tpl-bubble .unit-card{transition:none}.game-poster-card:hover,.game-poster-card:hover .poster-center,.tpl-bubble .unit-card:hover{transform:none}}

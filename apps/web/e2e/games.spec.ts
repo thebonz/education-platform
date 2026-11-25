@@ -41,6 +41,8 @@ test('trang chủ English có bộ sưu tập và 6 game nổi bật', async ({ 
   await page.goto(`${EN}/`);
   await expect(page.locator('.collection-card').first()).toBeVisible();
   await expect(page.getByTestId('game-card')).toHaveCount(6);
+  await expect(page.locator('.game-poster-art .poster-center')).toHaveCount(6);
+  await expect(page.getByTestId('game-review-pill')).toHaveCount(6);
   await expect(page.getByTestId('homepage-skills')).toBeVisible();
   await page.getByTestId('home-skill-listen').click();
   await expect(page).toHaveURL(/\/games\?skill=listen/);
@@ -85,6 +87,49 @@ test('Alphabet Bingo: nghe gọi chữ, đánh dấu, BINGO', async ({ page }) =
   expect(await expectResult(page)).toMatch(/You scored \d+\/\d+ points · Mistakes: 0/);
 });
 
+test('Bingo Carnival: thay kích thước, mục tiêu và trộn bảng; chơi thắng toàn bảng @mobile', async ({ page }) => {
+  await page.goto(`${EN}/games/alphabet-bingo`);
+  await page.getByTestId('shell-start').click();
+  await expect(page.getByTestId('bingo-carnival')).toBeVisible();
+  await expect(page.getByTestId('bingo-cell')).toHaveCount(16);
+
+  await page.getByTestId('bingo-size').selectOption('3');
+  await expect(page.getByTestId('bingo-cell')).toHaveCount(9);
+  await page.getByTestId('bingo-goal').selectOption('full');
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('max', '9');
+  await page.getByTestId('bingo-new-card').click();
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '0');
+  const firstCall = (await page.getByTestId('bingo-call').getAttribute('data-call-text')) ?? '';
+  await page.locator(`[data-testid=bingo-cell][data-text="${firstCall}"]`).click();
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '1');
+
+  // Không thể đánh dấu một ô khác khi người gọi chưa đọc đến chữ đó.
+  const nextCall = (await page.getByTestId('bingo-call').getAttribute('data-call-text')) ?? '';
+  const wrong = page.getByTestId('bingo-cell').filter({ hasNotText: nextCall }).filter({ hasNotText: firstCall }).first();
+  await wrong.click();
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '1');
+  await page.getByTestId('bingo-repeat').click();
+
+  for (let i = 1; i < 9; i++) {
+    const call = await page.getByTestId('bingo-call').getAttribute('data-call-text');
+    await page.locator(`[data-testid=bingo-cell][data-text="${call}"]`).click();
+  }
+  await expect(page.getByTestId('bingo-victory')).toBeVisible();
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('value', '9');
+  await expectResult(page);
+  await expect(page.getByTestId('result-score')).toContainText('Mistakes: 1');
+});
+
+test('Bingo Carnival: tùy chọn 5x5 chỉ hiện khi có ít nhất 25 mục', async ({ page }) => {
+  await page.goto(`${EN}/games/alphabet-bingo`);
+  await page.getByTestId('shell-start').click();
+  await page.getByTestId('bingo-size').selectOption('5');
+  await expect(page.getByTestId('bingo-cell')).toHaveCount(25);
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('max', '5');
+  await page.getByTestId('bingo-goal').selectOption('full');
+  await expect(page.getByTestId('bingo-progress')).toHaveAttribute('max', '25');
+});
+
 test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ page }) => {
   const data = await playData(page, 'vocabulary-matching');
   await page.goto(`${EN}/games/vocabulary-matching`);
@@ -117,11 +162,14 @@ test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobil
   await page.goto(`${EN}/games/bubble-word-garden`);
   await page.getByTestId('shell-start').click();
   await page.getByTestId('unit-option').first().click();
+  await expect(page.locator('.bubble-stage-header')).toBeVisible();
+  await expect(page.locator('.bubble-round-dots > span')).toHaveCount(data.units[0].words.length);
   const unit = data.units[0];
   for (let i = 0; i < unit.words.length; i++) {
     const id = await page.getByTestId('bubble-word').getAttribute('data-word-id');
     const word = unit.words.find((w: { id: string }) => w.id === id);
     for (const seg of word.segments ?? graphemes(word.word)) await page.locator(`[data-testid=bubble][data-value="${seg}"]:not([disabled])`).first().click();
+    await expect(page.getByTestId('bubble-word-complete')).toBeVisible();
     await page.getByTestId('bubble-next').click();
   }
   expect(await expectResult(page)).toContain(`You scored ${unit.words.length}/${unit.words.length}`);
