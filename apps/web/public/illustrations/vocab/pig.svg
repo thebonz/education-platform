@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated pig">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<path d="M151 205 129 133 202 171M293 170 360 133 342 218" fill="#f3a7b6" stroke="#ce879e" stroke-width="7"/><ellipse cx="244" cy="267" rx="121" ry="107" fill="#ffc8d0" stroke="#d88a9e" stroke-width="7"/><ellipse cx="209" cy="244" rx="10" ry="15" fill="#4f4a60"/><ellipse cx="281" cy="244" rx="10" ry="15" fill="#4f4a60"/><circle cx="178" cy="269" r="13" fill="#f19daf" opacity=".6"/><circle cx="309" cy="269" r="13" fill="#f19daf" opacity=".6"/><ellipse cx="248" cy="302" rx="69" ry="49" fill="#ee9db2" stroke="#d58ca2" stroke-width="5"/><ellipse cx="218" cy="302" rx="12" ry="18" fill="#b86d88"/><ellipse cx="275" cy="302" rx="12" ry="18" fill="#b86d88"/></svg>
