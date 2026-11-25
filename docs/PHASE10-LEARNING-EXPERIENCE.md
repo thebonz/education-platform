@@ -1,5 +1,9 @@
 # Phase 10 – Trải nghiệm học tập HappyClass (nội dung, giọng Việt, UX)
 
+## Trải nghiệm pastel và trò chơi gốc
+
+Đã phát triển thêm [Star Trail Adventure / Đường sao dấu thanh và giao diện pastel](PHASE10-REFERENCE-GAMEPLAY.md). Hai game được nạp ở trạng thái **ẩn, PENDING** để giáo viên xem trước và kiểm tra tiếng Việt. Không lấy asset, nội dung hay source từ website tham khảo.
+
 ## Mục đích
 
 Sau khi phần hạ tầng, thanh toán Sandbox và bảo mật origin đã ổn định, chuyển trọng tâm sang **trẻ thích chơi, nghe đúng, học đúng và giáo viên dễ chọn game**.
