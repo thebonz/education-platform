@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 
 const EN = process.env.E2E_ENGLISH_URL ?? 'http://english.happyclass.test:3100';
 
-type Spoken = { text: string; voice: string | null; lang: string; rate: number };
+type Spoken = { text: string; voice: string | null; lang: string; rate: number; pitch: number };
 
 test('English voice studio prioritizes clearer available voices, lets students compare and remembers preference', async ({ page }) => {
   await page.addInitScript(() => {
@@ -11,6 +11,7 @@ test('English voice studio prioritizes clearer available voices, lets students c
     const voices = [
       { name: 'eSpeak English', lang: 'en-US', voiceURI: 'en-espeak', localService: true, default: true },
       { name: 'Microsoft Jenny Online (Natural)', lang: 'en-US', voiceURI: 'en-jenny', localService: false, default: false },
+      { name: 'Microsoft Ana Online (Natural)', lang: 'en-US', voiceURI: 'en-ana', localService: false, default: false },
       { name: 'Microsoft Sonia Online (Natural)', lang: 'en-GB', voiceURI: 'en-sonia', localService: false, default: false },
     ] as SpeechSynthesisVoice[];
     // Native SpeechSynthesisUtterance.voice rejects plain-object test doubles.
@@ -30,7 +31,7 @@ test('English voice studio prioritizes clearer available voices, lets students c
     window.speechSynthesis.speak = (utterance) => {
       spoken.push({
         text: utterance.text, voice: utterance.voice?.voiceURI ?? null,
-        lang: utterance.lang, rate: utterance.rate,
+        lang: utterance.lang, rate: utterance.rate, pitch: utterance.pitch,
       });
     };
   });
@@ -39,12 +40,14 @@ test('English voice studio prioritizes clearer available voices, lets students c
   const panel = page.getByTestId('english-voice-panel');
   await expect(panel).toBeVisible();
   const voices = page.getByTestId('english-voice-select');
-  await expect(voices.locator('option')).toHaveCount(4);
+  await expect(voices.locator('option')).toHaveCount(5);
   await page.getByTestId('english-voice-test').click();
   await expect.poll(async () => page.evaluate(() =>
-    (window as unknown as { __spoken: Spoken[] }).__spoken.at(-1)?.voice)).toBe('en-jenny');
+    (window as unknown as { __spoken: Spoken[] }).__spoken.at(-1)?.voice)).toBe('en-ana');
   await expect.poll(async () => page.evaluate(() =>
     (window as unknown as { __spoken: Spoken[] }).__spoken.at(-1)?.rate)).toBe(0.85);
+  await expect.poll(async () => page.evaluate(() =>
+    (window as unknown as { __spoken: Spoken[] }).__spoken.at(-1)?.pitch)).toBe(1);
 
   await voices.selectOption('en-sonia');
   await page.getByTestId('english-voice-speed').selectOption('0.75');
