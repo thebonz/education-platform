@@ -41,6 +41,8 @@ test('trang chủ English có bộ sưu tập và 6 game nổi bật', async ({ 
   await page.goto(`${EN}/`);
   await expect(page.locator('.collection-card').first()).toBeVisible();
   await expect(page.getByTestId('game-card')).toHaveCount(6);
+  await expect(page.locator('.game-poster-art .poster-center')).toHaveCount(6);
+  await expect(page.getByTestId('game-review-pill')).toHaveCount(6);
   await expect(page.getByTestId('homepage-skills')).toBeVisible();
   await page.getByTestId('home-skill-listen').click();
   await expect(page).toHaveURL(/\/games\?skill=listen/);
@@ -160,11 +162,14 @@ test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobil
   await page.goto(`${EN}/games/bubble-word-garden`);
   await page.getByTestId('shell-start').click();
   await page.getByTestId('unit-option').first().click();
+  await expect(page.locator('.bubble-stage-header')).toBeVisible();
+  await expect(page.locator('.bubble-round-dots > span')).toHaveCount(data.units[0].words.length);
   const unit = data.units[0];
   for (let i = 0; i < unit.words.length; i++) {
     const id = await page.getByTestId('bubble-word').getAttribute('data-word-id');
     const word = unit.words.find((w: { id: string }) => w.id === id);
     for (const seg of word.segments ?? graphemes(word.word)) await page.locator(`[data-testid=bubble][data-value="${seg}"]:not([disabled])`).first().click();
+    await expect(page.getByTestId('bubble-word-complete')).toBeVisible();
     await page.getByTestId('bubble-next').click();
   }
   expect(await expectResult(page)).toContain(`You scored ${unit.words.length}/${unit.words.length}`);
