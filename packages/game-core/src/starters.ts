@@ -54,6 +54,26 @@ const STARTERS: Partial<Record<TemplateKey, Partial<Record<Locale, unknown>>>> =
       ],
     },
   },
+  'mystery-doors': {
+    en: {
+      instructions: 'Open one or more doors to see a picture. Look carefully, then choose the English word.',
+      doorCount: 6,
+      rounds: [
+        { id: 'cat', picture: e('🐱'), question: 'Which animal is behind the doors?', choices: ['cat', 'dog', 'duck'], answer: 'cat' },
+        { id: 'apple', picture: e('🍎'), question: 'What fruit can you see?', choices: ['orange', 'apple', 'pear'], answer: 'apple' },
+        { id: 'bus', picture: e('🚌'), question: 'What vehicle is this?', choices: ['bus', 'bike', 'boat'], answer: 'bus' },
+      ],
+    },
+    vi: {
+      instructions: 'Mở từng cánh cửa để xem hình, sau đó chọn từ phù hợp với hình.',
+      doorCount: 6,
+      rounds: [
+        { id: 'meo', picture: e('🐱'), question: 'Con vật nào sau cánh cửa?', choices: ['con mèo', 'con chó', 'con cá'], answer: 'con mèo' },
+        { id: 'tao', picture: e('🍎'), question: 'Đây là loại quả gì?', choices: ['quả táo', 'quả cam', 'quả lê'], answer: 'quả táo' },
+        { id: 'xe', picture: e('🚌'), question: 'Hình này chỉ phương tiện nào?', choices: ['xe buýt', 'xe đạp', 'thuyền'], answer: 'xe buýt' },
+      ],
+    },
+  },
   'hidden-picture': {
     en: {
       picture: e('🦁'), pictureAnswer: 'lion', pictureChoices: ['lion', 'cat', 'dog'],
