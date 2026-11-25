@@ -134,9 +134,9 @@ test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ 
   const data = await playData(page, 'vocabulary-matching');
   await page.goto(`${EN}/games/vocabulary-matching`);
   await page.getByTestId('shell-start').click();
-  await page.locator(`[data-testid=match-word][data-id="${data.pairs[0].id}"]`).click();
-  await page.locator(`[data-testid=match-picture][data-id="${data.pairs[1].id}"]`).click();
   const current = await page.getByTestId('match-word').evaluateAll((nodes) => nodes.map((el) => el.getAttribute('data-id')));
+  await page.locator(`[data-testid=match-word][data-id="${current[0]}"]`).click();
+  await page.locator(`[data-testid=match-picture][data-id="${current[1]}"]`).click();
   expect(current).toHaveLength(6);
   await expect(page.getByTestId('match-library-count')).toContainText('12 words');
   for (const id of current) {
