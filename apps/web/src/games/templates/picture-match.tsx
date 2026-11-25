@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { shuffle } from '@happyclass/game-core/rng';
+import { sessionSelection } from '@happyclass/game-core/learning-session';
 import type { PictureMatchData } from '@happyclass/game-core/templates';
 import { PictureView } from '../picture';
 import type { TemplateProps } from '../shell/types';
@@ -9,9 +10,12 @@ import { FeedbackLine, useFeedback } from './feedback';
 
 type Pick = { side: 'word' | 'picture'; id: string } | null;
 
-export function PictureMatchTemplate({ data, t, rng, audio, onProgress, onFinish }: TemplateProps<PictureMatchData>) {
-  const words = useMemo(() => shuffle(data.pairs, rng), [data.pairs, rng]);
-  const pictures = useMemo(() => shuffle(data.pairs, rng), [data.pairs, rng]);
+export function PictureMatchTemplate({ data, t, rng, round, audio, onProgress, onFinish }: TemplateProps<PictureMatchData>) {
+  // Round 1 uses the first group, Replay uses the next group: not the same eight words forever.
+  const activePairs = useMemo(() => sessionSelection(data.pairs, data.roundSize, round, rng),
+    [data.pairs, data.roundSize, round, rng]);
+  const words = useMemo(() => shuffle(activePairs, rng), [activePairs, rng]);
+  const pictures = useMemo(() => shuffle(activePairs, rng), [activePairs, rng]);
   const [matched, setMatched] = useState<Set<string>>(new Set());
   const [pick, setPick] = useState<Pick>(null);
   const [wrong, setWrong] = useState<string | null>(null);
@@ -25,7 +29,7 @@ export function PictureMatchTemplate({ data, t, rng, audio, onProgress, onFinish
     return () => window.clearInterval(id);
   }, [data.timeLimitSec]);
   useEffect(() => {
-    if (data.timeLimitSec && secondsLeft <= 0) onFinish({ score: matched.size, maxScore: data.pairs.length, mistakes });
+    if (data.timeLimitSec && secondsLeft <= 0) onFinish({ score: matched.size, maxScore: activePairs.length, mistakes });
   }, [secondsLeft]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function choose(side: 'word' | 'picture', id: string) {
@@ -39,7 +43,7 @@ export function PictureMatchTemplate({ data, t, rng, audio, onProgress, onFinish
       onProgress({ score: next.size, mistakes });
       audio.sfx('correct');
       show({ kind: 'correct', text: t.correct });
-      if (next.size === data.pairs.length) window.setTimeout(() => onFinish({ score: next.size, maxScore: data.pairs.length, mistakes }), 700);
+      if (next.size === activePairs.length) window.setTimeout(() => onFinish({ score: next.size, maxScore: data.pairs.length, mistakes }), 700);
       return;
     }
     const m = mistakes + 1;
@@ -57,7 +61,12 @@ export function PictureMatchTemplate({ data, t, rng, audio, onProgress, onFinish
 
   return (
     <div className="tpl tpl-match">
-      <p className="tpl-sub">{t.matched} {matched.size}/{data.pairs.length}{data.timeLimitSec ? ` · ⏳ ${Math.max(0, secondsLeft)}s` : ''} — {t.pickWord}</p>
+      <p className="tpl-sub">{t.matched} {matched.size}/{activePairs.length}{data.timeLimitSec ? ` · ⏳ ${Math.max(0, secondsLeft)}s` : ''} — {t.pickWord}</p>
+      {data.pairs.length > activePairs.length && (
+        <p className="muted learning-bank-note" data-testid="match-library-count">
+          📚 {data.pairs.length} words in this library · {activePairs.length} in this round · Play again to discover more!
+        </p>
+      )}
       <div className="match-columns">
         <div className="match-col">
           {words.map((p) => (
