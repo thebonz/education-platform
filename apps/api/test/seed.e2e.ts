@@ -17,6 +17,12 @@ describe('Seed nội dung game', () => {
     expect(await prisma.game.count({ where: { templateKey: 'mystery-doors', isPublished: false, reviewStatus: 'PENDING' } })).toBe(1);
     expect(await prisma.game.count({ where: { templateKey: 'picture-puzzle', isPublished: false, reviewStatus: 'PENDING' } })).toBe(1);
     expect(await prisma.game.count({ where: { slug: { in: ['fruit-market-match', 'school-treasure-match'] }, isPublished: false, reviewStatus: 'PENDING' } })).toBe(2);
+    const animal = await prisma.game.findFirstOrThrow({ where: { slug: 'vocabulary-matching' }, include: { versions: { where: { isPublished: true } } } });
+    expect(animal.seedRevision).toBe(3);
+    expect((animal.versions[0].content as { pairs: unknown[]; roundSize: number }).pairs).toHaveLength(12);
+    expect((animal.versions[0].content as { roundSize: number }).roundSize).toBe(6);
+    const hidden = await prisma.game.findFirstOrThrow({ where: { slug: 'hidden-picture' }, include: { versions: { where: { isPublished: true } } } });
+    expect((hidden.versions[0].content as { scenes: unknown[] }).scenes).toHaveLength(6);
     expect(await prisma.level.count()).toBe(12);
     expect(await prisma.gameCategory.count({ where: { product: { slug: 'english' } } })).toBe(20);
     const again = await seed(prisma);
