@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 480 480" role="img" aria-label="HappyClass original illustrated rabbit">
+<defs><linearGradient id="sky" x2="1" y2="1"><stop stop-color="#e9f8ff"/><stop offset="1" stop-color="#fff5e5"/></linearGradient></defs>
+<rect width="480" height="480" rx="28" fill="url(#sky)"/>
+<circle cx="399" cy="89" r="36" fill="#ffe69b"/>
+<path d="M0 384Q110 352 234 383T480 365V480H0Z" fill="#c3e9d3"/>
+<path d="M0 428Q140 400 250 427T480 412V480H0Z" fill="#a6dbc0"/>
+<g opacity=".85" fill="#fff"><ellipse cx="85" cy="112" rx="65" ry="23"/><ellipse cx="58" cy="97" rx="30" ry="25"/></g>
+<ellipse cx="194" cy="153" rx="35" ry="95" transform="rotate(-12 194 153)" fill="#f6e2db" stroke="#d6b1ad" stroke-width="6"/><ellipse cx="287" cy="150" rx="35" ry="98" transform="rotate(12 287 150)" fill="#f6e2db" stroke="#d6b1ad" stroke-width="6"/><ellipse cx="195" cy="155" rx="16" ry="72" transform="rotate(-12 195 155)" fill="#eda6b2"/><ellipse cx="284" cy="151" rx="16" ry="73" transform="rotate(12 284 151)" fill="#eda6b2"/><ellipse cx="242" cy="280" rx="121" ry="102" fill="#f6e9e2" stroke="#d6b1ad" stroke-width="7"/><ellipse cx="209" cy="244" rx="10" ry="15" fill="#4f4a60"/><ellipse cx="281" cy="244" rx="10" ry="15" fill="#4f4a60"/><circle cx="178" cy="269" r="13" fill="#f19daf" opacity=".6"/><circle cx="309" cy="269" r="13" fill="#f19daf" opacity=".6"/><path d="M234 276 247 276 240 286Z" fill="#c98292"/><path d="M240 288Q226 305 216 296M240 288Q251 304 265 295" fill="none" stroke="#99717e" stroke-width="4"/></svg>
