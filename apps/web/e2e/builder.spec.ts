@@ -125,11 +125,15 @@ test('Star Trail: 2 bản mẫu ở chế độ ẩn, chơi bằng Game Builder 
   await expect(page.getByTestId('admin-dashboard')).toBeVisible();
 
   for (const slug of ['star-trail-adventure', 'duong-sao-dau-thanh']) {
-    await page.goto(`${ADMIN}/games?review=PENDING`);
-    const row = page.locator(`tr[data-slug="${slug}"]`);
-    await expect(row).toBeVisible();
-    await expect(row).toContainText('PENDING').catch(() => {});
-    await row.locator('a').first().click();
+    const product = slug === 'star-trail-adventure' ? 'english' : 'vietnamese';
+    const response = await page.request.get(`${ADMIN}/api/admin/games?product=${product}&review=PENDING&pageSize=100`);
+    expect(response.ok()).toBeTruthy();
+    const list = await response.json();
+    const game = list.games.find((g: { slug: string }) => g.slug === slug);
+    expect(game).toBeTruthy();
+    expect(game.isPublished).toBe(false);
+    expect(game.reviewStatus).toBe('PENDING');
+    await page.goto(`${ADMIN}/games/${game.id}`);
     await expect(page.getByTestId('review-status')).toBeVisible();
     await page.getByTestId('open-builder').click();
     await expect(page.getByTestId('game-builder')).toBeVisible();
