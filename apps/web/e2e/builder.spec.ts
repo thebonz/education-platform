@@ -199,3 +199,54 @@ test('Mystery Doors: mẫu English ẩn, mở cửa và đoán trọn 4 vòng tr
   expect(after.isPublished).toBe(false);
   expect(after.reviewStatus).toBe('PENDING');
 });
+
+test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn giữ trạng thái ẩn', async ({ page }) => {
+  test.skip(!ADMIN_PASSWORD, 'Chưa đặt E2E_ADMIN_PASSWORD');
+  test.setTimeout(120_000);
+  await page.goto(`${ADMIN}/login`);
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Mật khẩu').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByTestId('admin-dashboard')).toBeVisible();
+
+  const response = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
+  expect(response.ok()).toBeTruthy();
+  const list = await response.json();
+  const game = list.games.find((item: { slug: string }) => item.slug === 'happyclass-picture-puzzle');
+  expect(game).toBeTruthy();
+  expect(game.isPublished).toBe(false);
+  expect(game.reviewStatus).toBe('PENDING');
+
+  await page.goto(`${ADMIN}/games/${game.id}`);
+  await page.getByTestId('open-builder').click();
+  await page.getByTestId('refresh-preview').click();
+  const preview = page.getByTestId('preview');
+  await preview.getByTestId('shell-start').click();
+  await expect(preview.getByTestId('picture-puzzle')).toBeVisible();
+
+  for (let round = 0; round < 3; round++) {
+    await expect(preview.getByTestId('puzzle-round')).toContainText(`${round + 1}/3`);
+    await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
+    const tiles = preview.getByTestId('puzzle-piece');
+    for (let i = 0; i < 9; i++) {
+      const order = await tiles.evaluateAll((nodes) => nodes.map((el) => Number(el.getAttribute('data-piece'))));
+      if (order[i] === i) continue;
+      const other = order.indexOf(i);
+      expect(other).toBeGreaterThanOrEqual(0);
+      await tiles.nth(i).click();
+      await expect(tiles.nth(i)).toHaveAttribute('aria-pressed', 'true');
+      await tiles.nth(other).click();
+    }
+    await expect(preview.getByTestId('puzzle-complete')).toBeVisible();
+    await preview.getByTestId('puzzle-next').click();
+  }
+  await expect(preview.getByTestId('shell-result')).toBeVisible();
+  await expect(preview.getByTestId('result-score')).toContainText('3/3');
+
+  // Preview không tự thay đổi review hay isPublished.
+  const verify = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
+  expect(verify.ok()).toBeTruthy();
+  const after = (await verify.json()).games.find((g: { slug: string }) => g.slug === 'happyclass-picture-puzzle');
+  expect(after.isPublished).toBe(false);
+  expect(after.reviewStatus).toBe('PENDING');
+});
