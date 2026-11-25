@@ -13,6 +13,19 @@ test('English voice studio prioritizes clearer available voices, lets students c
       { name: 'Microsoft Jenny Online (Natural)', lang: 'en-US', voiceURI: 'en-jenny', localService: false, default: false },
       { name: 'Microsoft Sonia Online (Natural)', lang: 'en-GB', voiceURI: 'en-sonia', localService: false, default: false },
     ] as SpeechSynthesisVoice[];
+    // Native SpeechSynthesisUtterance.voice rejects plain-object test doubles.
+    // Replace it with an isolated no-audio utterance stub; this tests selection/rate only.
+    class MockUtterance {
+      text: string;
+      lang = '';
+      rate = 1;
+      pitch = 1;
+      voice: SpeechSynthesisVoice | null = null;
+      onstart: ((event: SpeechSynthesisEvent) => void) | null = null;
+      onerror: ((event: SpeechSynthesisErrorEvent) => void) | null = null;
+      constructor(text: string) { this.text = text; }
+    }
+    Object.defineProperty(window, 'SpeechSynthesisUtterance', { configurable: true, value: MockUtterance });
     window.speechSynthesis.getVoices = () => voices;
     window.speechSynthesis.speak = (utterance) => {
       spoken.push({
