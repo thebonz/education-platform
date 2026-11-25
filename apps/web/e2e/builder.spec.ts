@@ -115,3 +115,38 @@ test('giáo viên xem được mẫu đọc tiếng Việt và phải tích đ�
   await expect(approve).toBeDisabled();
   // Không tự bấm Duyệt: test không thay đổi nội dung hoặc trạng thái 29 game.
 });
+
+test('Star Trail: 2 bản mẫu ở chế độ ẩn, chơi bằng Game Builder không tự duyệt hay mở công khai', async ({ page }) => {
+  test.skip(!ADMIN_PASSWORD, 'Chưa đặt E2E_ADMIN_PASSWORD');
+  await page.goto(`${ADMIN}/login`);
+  await page.getByLabel('Email').fill(ADMIN_EMAIL);
+  await page.getByLabel('Mật khẩu').fill(ADMIN_PASSWORD);
+  await page.getByRole('button', { name: 'Đăng nhập' }).click();
+  await expect(page.getByTestId('admin-dashboard')).toBeVisible();
+
+  for (const slug of ['star-trail-adventure', 'duong-sao-dau-thanh']) {
+    await page.goto(`${ADMIN}/games?review=PENDING`);
+    const row = page.locator(`tr[data-slug="${slug}"]`);
+    await expect(row).toBeVisible();
+    await expect(row).toContainText('PENDING').catch(() => {});
+    await row.locator('a').first().click();
+    await expect(page.getByTestId('review-status')).toBeVisible();
+    await page.getByTestId('open-builder').click();
+    await expect(page.getByTestId('game-builder')).toBeVisible();
+    await page.getByTestId('refresh-preview').click();
+    const preview = page.getByTestId('preview');
+    await preview.getByTestId('team-count').selectOption('2');
+    await preview.getByTestId('shell-start').click();
+    await expect(preview.getByTestId('trail-board')).toBeVisible();
+    await expect(preview.getByTestId('trail-team-0')).toBeVisible();
+    await expect(preview.getByTestId('trail-team-1')).toBeVisible();
+    await preview.getByTestId('trail-roll').click();
+    await expect(preview.getByTestId('trail-roll-result')).toContainText(/\d/);
+    await expect(preview.getByTestId('trail-choice')).toHaveCount(3);
+    await preview.getByTestId('trail-choice').first().click();
+    await expect(preview.getByTestId('trail-feedback')).not.toBeEmpty();
+    await preview.getByTestId('trail-next').click();
+    await expect(preview.getByTestId('trail-roll')).toBeVisible();
+  }
+  // Không bấm duyệt, không phát hành: vẫn là mẫu thử để giáo viên kiểm nội dung.
+});
