@@ -30,6 +30,7 @@ export function BingoTemplate({ data, lang, t, rng, audio, onProgress, onFinish 
   const [marked, setMarked] = useState<Set<number>>(() => new Set());
   const [mistakes, setMistakes] = useState(0);
   const [showClue, setShowClue] = useState(data.showCallText);
+  const [showHistory, setShowHistory] = useState(false);
   const [shake, setShake] = useState<number | null>(null);
   const [done, setDone] = useState(false);
   const finishTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -68,6 +69,7 @@ export function BingoTemplate({ data, lang, t, rng, audio, onProgress, onFinish 
     setMarked(new Set());
     setMistakes(0);
     setShake(null);
+    setShowHistory(false);
     show(null);
     onProgress({ score: 0, mistakes: 0 });
   }
@@ -150,6 +152,26 @@ export function BingoTemplate({ data, lang, t, rng, audio, onProgress, onFinish 
             <button type="button" className="secondary-button" onClick={() => setShowClue((value) => !value)}
               data-testid="toggle-clue">{showClue ? t.hideClue : t.showClue}</button>
           </div>
+          <div className="bingo-history-toggle">
+            <button type="button" className="secondary-button" data-testid="bingo-history-toggle"
+              aria-expanded={showHistory} aria-controls="bingo-called-history"
+              onClick={() => setShowHistory((value) => !value)}>
+              📜 {isVi ? 'Chữ đã gọi' : 'Called letters'} ({marked.size})
+            </button>
+          </div>
+          {showHistory && <div id="bingo-called-history" className="bingo-called-history"
+            data-testid="bingo-called-history" aria-label={isVi ? 'Danh sách chữ đã gọi' : 'Previously called letters'}>
+            {callIndex === 0 && !done ? <p>{isVi ? 'Chưa đánh dấu ô nào.' : 'No letters matched yet.'}</p> :
+              calls.slice(0, callIndex + (done ? 1 : 0)).map((id, index) => {
+                const called = byId.get(id)!;
+                return <button type="button" key={id} className="bingo-history-letter"
+                  data-testid="bingo-history-letter"
+                  aria-label={`${isVi ? 'Nghe lại' : 'Replay'} ${called.text}`}
+                  onClick={() => audio.say(called.say ?? called.text)}>
+                  <small>{index + 1}</small><strong>{called.text}</strong><span aria-hidden="true">🔊</span>
+                </button>;
+              })}
+          </div>}
           <div className="bingo-progress-box">
             <div><b>{isVi ? 'Tiến độ' : 'Progress'}</b><span>{progress}/{goal}</span></div>
             <progress data-testid="bingo-progress" max={goal} value={progress} />
