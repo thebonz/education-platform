@@ -37,20 +37,47 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
 
   const [wordIndex, setWordIndex] = useState(0);
   const [built, setBuilt] = useState<string[]>([]);
-  const [usedKeys, setUsedKeys] = useState<Set<string>>(new Set());
-  const [score, setScore] = useState(0);
+  const [chosenKeys, setChosenKeys] = useState<string[]>([]);
+  const usedKeys = useMemo(() => new Set(chosenKeys), [chosenKeys]);
+  // Count each completed word only once, even when navigating back to review.
+  const [completedIds, setCompletedIds] = useState<Set<string>>(() => new Set());
+  const score = completedIds.size;
   const [mistakes, setMistakes] = useState(0);
   const [hints, setHints] = useState(0);
   const [wrongKey, setWrongKey] = useState<string | null>(null);
-  const [wordDone, setWordDone] = useState(false);
   const { feedback, show } = useFeedback();
 
   const word = unitWords[wordIndex];
+  const wordDone = word ? completedIds.has(word.id) : false;
   const segments = useMemo(() => (word ? word.segments ?? graphemes(word.word) : []), [word]);
   const bubbles = useMemo(
     () => (word ? makeBubbles(word, data.extraBubbles, pool, createRng(`${seed}-${unitId}-${wordIndex}`)) : []),
     [word, data.extraBubbles, pool, seed, unitId, wordIndex],
   );
+  const displayedBuilt = wordDone ? segments : built;
+
+  function clearCurrentWord() {
+    setBuilt([]);
+    setChosenKeys([]);
+    setWrongKey(null);
+    show(null);
+  }
+
+  function goToWord(nextIndex: number) {
+    if (!unitWords.length) return;
+    setWordIndex((nextIndex + unitWords.length) % unitWords.length);
+    clearCurrentWord();
+  }
+
+  function chooseAnotherUnit() {
+    setUnitId(null);
+    setWordIndex(0);
+    setCompletedIds(new Set());
+    setMistakes(0);
+    setHints(0);
+    clearCurrentWord();
+    onProgress({ score: 0, mistakes: 0 });
+  }
 
   useEffect(() => { if (word) audio.say(word.say ?? word.word); }, [word]); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -87,11 +114,10 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
     }
     const nextBuilt = [...built, b.value];
     setBuilt(nextBuilt);
-    setUsedKeys(new Set(usedKeys).add(b.key));
+    setChosenKeys((keys) => [...keys, b.key]);
     audio.sfx('pop');
     if (nextBuilt.length === segments.length) {
-      setWordDone(true);
-      setScore(score + 1);
+      setCompletedIds((items) => new Set(items).add(word!.id));
       onProgress({ score: score + 1, mistakes });
       audio.say(word!.say ?? word!.word);
       show({ kind: 'correct', text: t.correct }, true);
@@ -108,16 +134,27 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
     pop(b);
   }
 
+  function undo() {
+    if (wordDone || chosenKeys.length === 0) return;
+    setChosenKeys((keys) => keys.slice(0, -1));
+    setBuilt((letters) => letters.slice(0, -1));
+    show(null);
+    audio.sfx('pop');
+  }
+
   function retry() {
-    setBuilt([]); setUsedKeys(new Set()); setWordDone(false); show(null);
+    if (!wordDone) clearCurrentWord();
   }
 
   function nextWord() {
-    if (wordIndex + 1 < unitWords.length) {
-      setWordIndex(wordIndex + 1); retry();
-    } else {
+    // Browsing ahead never grants points: finish only after all actual words are solved.
+    if (completedIds.size === unitWords.length) {
       onFinish({ score, maxScore: unitWords.length, mistakes: mistakes + hints });
+      return;
     }
+    const offset = Array.from({ length: unitWords.length }, (_, i) => (wordIndex + i + 1) % unitWords.length)
+      .find((position) => !completedIds.has(unitWords[position].id));
+    if (offset !== undefined) goToWord(offset);
   }
 
   return (
@@ -132,13 +169,30 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
         </div>
         <div className="bubble-round-dots" role="group" aria-label={lang === 'vi' ? 'Tiến độ các từ' : 'Word progress'}>
           {unitWords.map((item, index) => (
-            <span key={item.id} className={index < wordIndex ? 'complete' : index === wordIndex ? 'active' : ''}
-              aria-label={`${lang === 'vi' ? 'Từ' : 'Word'} ${index + 1}: ${index < wordIndex ? (lang === 'vi' ? 'hoàn thành' : 'complete') : index === wordIndex ? (lang === 'vi' ? 'đang chơi' : 'current') : (lang === 'vi' ? 'chưa đến' : 'upcoming')}`}>
-              {index < wordIndex ? '✓' : '✦'}
+            <span key={item.id} className={completedIds.has(item.id) ? 'complete' : index === wordIndex ? 'active' : ''}
+              aria-label={`${lang === 'vi' ? 'Từ' : 'Word'} ${index + 1}: ${completedIds.has(item.id) ? (lang === 'vi' ? 'hoàn thành' : 'complete') : index === wordIndex ? (lang === 'vi' ? 'đang chơi' : 'current') : (lang === 'vi' ? 'chưa hoàn thành' : 'unsolved')}`}>
+              {completedIds.has(item.id) ? '✓' : '✦'}
             </span>
           ))}
         </div>
       </div>
+      <nav className="bubble-word-navigator" aria-label={lang === 'vi' ? 'Chọn từ đang học' : 'Browse words'}>
+        <button type="button" className="secondary-button" data-testid="bubble-prev-word"
+          disabled={unitWords.length < 2} onClick={() => goToWord(wordIndex - 1)}>
+          ← {lang === 'vi' ? 'Từ trước' : 'Previous'}
+        </button>
+        <strong data-testid="bubble-completed-count">
+          ⭐ {lang === 'vi' ? 'Hoàn thành' : 'Completed'} {completedIds.size}/{unitWords.length}
+        </strong>
+        <button type="button" className="secondary-button" data-testid="bubble-next-word"
+          disabled={unitWords.length < 2} onClick={() => goToWord(wordIndex + 1)}>
+          {lang === 'vi' ? 'Từ sau' : 'Next'} →
+        </button>
+        {data.units.length > 1 && <button type="button" className="secondary-button"
+          data-testid="bubble-change-unit" onClick={chooseAnotherUnit}>
+          {lang === 'vi' ? 'Đổi chủ đề' : 'Change unit'}
+        </button>}
+      </nav>
       <div className="bubble-target bubble-target-card">
         <span className="bubble-flower flower-one" aria-hidden="true">✿</span>
         <span className="bubble-flower flower-two" aria-hidden="true">✧</span>
@@ -147,7 +201,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
       </div>
       <p className="bubble-instruction">{lang === 'vi' ? 'Chạm những bong bóng đúng thứ tự để ghép thành từ!' : 'Pop the letter bubbles in the right order to grow the word!'}</p>
       <div className="bubble-slots" data-testid="bubble-slots">
-        {segments.map((_, i) => <span key={i} className={`slot ${built[i] ? 'filled' : ''}`}>{built[i] ?? ''}</span>)}
+        {segments.map((_, i) => <span key={i} className={`slot ${displayedBuilt[i] ? 'filled' : ''}`}>{displayedBuilt[i] ?? ''}</span>)}
       </div>
       <div className="bubble-field" aria-label={lang === 'vi' ? 'Các chữ cái bong bóng' : 'Letter bubbles'}>
         {bubbles.map((b, i) => (
@@ -161,7 +215,12 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
       <FeedbackLine feedback={feedback} />
       <div className="tpl-footer">
         <button type="button" className="secondary-button" onClick={hint} disabled={wordDone}>💡 {t.hint}</button>
-        <button type="button" className="secondary-button" onClick={retry}>↺ {t.retry}</button>
+        <button type="button" className="secondary-button" data-testid="bubble-undo"
+          onClick={undo} disabled={wordDone || chosenKeys.length === 0}>
+          ↶ {lang === 'vi' ? 'Lùi một chữ' : 'Undo letter'}
+        </button>
+        <button type="button" className="secondary-button" data-testid="bubble-retry"
+          onClick={retry} disabled={wordDone}>↺ {t.retry}</button>
         {wordDone && <button type="button" className="primary-button" onClick={nextWord} data-testid="bubble-next">{wordIndex + 1 < unitWords.length ? `${t.next} →` : t.finish}</button>}
       </div>
     </div>
