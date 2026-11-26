@@ -18,6 +18,10 @@ This iteration closes two verified gaps from the public Easy Peasy demo comparis
 2. **Mystery Doors** supports **eight doors (4 columns × 2 rows)** in addition to
    the existing four/six/nine door configurations. The data validator accepts the
    new value and rejects unsupported door counts.
+4. **Sound Family Village** now enforces its three-heart limit (or an alternate
+   editor-configured `maxMistakes` from 1–6). On the last wrong placement, the
+   round ends with the actual score and mistake count. Hearts are no longer
+   decorative; previously correct progress is preserved in the results.
 
 The 3D picture ring is a **picture introduction/showcase**, not an answer key or
 quiz mode. Showing/placing pictures does **not** change scores, submit results,
@@ -36,12 +40,16 @@ complete puzzle rounds, or unlock access to game content.
 - For Mystery Doors create/edit a **draft**, set doorCount to **8**, refresh
   preview, open one of eight doors and confirm choice scoring still works.
 - Test on a narrow phone viewport, desktop and projected classroom display.
+- In the hidden Sound Family Village preview, place a picture in the wrong
+  word-family house three times. The hearts should reach zero, controls should
+  stop accepting answers and the result screen should report three mistakes.
 - Do not publish any draft or approve teacher review merely because CI passes.
 
 ## Validation and rollout
 
 - Core tests: `packages/game-core/src/mystery-doors.test.ts` and
-  `packages/game-core/src/picture-puzzle.test.ts`.
+  `packages/game-core/src/picture-puzzle.test.ts` and
+  `packages/game-core/src/public-demo-gameplay.test.ts`.
 - Browser test: Picture Puzzle subsection in `apps/web/e2e/builder.spec.ts`.
 - Run `npm run typecheck`, `npm run test:core` and appropriate Playwright
   preview tests in an isolated environment with existing E2E test credentials.
