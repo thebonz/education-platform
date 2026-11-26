@@ -16,6 +16,8 @@ in draft, and **must not** auto-approve content or deploy to production.
 - The per-session completed-word set is tracked by word ID. Revisiting a
   solved word shows its letters as complete and **cannot award points twice**.
 - **Undo letter** restores the previous bubble for unfinished words.
+- A per-word draft remembers unfinished letters and selected bubble IDs across
+  previous/next browsing, so navigating away does not discard student work.
 - **Change unit** returns to unit selection and deliberately resets session
   score, errors and hint count (no cross-unit score carryover).
 - The finish button only submits when **every item in the current round**
