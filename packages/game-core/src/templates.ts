@@ -303,6 +303,7 @@ const phonicsFamilySchemaItem = z.object({
 export const phonicsFamilySchema = z.object({
   instructions: optionalText(300),
   wordsPerRound: z.number().int().min(3).max(12).default(6),
+  maxMistakes: z.number().int().min(1).max(6).default(3),
   families: z.array(phonicsFamilySchemaItem).min(2).max(10),
 }).superRefine((data, ctx) => {
   uniqueBy(data.families, (family) => family.id, ctx, 'families', 'id');
