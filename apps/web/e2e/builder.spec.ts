@@ -245,6 +245,7 @@ test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn gi
   await preview.getByTestId('puzzle-swap-switch').click();
   await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
 
+  let finalArtBeforeReplay = '';
   for (let round = 0; round < 3; round++) {
     await expect(preview.getByTestId('puzzle-round')).toContainText(`${round + 1}/3`);
     await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
@@ -259,19 +260,22 @@ test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn gi
       await tiles.nth(other).click();
     }
     await expect(preview.getByTestId('puzzle-complete')).toBeVisible();
+    if (round === 2) {
+      finalArtBeforeReplay = await preview.locator('.puzzle-tile-image').first().evaluate(
+        (element) => (element as HTMLElement).style.backgroundImage);
+    }
     await preview.getByTestId('puzzle-next').click();
   }
   await expect(preview.getByTestId('shell-result')).toBeVisible();
   await expect(preview.getByTestId('result-score')).toContainText('3/3');
   // The next session must contain different vocabulary, not just shuffled tiles.
-  const lastPicture = await preview.locator('.puzzle-tile-image').first().count();
   // The result screen unmounts game cards; start replay and inspect current art.
   await preview.getByTestId('play-again').click();
   await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
   const replayArt = await preview.locator('.puzzle-tile-image').first().evaluate(
     (element) => (element as HTMLElement).style.backgroundImage);
-  expect(lastPicture).toBe(0);
   expect(replayArt).toMatch(/\\/illustrations\\//);
+  expect(replayArt).not.toBe(finalArtBeforeReplay);
 
   // Preview không tự thay đổi review hay isPublished.
   const verify = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
