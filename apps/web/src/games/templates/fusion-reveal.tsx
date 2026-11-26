@@ -73,7 +73,7 @@ function DecoderStencil({ stripes }: { stripes: number }) {
  * On-screen, the slider moves B over A. Only teacher-owned content is used.
  */
 export function FusionRevealTemplate({
-  data, lang, t, round, rng, audio, onProgress, onFinish,
+  data, t, round, rng, audio, onProgress, onFinish,
 }: TemplateProps<FusionRevealData>) {
   const cards = useMemo(
     () => sessionSelection(data.items, data.cardsPerRound, round, rng),
