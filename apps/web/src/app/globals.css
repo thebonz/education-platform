@@ -933,7 +933,7 @@ label.check input{margin-top:3px;width:18px;height:18px}
  body *{visibility:hidden!important}
  .fusion-print-only,.fusion-print-only *{visibility:visible!important}
  .fusion-print-only{display:block!important;position:absolute!important;top:0!important;left:0!important;width:277mm!important;margin:0!important;padding:0!important;background:#fff!important}
- .fusion-print-page{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;width:277mm;min-height:190mm;break-after:page;page-break-after:always;margin:0;padding:3mm 0;background:#fff!important}
+ .fusion-print-page{display:flex!important;flex-direction:column;align-items:center;justify-content:flex-start;width:277mm;min-height:180mm;break-after:page;page-break-after:always;margin:0;padding:3mm 0;background:#fff!important}
  .fusion-print-page:last-child{break-after:auto;page-break-after:auto}
  .fusion-print-page h2{font:700 14pt Arial,sans-serif!important;margin:2mm 0!important;color:#111!important}
  .fusion-print-page p{font:10pt Arial,sans-serif!important;text-align:center;margin:2mm 0 5mm!important;color:#222!important}
