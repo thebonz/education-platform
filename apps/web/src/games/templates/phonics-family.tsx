@@ -20,13 +20,15 @@ export function PhonicsFamilyTemplate({ data, round, rng, audio, onProgress, onF
   const [picked, setPicked] = useState<string | null>(null);
   const [placed, setPlaced] = useState<Set<string>>(() => new Set());
   const [mistakes, setMistakes] = useState(0);
+  const [lost, setLost] = useState(false);
   const [feedback, setFeedback] = useState('');
   const finishTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const completed = placed.size === cards.length;
+  const ended = completed || lost;
   useEffect(() => () => { if (finishTimer.current) clearTimeout(finishTimer.current); }, []);
 
   function pick(id: string) {
-    if (completed || placed.has(id)) return;
+    if (ended || placed.has(id)) return;
     const word = cards.find((x) => x.id === id);
     if (!word) return;
     setPicked(id);
@@ -35,16 +37,26 @@ export function PhonicsFamilyTemplate({ data, round, rng, audio, onProgress, onF
   }
 
   function place(familyId: string, wordId = picked) {
-    if (!wordId || completed || placed.has(wordId)) return;
+    if (!wordId || ended || placed.has(wordId)) return;
     const word = cards.find((x) => x.id === wordId);
     if (!word) return;
     setPicked(wordId);
     if (word.familyId !== familyId) {
       const count = mistakes + 1;
       setMistakes(count);
-      setFeedback('Try another word family. Listen once more!');
       onProgress({ score: placed.size, mistakes: count });
       audio.sfx('wrong');
+      if (count >= data.maxMistakes) {
+        setLost(true);
+        setFeedback('No hearts left! Play again to discover more word families.');
+        if (!finishTimer.current) {
+          finishTimer.current = setTimeout(() => onFinish({
+            score: placed.size, maxScore: cards.length, mistakes: count,
+          }), 900);
+        }
+      } else {
+        setFeedback('Try another word family. Listen once more!');
+      }
       return;
     }
     const next = new Set(placed).add(wordId);
@@ -69,14 +81,15 @@ export function PhonicsFamilyTemplate({ data, round, rng, audio, onProgress, onF
         <span aria-hidden="true">☁️</span>
       </header>
       <div className="phonics-metrics" aria-live="polite"><b data-testid="phonics-progress">⭐ {placed.size}/{cards.length}</b>
-        <span>❤️ {Math.max(0, 3 - mistakes)} lives · 📚 {all.length} words in the library</span></div>
+        <span>❤️ {Math.max(0, data.maxMistakes - mistakes)} lives · 📚 {all.length} words in the library</span></div>
 
       <div className="phonics-houses" role="group" aria-label="Word-family houses">
         {displayFamilies.map((family) => (
           <button key={family.id} type="button" data-testid="phonics-house" data-family={family.id}
             className={picked && cards.find((w) => w.id === picked)?.familyId === family.id ? 'phonics-house is-target' : 'phonics-house'}
             onClick={() => place(family.id)}
-            onDragOver={(event) => event.preventDefault()}
+            disabled={ended}
+            onDragOver={(event) => { if (!ended) event.preventDefault(); }}
             onDrop={(event) => { event.preventDefault(); place(family.id, event.dataTransfer.getData('text/plain')); }}>
             <span aria-hidden="true">🏡</span><strong>–{family.ending}</strong>
             <small>{cards.filter((w) => w.familyId === family.id && placed.has(w.id)).length}/{cards.filter((w) => w.familyId === family.id).length} found</small>
@@ -91,10 +104,10 @@ export function PhonicsFamilyTemplate({ data, round, rng, audio, onProgress, onF
         {cards.map((word) => (
           <button key={word.id} type="button" data-testid="phonics-word" data-word={word.word}
             aria-pressed={picked === word.id}
-            draggable={!placed.has(word.id)}
+            draggable={!ended && !placed.has(word.id)}
             onDragStart={(event) => { event.dataTransfer.setData('text/plain', word.id); pick(word.id); }}
             onClick={() => pick(word.id)}
-            disabled={placed.has(word.id)}
+            disabled={ended || placed.has(word.id)}
             className={`phonics-word ${picked === word.id ? 'selected' : ''} ${placed.has(word.id) ? 'placed' : ''}`}>
             <PictureView picture={word.picture} size={100} />
             <b>{word.word}</b><span>{placed.has(word.id) ? '✓' : '🔊'}</span>
@@ -104,8 +117,8 @@ export function PhonicsFamilyTemplate({ data, round, rng, audio, onProgress, onF
       <div className="tpl-feedback" role="status" data-testid="phonics-feedback">{feedback || (picked ? 'Now tap the matching word-family house!' : 'Choose any picture to begin.')}</div>
       <div className="phonics-actions"><button className="secondary-button" type="button" onClick={() => {
         const active = cards.find((w) => w.id === picked); if (active) audio.say(active.say ?? active.word);
-      }} disabled={!picked}>🔊 Hear again</button>
-      <p>{completed ? '✨ Your village is full of words!' : 'Find the same ending letters. Listen to each complete word.'}</p></div>
+      }} disabled={!picked || ended}>🔊 Hear again</button>
+      <p>{lost ? '💛 Great effort! Use Play again to practice with a new set.' : completed ? '✨ Your village is full of words!' : 'Find the same ending letters. Listen to each complete word.'}</p></div>
     </section>
   );
 }

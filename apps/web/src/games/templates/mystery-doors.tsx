@@ -26,7 +26,7 @@ export function MysteryDoorsTemplate({
   const choices = useMemo(() => data.rounds.map((round) => shuffle(round.choices, rng)),
     [data.rounds, rng]);
   const current = data.rounds[roundIndex];
-  const columns = data.doorCount === 4 ? 2 : 3;
+  const columns = data.doorCount === 4 ? 2 : data.doorCount === 8 ? 4 : 3;
   const rows = data.doorCount / columns;
   const answered = selected !== null;
   const correct = selected === current.answer;

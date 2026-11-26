@@ -48,3 +48,15 @@ test('Mystery Doors: invalid answers, duplicate IDs and excessive rounds fail va
   };
   assert.equal(validateGameData('mystery-doors', maliciousSrc).ok, false);
 });
+
+
+test('Mystery Doors: eight-door teacher layout is valid; all unsupported counts stay rejected', () => {
+  const starter = starterContent('mystery-doors', 'en') as { doorCount: number };
+  starter.doorCount = 8;
+  const eight = validateGameData('mystery-doors', starter);
+  assert.equal(eight.ok, true);
+  if (eight.ok) assert.equal(eight.data.doorCount, 8);
+
+  starter.doorCount = 7;
+  assert.equal(validateGameData('mystery-doors', starter).ok, false);
+});

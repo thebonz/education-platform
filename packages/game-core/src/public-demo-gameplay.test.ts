@@ -46,3 +46,16 @@ test('silhouette game requires a separate shape and enforces lives/round bounds'
   start.maxMistakes = 3; start.wordsPerRound = 9;
   assert.equal(validateGameData('shadow-guess', start).ok, false);
 });
+
+test('phonics hearts have a bounded default and cannot be disabled accidentally', () => {
+  const starter = starterContent('phonics-family', 'en') as {
+    maxMistakes?: number;
+  };
+  const parsed = validateGameData('phonics-family', starter);
+  assert.equal(parsed.ok, true);
+  if (parsed.ok) assert.equal(parsed.data.maxMistakes, 3);
+
+  assert.equal(validateGameData('phonics-family', { ...starter, maxMistakes: 0 }).ok, false);
+  assert.equal(validateGameData('phonics-family', { ...starter, maxMistakes: 7 }).ok, false);
+  assert.equal(validateGameData('phonics-family', { ...starter, maxMistakes: 4 }).ok, true);
+});

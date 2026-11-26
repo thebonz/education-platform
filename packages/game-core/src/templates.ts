@@ -72,7 +72,7 @@ const mysteryRoundSchema = z
 export const mysteryDoorsSchema = z
   .object({
     instructions: optionalText(300),
-    doorCount: z.union([z.literal(4), z.literal(6), z.literal(9)]).default(6),
+    doorCount: z.union([z.literal(4), z.literal(6), z.literal(8), z.literal(9)]).default(6),
     rounds: z.array(mysteryRoundSchema).min(3).max(12),
   })
   .superRefine((data, ctx) => {
@@ -91,9 +91,15 @@ const puzzleRound = z.object({
 export const picturePuzzleSchema = z.object({
   instructions: optionalText(300),
   size: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
+  /** Optional: play a rotating subset of a larger picture bank per session. */
+  picturesPerRound: z.number().int().min(2).max(12).optional(),
   rounds: z.array(puzzleRound).min(2).max(12),
 }).superRefine((data, ctx) => {
   uniqueBy(data.rounds, (round) => round.id, ctx, 'rounds', 'id');
+  if (data.picturesPerRound !== undefined && data.picturesPerRound > data.rounds.length) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['picturesPerRound'],
+      message: 'Số tranh mỗi lượt không được vượt số tranh trong thư viện' });
+  }
 });
 
 // ---------------------------------------------------------------------------
@@ -297,6 +303,7 @@ const phonicsFamilySchemaItem = z.object({
 export const phonicsFamilySchema = z.object({
   instructions: optionalText(300),
   wordsPerRound: z.number().int().min(3).max(12).default(6),
+  maxMistakes: z.number().int().min(1).max(6).default(3),
   families: z.array(phonicsFamilySchemaItem).min(2).max(10),
 }).superRefine((data, ctx) => {
   uniqueBy(data.families, (family) => family.id, ctx, 'families', 'id');

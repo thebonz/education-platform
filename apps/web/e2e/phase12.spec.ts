@@ -51,6 +51,16 @@ test('Three original English interaction forms work in private preview and remai
   const words2 = await phonics.getByTestId('phonics-word').evaluateAll((nodes) =>
     nodes.map((node) => node.getAttribute('data-word') ?? ''));
   expect(words2.some((word) => !words1.includes(word))).toBe(true);
+  // The three visible hearts are a real loss condition, not decoration.
+  const firstWord = words2[0];
+  const wrongEnding = ['at', 'og', 'an'].find((ending) => !firstWord.endsWith(ending))!;
+  await phonics.locator('[data-testid="phonics-word"][data-word="' + firstWord + '"]').click();
+  for (let i = 0; i < 3; i++) {
+    await phonics.locator('[data-testid="phonics-house"][data-family="' + wrongEnding + '"]').click();
+  }
+  await expect(phonics.locator('.phonics-metrics')).toContainText('0 lives');
+  await expect(phonics.getByTestId('shell-result')).toBeVisible({ timeout: 5_000 });
+  await expect(phonics.getByTestId('result-score')).toContainText('Mistakes: 3');
 
   const classroom = await openPreview(slugs[1]);
   const objects = await classroom.getByTestId('classroom-object').evaluateAll((nodes) =>
