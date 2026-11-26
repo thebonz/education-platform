@@ -51,6 +51,21 @@ export function TrailBoardTemplate({
   const spinnerBackground = `conic-gradient(${Array.from({ length: data.diceSides }, (_, index) =>
     `${spinnerColors[index % spinnerColors.length]} ${index * segmentSize}deg ${(index + 1) * segmentSize}deg`).join(', ')})`;
 
+  const spinnerWheel = (
+    <div className="trail-spinner-wrap" data-testid="trail-spinner"
+      aria-label={lang === 'vi' ? 'Vòng quay số bước' : 'Move spinner'}>
+      <div className="trail-spinner-pointer" aria-hidden="true">▼</div>
+      <div className="trail-spinner-wheel"
+        style={{ background: spinnerBackground, transform: `rotate(${wheelRotation}deg)` }}>
+        {Array.from({ length: data.diceSides }, (_, segment) => (
+          <span key={segment} style={{
+            transform: `translate(-50%, -50%) rotate(${(segment + .5) * segmentSize}deg) translateY(-50px) rotate(${-(segment + .5) * segmentSize}deg)`,
+          }}>{segment + 1}</span>
+        ))}
+      </div>
+    </div>
+  );
+
   function rollDice() {
     if (rolled !== null || finished.current) return;
     const value = Math.min(data.diceSides, 1 + Math.floor(rng() * data.diceSides));
@@ -100,7 +115,7 @@ export function TrailBoardTemplate({
         <div className="trail-finish" data-testid="trail-finish">
           <h3>{ranked.tie ? t.tie : `🏆 ${t.winner}: ${ranked.winners[0].name}`}</h3>
           <ol>{[...summary].sort((a, b) => b.score - a.score).map((entry) => (
-            <li key={entry.name}>{entry.name}: {entry.score}/{data.boardLength} {lang === 'vi' ? 'ô' : 'spaces'}</li>
+            <li key={entry.name}>{entry.name}: {entry.score}/{data.boardLength} {lang === 'vi' ? 'ô' : 'spaces'} · ✓ {teamHits[summary.findIndex((team) => team.name === entry.name)]}</li>
           ))}</ol>
         </div>
       ),
@@ -147,6 +162,25 @@ export function TrailBoardTemplate({
         <span>{lang === 'vi' ? 'Lượt của' : 'Turn for'} <strong>{teamName(activeTeam)}</strong></span>
         <span>{t.question} {index + 1}/{questions.length}</span>
       </div>
+      <div className="trail-history-controls">
+        <button type="button" className="secondary-button" data-testid="trail-history-toggle"
+          aria-controls="trail-turn-history" aria-expanded={historyOpen}
+          onClick={() => setHistoryOpen((open) => !open)}>
+          📜 {lang === 'vi' ? 'Nhật ký lượt chơi' : 'Turn history'} ({history.length})
+        </button>
+        <span>{lang === 'vi' ? 'Kho câu hỏi' : 'Question bank'}: {questions.length}/{data.questions.length}</span>
+      </div>
+      {historyOpen && <ol className="trail-history" id="trail-turn-history" data-testid="trail-history">
+        {history.length === 0
+          ? <li>{lang === 'vi' ? 'Chưa có lượt nào hoàn thành.' : 'No turns completed yet.'}</li>
+          : history.map((entry, turn) => (
+            <li key={turn} data-testid="trail-history-item">
+              <strong>{turn + 1}. {teamName(entry.team)}</strong>
+              <span> {entry.correct ? '✅' : '↩️'} {entry.roll} {lang === 'vi' ? 'bước' : 'steps'} </span>
+              <span>{lang === 'vi' ? 'Đáp án' : 'Answer'}: {entry.answer}</span>
+            </li>
+          ))}
+      </ol>}
 
       {rolled === null ? (
         <div className="trail-roll-panel">
@@ -157,17 +191,7 @@ export function TrailBoardTemplate({
               <option value="spinner">{lang === 'vi' ? '🎡 Vòng quay' : '🎡 Spinner'}</option>
             </select>
           </label>
-          {rollMode === 'spinner' ? (
-            <div className="trail-spinner-wrap" data-testid="trail-spinner" aria-label={lang === 'vi' ? 'Vòng quay số bước' : 'Move spinner'}>
-              <div className="trail-spinner-pointer" aria-hidden="true">▼</div>
-              <div className="trail-spinner-wheel"
-                style={{ background: spinnerBackground, transform: `rotate(${wheelRotation}deg)` }}>
-                {Array.from({ length: data.diceSides }, (_, index) => (
-                  <span key={index} style={{ transform: `translate(-50%, -50%) rotate(${(index + .5) * segmentSize}deg) translateY(-50px) rotate(${-(index + .5) * segmentSize}deg)` }}>{index + 1}</span>
-                ))}
-              </div>
-            </div>
-          ) : <div className="trail-die" aria-hidden="true">🎲</div>}
+          {rollMode === 'spinner' ? spinnerWheel : <div className="trail-die" aria-hidden="true">🎲</div>}
           <p>{rollMode === 'spinner'
             ? (lang === 'vi' ? 'Quay để chọn số bước cho đội!' : 'Spin for your team’s next move!')
             : (lang === 'vi' ? 'Tung xúc xắc để mở câu hỏi!' : 'Roll the dice to reveal your question!')}</p>
@@ -179,8 +203,9 @@ export function TrailBoardTemplate({
         </div>
       ) : (
         <div className="trail-question-area">
+          {rollMode === 'spinner' && spinnerWheel}
           <p className="trail-roll-result" data-testid="trail-roll-result">
-            🎲 {lang === 'vi' ? `Đã tung: ${rolled} bước` : `Rolled: ${rolled} spaces`}
+            {rollMode === 'spinner' ? '🎡' : '🎲'} {lang === 'vi' ? `Đã chọn: ${rolled} bước` : `Selected: ${rolled} spaces`}
           </p>
           <div className="quiz-card">
             {q.picture && <PictureView picture={q.picture} size={72} />}
