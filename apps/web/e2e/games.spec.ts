@@ -130,6 +130,23 @@ test('Bingo Carnival: tùy chọn 5x5 chỉ hiện khi có ít nhất 25 mục',
   await expect(page.getByTestId('bingo-progress')).toHaveAttribute('max', '25');
 });
 
+test('Bingo call history reveals only answered letters and supports replay', async ({ page }) => {
+  await page.goto(`${EN}/games/alphabet-bingo`);
+  await page.getByTestId('shell-start').click();
+  await page.getByTestId('bingo-history-toggle').click();
+  await expect(page.getByTestId('bingo-called-history')).toBeVisible();
+  await expect(page.getByTestId('bingo-history-letter')).toHaveCount(0);
+  const firstCall = (await page.getByTestId('bingo-call').getAttribute('data-call-text'))!;
+  await page.locator(`[data-testid=bingo-cell][data-text="${firstCall}"]`).click();
+  await expect(page.getByTestId('bingo-history-letter')).toHaveCount(1);
+  await expect(page.getByTestId('bingo-history-letter').first()).toContainText(firstCall);
+  await page.getByTestId('bingo-history-letter').first().click();
+  await expect(page.getByTestId('bingo-history-toggle')).toHaveAttribute('aria-expanded', 'true');
+  await page.getByTestId('bingo-new-card').click();
+  await expect(page.getByTestId('bingo-history-letter')).toHaveCount(0);
+  await expect(page.getByTestId('bingo-history-toggle')).toHaveAttribute('aria-expanded', 'false');
+});
+
 test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ page }) => {
   await page.goto(`${EN}/games/vocabulary-matching`);
   await page.getByTestId('shell-start').click();
