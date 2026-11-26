@@ -38,6 +38,7 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
   const [wordIndex, setWordIndex] = useState(0);
   const [built, setBuilt] = useState<string[]>([]);
   const [chosenKeys, setChosenKeys] = useState<string[]>([]);
+  const [drafts, setDrafts] = useState<Record<string, { built: string[]; keys: string[] }>>({});
   const usedKeys = useMemo(() => new Set(chosenKeys), [chosenKeys]);
   // Count each completed word only once, even when navigating back to review.
   const [completedIds, setCompletedIds] = useState<Set<string>>(() => new Set());
@@ -65,14 +66,26 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
 
   function goToWord(nextIndex: number) {
     if (!unitWords.length) return;
-    setWordIndex((nextIndex + unitWords.length) % unitWords.length);
-    clearCurrentWord();
+    const destination = (nextIndex + unitWords.length) % unitWords.length;
+    // Keep a learner's unfinished letters when browsing other words.
+    if (word && !wordDone) {
+      setDrafts((existing) => ({
+        ...existing, [word.id]: { built: [...built], keys: [...chosenKeys] },
+      }));
+    }
+    const saved = drafts[unitWords[destination].id];
+    setWordIndex(destination);
+    setBuilt(saved?.built ?? []);
+    setChosenKeys(saved?.keys ?? []);
+    setWrongKey(null);
+    show(null);
   }
 
   function chooseAnotherUnit() {
     setUnitId(null);
     setWordIndex(0);
     setCompletedIds(new Set());
+    setDrafts({});
     setMistakes(0);
     setHints(0);
     clearCurrentWord();
@@ -143,7 +156,13 @@ export function BubbleSpellingTemplate({ data, lang, t, rng, round, audio, onPro
   }
 
   function retry() {
-    if (!wordDone) clearCurrentWord();
+    if (wordDone) return;
+    setDrafts((existing) => {
+      const next = { ...existing };
+      if (word) delete next[word.id];
+      return next;
+    });
+    clearCurrentWord();
   }
 
   function nextWord() {
