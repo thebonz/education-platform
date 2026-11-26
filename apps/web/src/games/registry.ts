@@ -10,6 +10,7 @@ import { PhonicsFamilyTemplate } from './templates/phonics-family';
 import { ClassroomExploreTemplate } from './templates/classroom-explore';
 import { ShadowGuessTemplate } from './templates/shadow-guess';
 import { PicturePuzzleTemplate } from './templates/picture-puzzle';
+import { FusionRevealTemplate } from './templates/fusion-reveal';
 import { QuizTemplate } from './templates/quiz';
 import { TrailBoardTemplate } from './templates/trail-board';
 import { SentenceOrderTemplate } from './templates/sentence-order';
@@ -27,6 +28,7 @@ export const TEMPLATE_COMPONENTS: Record<TemplateKey, ComponentType<TemplateProp
   'classroom-explore': ClassroomExploreTemplate,
   'shadow-guess': ShadowGuessTemplate,
   'picture-puzzle': PicturePuzzleTemplate,
+  'fusion-reveal': FusionRevealTemplate,
   quiz: QuizTemplate,
   'trail-board': TrailBoardTemplate,
   'hidden-picture': HiddenPictureTemplate,
