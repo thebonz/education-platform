@@ -27,9 +27,29 @@ const phonicsFamilies = [
   ] },
 ];
 
-const classroomItems = ENGLISH_WORD_BANK.school.map((item, i, words) => ({
+// 19 independently drawn objects (17 discoveries + 2 optional extras) in a
+// rotating 6-object session. All content is written/illustrated for HappyClass.
+const CLASSROOM_ORIGINALS = [
+  { id: 'desk', word: 'desk', clue: 'You write on it while sitting at school.' },
+  { id: 'computer', word: 'computer', clue: 'It has a screen and a keyboard.' },
+  { id: 'globe', word: 'globe', clue: 'A round map of our world.' },
+  { id: 'window', word: 'window', clue: 'You can look through it to see outside.' },
+  { id: 'door', word: 'door', clue: 'Open it to enter the room.' },
+  { id: 'notebook', word: 'notebook', clue: 'Write your notes on its pages.' },
+  { id: 'scissors', word: 'scissors', clue: 'Use these carefully to cut paper.' },
+  { id: 'crayons', word: 'crayons', clue: 'Use them to draw colourful pictures.' },
+  { id: 'glue', word: 'glue', clue: 'It helps pieces of paper stick together.' },
+  { id: 'board', word: 'board', clue: 'Your teacher writes on it.' },
+].map(({ id, word, clue }) => ({
+  id, word, clue,
+  picture: { kind: 'image' as const, src: `/illustrations/classroom/${id}.svg`,
+    alt: `Original HappyClass drawing of a classroom ${word}` },
+}));
+const classroomBank = [...ENGLISH_WORD_BANK.school, ...CLASSROOM_ORIGINALS];
+const classroomItems = classroomBank.map((item, i, words) => ({
   id: item.id, word: item.word, picture: item.picture,
-  clue: i === 0 ? 'Open it and read a story!' : undefined,
+  clue: 'clue' in item ? item.clue :
+    item.id === 'book' ? 'Open it and read a story!' : undefined,
   choices: [item.word, words[(i + 1) % words.length].word, words[(i + 2) % words.length].word],
 }));
 
@@ -56,9 +76,9 @@ export const ENGLISH_PUBLIC_DEMO_INSPIRED: GamePack[] = [
   },
   {
     product: 'english', slug: 'little-learning-classroom', title: 'Little Learning Classroom',
-    summary: 'Discover nine original illustrated classroom objects. Tap an object and pick A, B or C.',
+    summary: 'Explore 19 original classroom illustrations. Each replay brings six new objects to discover.',
     templateKey: 'classroom-explore', category: 'solo-games', level: 'kindergarten', difficulty: 'easy',
-    accessLevel: 'FREE', sortOrder: 15, revision: 1, published: false,
+    accessLevel: 'FREE', sortOrder: 15, revision: 2, published: false,
     data: { instructions: 'Tap a classroom picture. Listen to American English and choose the correct word.',
       wordsPerRound: 6, items: classroomItems },
   },
