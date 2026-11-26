@@ -5,6 +5,7 @@ import { createRng } from '@happyclass/game-core/rng';
 import { scrambledPuzzle, swapPuzzlePieces, isPuzzleSolved } from '@happyclass/game-core/picture-puzzle';
 import type { PicturePuzzleData } from '@happyclass/game-core/templates';
 import { PictureView } from '../picture';
+import { PuzzleRingGallery } from './puzzle-ring-gallery';
 import type { TemplateProps } from '../shell/types';
 
 /**
@@ -15,6 +16,7 @@ export function PicturePuzzleTemplate({
   data, lang, t, rng, audio, onProgress, onFinish,
 }: TemplateProps<PicturePuzzleData>) {
   const isVi = lang === 'vi';
+  const [mode, setMode] = useState<'puzzle' | 'ring'>('puzzle');
   const seed = useMemo(() => Math.floor(rng() * 0x100000000), [rng]);
   const decks = useMemo(() => data.rounds.map((round) =>
     scrambledPuzzle(data.size, createRng(`puzzle-${seed}-${round.id}`))),
@@ -82,6 +84,16 @@ export function PicturePuzzleTemplate({
 
   return (
     <div className="tpl tpl-picture-puzzle" data-testid="picture-puzzle">
+      <div className="puzzle-mode-switch" role="group"
+        aria-label={isVi ? 'Chọn hoạt động tranh' : 'Picture activity mode'}>
+        <button type="button" data-testid="puzzle-swap-switch" aria-pressed={mode === 'puzzle'}
+          onClick={() => setMode('puzzle')}>{isVi ? '🧩 Ghép hình' : '🧩 Solve puzzle'}</button>
+        <button type="button" data-testid="puzzle-gallery-switch" aria-pressed={mode === 'ring'}
+          onClick={() => setMode('ring')}>{isVi ? '🎠 Thư viện xoay 3D' : '🎠 3D Picture Ring'}</button>
+      </div>
+      {mode === 'ring' ? (
+        <PuzzleRingGallery rounds={data.rounds} lang={lang} audio={audio} />
+      ) : (<>
       <div className="puzzle-header">
         <span className="puzzle-spark" aria-hidden="true">✦</span>
         <div><span className="eyebrow">{isVi ? 'THẾ GIỚI GHÉP HÌNH' : 'PICTURE PUZZLE PLAYLAND'}</span>
@@ -158,6 +170,7 @@ export function PicturePuzzleTemplate({
           )}
         </div>
       </div>
+      </>)}
     </div>
   );
 }
