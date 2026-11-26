@@ -144,13 +144,23 @@ test('Star Trail: 2 bản mẫu ở chế độ ẩn, chơi bằng Game Builder 
     await expect(preview.getByTestId('trail-board')).toBeVisible();
     await expect(preview.getByTestId('trail-team-0')).toBeVisible();
     await expect(preview.getByTestId('trail-team-1')).toBeVisible();
+    // Both English and Vietnamese allow the wheel, but the default may differ.
+    await preview.getByTestId('trail-roll-mode').selectOption('spinner');
+    await expect(preview.getByTestId('trail-spinner')).toBeVisible();
+    await preview.getByTestId('trail-history-toggle').click();
+    await expect(preview.getByTestId('trail-history-item')).toHaveCount(0);
+    if (product === 'english') await expect(preview.locator('.trail-history-controls')).toContainText('10/24');
     await preview.getByTestId('trail-roll').click();
     await expect(preview.getByTestId('trail-roll-result')).toContainText(/\d/);
+    await expect(preview.getByTestId('trail-spinner')).toBeVisible();
     await expect(preview.getByTestId('trail-choice')).toHaveCount(3);
     await preview.getByTestId('trail-choice').first().click();
     await expect(preview.getByTestId('trail-feedback')).not.toBeEmpty();
+    await expect(preview.getByTestId('trail-history-item')).toHaveCount(1);
+    await expect(preview.getByTestId('trail-history-item').first()).toContainText('1.');
     await preview.getByTestId('trail-next').click();
     await expect(preview.getByTestId('trail-roll')).toBeVisible();
+    await expect(preview.getByTestId('trail-history-item')).toHaveCount(1);
   }
   // Không bấm duyệt, không phát hành: vẫn là mẫu thử để giáo viên kiểm nội dung.
 });
