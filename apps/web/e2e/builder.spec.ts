@@ -224,6 +224,27 @@ test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn gi
   await preview.getByTestId('shell-start').click();
   await expect(preview.getByTestId('picture-puzzle')).toBeVisible();
 
+  // Gallery showcase uses the same teacher-owned pictures; it is not scored.
+  await preview.getByTestId('puzzle-gallery-switch').click();
+  await expect(preview.getByTestId('puzzle-ring-gallery')).toBeVisible();
+  await expect(preview.getByTestId('ring-card')).toHaveCount(3);
+  await expect(preview.getByTestId('ring-placed-card')).toHaveCount(0);
+  await preview.getByTestId('ring-next').click();
+  await preview.getByTestId('ring-speed').selectOption('fast');
+  await preview.getByTestId('ring-play').click();
+  await expect(preview.getByTestId('ring-play')).toHaveAttribute('aria-pressed', 'true');
+  await preview.getByTestId('ring-play').click();
+  await preview.getByTestId('ring-place-one').click();
+  await expect(preview.getByTestId('ring-placed-card')).toHaveCount(1);
+  await expect(preview.getByTestId('ring-placed-count')).toContainText('1/3');
+  await preview.getByTestId('ring-place-all').click();
+  await expect(preview.getByTestId('ring-placed-card')).toHaveCount(3);
+  await expect(preview.getByTestId('ring-place-one')).toBeDisabled();
+  await preview.getByTestId('ring-reset').click();
+  await expect(preview.getByTestId('ring-placed-card')).toHaveCount(0);
+  await preview.getByTestId('puzzle-swap-switch').click();
+  await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
+
   for (let round = 0; round < 3; round++) {
     await expect(preview.getByTestId('puzzle-round')).toContainText(`${round + 1}/3`);
     await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
