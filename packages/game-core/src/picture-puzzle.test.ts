@@ -1,6 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { createRng } from './rng';
+import { sessionSelection } from './learning-session';
 import { scrambledPuzzle, swapPuzzlePieces, isPuzzleSolved } from './picture-puzzle';
 import { starterContent } from './starters';
 import { validateGameData } from './templates';
@@ -55,4 +56,28 @@ test('invalid puzzle swaps fail safely', () => {
   assert.throws(() => swapPuzzlePieces([0, 1, 2, 3], 0, 4), RangeError);
   assert.throws(() => swapPuzzlePieces([0, 1, 2, 2], 0, 1), RangeError);
   assert.throws(() => swapPuzzlePieces([], 0, 0), RangeError);
+});
+
+test('picture bank validates 3-per-session replay and rotates real items', () => {
+  const original = starterContent('picture-puzzle', 'en') as {
+    picturesPerRound?: number;
+    rounds: { id: string; label: string; picture: unknown }[];
+  };
+  const eight = Array.from({ length: 8 }, (_, i) => ({
+    id: `picture-${i + 1}`, label: `picture ${i + 1}`, picture: { kind: 'emoji', value: '🌈' },
+  }));
+  const pack = { ...original, rounds: eight, picturesPerRound: 3 };
+  const result = validateGameData('picture-puzzle', pack);
+  assert.equal(result.ok, true);
+  const first = sessionSelection(eight, 3, 1, createRng(22));
+  const second = sessionSelection(eight, 3, 2, createRng(22));
+  assert.equal(first.length, 3);
+  assert.equal(second.length, 3);
+  assert.equal(first.some((item) => second.some((x) => x.id === item.id)), false);
+
+  assert.equal(validateGameData('picture-puzzle', { ...pack, picturesPerRound: 9 }).ok, false);
+  assert.equal(validateGameData('picture-puzzle', { ...pack, picturesPerRound: 1 }).ok, false);
+  assert.equal(validateGameData('picture-puzzle', { ...pack, picturesPerRound: 2 }).ok, true);
+  // Existing teacher-created packs without picturesPerRound keep all pictures.
+  assert.equal(validateGameData('picture-puzzle', original).ok, true);
 });
