@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { createRng } from '@happyclass/game-core/rng';
+import { sessionSelection } from '@happyclass/game-core/learning-session';
 import { scrambledPuzzle, swapPuzzlePieces, isPuzzleSolved } from '@happyclass/game-core/picture-puzzle';
 import type { PicturePuzzleData } from '@happyclass/game-core/templates';
 import { PictureView } from '../picture';
@@ -13,14 +14,21 @@ import type { TemplateProps } from '../shell/types';
  * Works with teacher's own media images or built-in emoji. No copied artwork/assets.
  */
 export function PicturePuzzleTemplate({
-  data, lang, t, rng, audio, onProgress, onFinish,
+  data, lang, t, rng, round: sessionRound, audio, onProgress, onFinish,
 }: TemplateProps<PicturePuzzleData>) {
   const isVi = lang === 'vi';
   const [mode, setMode] = useState<'puzzle' | 'ring'>('puzzle');
   const seed = useMemo(() => Math.floor(rng() * 0x100000000), [rng]);
-  const decks = useMemo(() => data.rounds.map((round) =>
-    scrambledPuzzle(data.size, createRng(`puzzle-${seed}-${round.id}`))),
-    [data.rounds, data.size, seed]);
+  // Rotate real picture content on Play Again, not merely the tile order.
+  // Existing teacher-authored packs without picturesPerRound still play every picture.
+  const activeRounds = useMemo(() => data.picturesPerRound === undefined
+    ? data.rounds
+    : sessionSelection(data.rounds, data.picturesPerRound, sessionRound,
+      createRng(`picture-bank-${seed}`)),
+    [data.rounds, data.picturesPerRound, sessionRound, seed]);
+  const decks = useMemo(() => activeRounds.map((item) =>
+    scrambledPuzzle(data.size, createRng(`puzzle-${seed}-${item.id}`))),
+    [activeRounds, data.size, seed]);
   const [index, setIndex] = useState(0);
   const [pieces, setPieces] = useState<number[]>(() => decks[0]);
   const [selected, setSelected] = useState<number | null>(null);
@@ -29,7 +37,7 @@ export function PicturePuzzleTemplate({
   const [score, setScore] = useState(0);
   const [peek, setPeek] = useState(false);
   const peekTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const round = data.rounds[index];
+  const round = activeRounds[index];
 
   useEffect(() => () => {
     if (peekTimer.current) clearTimeout(peekTimer.current);
@@ -69,8 +77,8 @@ export function PicturePuzzleTemplate({
 
   function next() {
     if (!completed) return;
-    if (index + 1 === data.rounds.length) {
-      onFinish({ score, maxScore: data.rounds.length, mistakes: 0 });
+    if (index + 1 === activeRounds.length) {
+      onFinish({ score, maxScore: activeRounds.length, mistakes: 0 });
       return;
     }
     if (peekTimer.current) clearTimeout(peekTimer.current);
@@ -92,7 +100,7 @@ export function PicturePuzzleTemplate({
           onClick={() => setMode('ring')}>{isVi ? '🎠 Thư viện xoay 3D' : '🎠 3D Picture Ring'}</button>
       </div>
       {mode === 'ring' ? (
-        <PuzzleRingGallery rounds={data.rounds} lang={lang} audio={audio} />
+        <PuzzleRingGallery rounds={activeRounds} lang={lang} audio={audio} />
       ) : (<>
       <div className="puzzle-header">
         <span className="puzzle-spark" aria-hidden="true">✦</span>
@@ -103,9 +111,9 @@ export function PicturePuzzleTemplate({
       </div>
 
       <div className="puzzle-metrics">
-        <span data-testid="puzzle-round">{isVi ? 'Tranh' : 'Picture'} {index + 1}/{data.rounds.length}</span>
+        <span data-testid="puzzle-round">{isVi ? 'Tranh' : 'Picture'} {index + 1}/{activeRounds.length}</span>
         <span data-testid="puzzle-moves">{isVi ? 'Lượt đổi' : 'Moves'}: {moves}</span>
-        <span>⭐ {score}/{data.rounds.length}</span>
+        <span>⭐ {score}/{activeRounds.length}</span>
       </div>
 
       <div className="puzzle-workspace">
@@ -164,7 +172,7 @@ export function PicturePuzzleTemplate({
               <h3>🌟 {round.label}</h3>
               <p>{isVi ? `Đã hoàn thành với ${moves} lượt đổi!` : `Completed in ${moves} swaps!`}</p>
               <button type="button" className="primary-button" data-testid="puzzle-next" onClick={next}>
-                {index + 1 === data.rounds.length ? t.finish : `${t.next} →`}
+                {index + 1 === activeRounds.length ? t.finish : `${t.next} →`}
               </button>
             </div>
           )}
