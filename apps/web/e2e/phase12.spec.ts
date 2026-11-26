@@ -66,6 +66,7 @@ test('Three original English interaction forms work in private preview and remai
   const objects = await classroom.getByTestId('classroom-object').evaluateAll((nodes) =>
     nodes.map((node) => node.getAttribute('data-word') ?? ''));
   expect(objects).toHaveLength(6);
+  await expect(classroom.locator('.classroom-toolbar')).toContainText('19 pictures');
   for (const word of objects) {
     await classroom.locator('[data-testid="classroom-object"][data-word="' + word + '"]').click();
     await expect(classroom.getByTestId('classroom-answer')).toHaveCount(3);
@@ -74,6 +75,12 @@ test('Three original English interaction forms work in private preview and remai
   }
   await expect(classroom.getByTestId('shell-result')).toBeVisible();
   await expect(classroom.getByTestId('result-score')).toContainText('6/6');
+  await classroom.getByTestId('play-again').click();
+  const nextObjects = await classroom.getByTestId('classroom-object').evaluateAll((nodes) =>
+    nodes.map((node) => node.getAttribute('data-word') ?? ''));
+  expect(nextObjects).toHaveLength(6);
+  expect(nextObjects.some((word) => !objects.includes(word))).toBe(true);
+  // Rotate the real items and art, not only the placement of the same six tiles.
 
   const shadow = await openPreview(slugs[2]);
   for (let i = 0; i < 6; i++) {

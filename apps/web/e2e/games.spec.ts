@@ -130,6 +130,23 @@ test('Bingo Carnival: tùy chọn 5x5 chỉ hiện khi có ít nhất 25 mục',
   await expect(page.getByTestId('bingo-progress')).toHaveAttribute('max', '25');
 });
 
+test('Bingo call history reveals only answered letters and supports replay', async ({ page }) => {
+  await page.goto(`${EN}/games/alphabet-bingo`);
+  await page.getByTestId('shell-start').click();
+  await page.getByTestId('bingo-history-toggle').click();
+  await expect(page.getByTestId('bingo-called-history')).toBeVisible();
+  await expect(page.getByTestId('bingo-history-letter')).toHaveCount(0);
+  const firstCall = (await page.getByTestId('bingo-call').getAttribute('data-call-text'))!;
+  await page.locator(`[data-testid=bingo-cell][data-text="${firstCall}"]`).click();
+  await expect(page.getByTestId('bingo-history-letter')).toHaveCount(1);
+  await expect(page.getByTestId('bingo-history-letter').first()).toContainText(firstCall);
+  await page.getByTestId('bingo-history-letter').first().click();
+  await expect(page.getByTestId('bingo-history-toggle')).toHaveAttribute('aria-expanded', 'true');
+  await page.getByTestId('bingo-new-card').click();
+  await expect(page.getByTestId('bingo-history-letter')).toHaveCount(0);
+  await expect(page.getByTestId('bingo-history-toggle')).toHaveAttribute('aria-expanded', 'false');
+});
+
 test('Animal Match: ghép từ với hình, có lỗi được tính', async ({ page }) => {
   await page.goto(`${EN}/games/vocabulary-matching`);
   await page.getByTestId('shell-start').click();
@@ -190,6 +207,44 @@ test('Bubble Word Garden: chọn bài, bấm bong bóng đúng thứ tự @mobil
     await page.getByTestId('bubble-next').click();
   }
   expect(await expectResult(page)).toContain(`You scored ${data.wordsPerRound}/${data.wordsPerRound}`);
+});
+
+test('Bubble Garden: skip has no score, undo restores a letter, completed words cannot be farmed', async ({ page }) => {
+  const data = await playData(page, 'bubble-word-garden');
+  await page.goto(`${EN}/games/bubble-word-garden`);
+  await page.getByTestId('shell-start').click();
+  await page.getByTestId('unit-option').first().click();
+  const originalId = await page.getByTestId('bubble-word').getAttribute('data-word-id');
+  const unit = data.units[0];
+  const firstWord = unit.words.find((item: { id: string }) => item.id === originalId);
+  expect(firstWord).toBeTruthy();
+
+  const parts = firstWord.segments ?? graphemes(firstWord.word);
+  const tile = page.locator(`[data-testid=bubble][data-value="${parts[0]}"]:not([disabled])`).first();
+  await tile.click();
+  await expect(page.getByTestId('bubble-slots').locator('.slot').first()).toHaveText(parts[0]);
+  await page.getByTestId('bubble-next-word').click();
+  expect(await page.getByTestId('bubble-word').getAttribute('data-word-id')).not.toBe(originalId);
+  await expect(page.getByTestId('bubble-completed-count')).toContainText('0/6');
+  await page.getByTestId('bubble-prev-word').click();
+  await expect(page.getByTestId('bubble-word')).toHaveAttribute('data-word-id', originalId!);
+  // A partially typed word stays intact while browsing other pictures.
+  await expect(page.getByTestId('bubble-slots').locator('.slot').first()).toHaveText(parts[0]);
+  await page.getByTestId('bubble-undo').click();
+  await expect(page.getByTestId('bubble-slots').locator('.slot').first()).toBeEmpty();
+  for (const value of parts) {
+    await page.locator(`[data-testid=bubble][data-value="${value}"]:not([disabled])`).first().click();
+  }
+  await expect(page.getByTestId('bubble-word-complete')).toBeVisible();
+  await expect(page.getByTestId('bubble-completed-count')).toContainText('1/6');
+  await page.getByTestId('bubble-next-word').click();
+  await page.getByTestId('bubble-prev-word').click();
+  await expect(page.getByTestId('bubble-word')).toHaveAttribute('data-word-id', originalId!);
+  await expect(page.getByTestId('bubble-undo')).toBeDisabled();
+  await expect(page.getByTestId('bubble-completed-count')).toContainText('1/6');
+  await expect(page.getByTestId('shell-result')).toHaveCount(0);
+  await page.getByTestId('bubble-change-unit').click();
+  await expect(page.getByTestId('unit-option')).toHaveCount(data.units.length);
 });
 
 test('Spelling Challenge: điền chữ còn thiếu; đăng nhập thì kết quả được lưu và hiện ở tài khoản', async ({ page }) => {
