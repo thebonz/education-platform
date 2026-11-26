@@ -274,7 +274,7 @@ test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn gi
   await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
   const replayArt = await preview.locator('.puzzle-tile-image').first().evaluate(
     (element) => (element as HTMLElement).style.backgroundImage);
-  expect(replayArt).toMatch(/\\/illustrations\\//);
+  expect(replayArt).toContain('/illustrations/');
   expect(replayArt).not.toBe(finalArtBeforeReplay);
 
   // Preview không tự thay đổi review hay isPublished.
