@@ -103,6 +103,42 @@ export const picturePuzzleSchema = z.object({
 });
 
 // ---------------------------------------------------------------------------
+// fusion-reveal: dual-page printable stripe overlay with classroom quiz
+// Original HappyClass geometry. Not a source/asset copy of another service.
+// ---------------------------------------------------------------------------
+const fusionRevealItemSchema = z.object({
+  id,
+  picture: pictureSchema,
+  word: text(60),
+  choices: z.array(text(60)).min(3).max(4),
+  say: optionalText(100),
+  hint: optionalText(140),
+}).superRefine((item, ctx) => {
+  if (!item.choices.includes(item.word)) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['word'], message: 'Đáp án phải nằm trong các lựa chọn',
+  });
+  if (new Set(item.choices).size !== item.choices.length) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['choices'], message: 'Lựa chọn không được trùng nhau',
+  });
+});
+
+export const fusionRevealSchema = z.object({
+  instructions: optionalText(300),
+  /** A 145 mm printable square with even stripe counts for clean A/B registration. */
+  stripeCount: z.number().int().min(24).max(60).refine((v) => v % 2 === 0,
+    'Số dải phải là số chẵn').default(40),
+  cardsPerRound: z.number().int().min(2).max(8).default(3),
+  items: z.array(fusionRevealItemSchema).min(3).max(24),
+}).superRefine((data, ctx) => {
+  uniqueBy(data.items, (item) => item.id, ctx, 'items', 'id');
+  uniqueBy(data.items, (item) => item.word, ctx, 'items', 'word');
+  if (data.cardsPerRound > data.items.length) ctx.addIssue({
+    code: z.ZodIssueCode.custom, path: ['cardsPerRound'],
+    message: 'Số tranh mỗi lượt không vượt thư viện hình',
+  });
+});
+
+// ---------------------------------------------------------------------------
 // picture-match
 // ---------------------------------------------------------------------------
 export const pictureMatchSchema = z
@@ -499,6 +535,7 @@ export const TEMPLATES = {
   'classroom-explore': { name: { en: 'Classroom Discovery', vi: 'Khám phá lớp học' }, schema: classroomExploreSchema, languages: ['en'] },
   'shadow-guess': { name: { en: 'Shadow Safari', vi: 'Đoán bóng hình' }, schema: shadowGuessSchema, languages: ['en'] },
   'picture-puzzle': { name: { en: 'Picture Puzzle', vi: 'Ghép mảnh bức tranh' }, schema: picturePuzzleSchema, languages: ['en', 'vi'] },
+  'fusion-reveal': { name: { en: 'Fusion Reveal Cards', vi: 'Ghép mảnh hiện hình' }, schema: fusionRevealSchema, languages: ['en'] },
   quiz: { name: { en: 'Quiz', vi: 'Đố vui' }, schema: quizSchema, languages: ['en', 'vi'] },
   'trail-board': { name: { en: 'Star Trail Adventure', vi: 'Đường đua ngôi sao' }, schema: trailBoardSchema, languages: ['en', 'vi'] },
   'hidden-picture': { name: { en: 'Hidden Picture', vi: 'Bức tranh bí mật' }, schema: hiddenPictureSchema, languages: ['en', 'vi'] },
@@ -520,6 +557,7 @@ export type PhonicsFamilyData = z.infer<typeof phonicsFamilySchema>;
 export type ClassroomExploreData = z.infer<typeof classroomExploreSchema>;
 export type ShadowGuessData = z.infer<typeof shadowGuessSchema>;
 export type PicturePuzzleData = z.infer<typeof picturePuzzleSchema>;
+export type FusionRevealData = z.infer<typeof fusionRevealSchema>;
 export type QuizData = z.infer<typeof quizSchema>;
 export type QuizQuestion = QuizData['questions'][number];
 export type TrailBoardData = z.infer<typeof trailBoardSchema>;
@@ -539,6 +577,7 @@ export type TemplateDataMap = {
   'classroom-explore': ClassroomExploreData;
   'shadow-guess': ShadowGuessData;
   'picture-puzzle': PicturePuzzleData;
+  'fusion-reveal': FusionRevealData;
   quiz: QuizData;
   'trail-board': TrailBoardData;
   'hidden-picture': HiddenPictureData;

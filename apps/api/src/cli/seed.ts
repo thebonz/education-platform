@@ -20,10 +20,11 @@ import { TAXONOMY } from './content/taxonomy';
 import { TRAIL_ADVENTURES } from './content/trail-adventures';
 import { MYSTERY_DOORS_DEMOS } from './content/mystery-doors';
 import { PICTURE_PUZZLE_DEMOS } from './content/picture-puzzle';
+import { FUSION_REVEAL_DEMOS } from './content/fusion-reveal';
 import type { GamePack } from './content/types';
 import { VIETNAMESE_GAMES } from './content/vietnamese';
 
-export const ALL_PACKS: GamePack[] = [...ENGLISH_GAMES, ...ENGLISH_ILLUSTRATED_GAMES, ...ENGLISH_PUBLIC_DEMO_INSPIRED, ...VIETNAMESE_GAMES, ...TRAIL_ADVENTURES, ...MYSTERY_DOORS_DEMOS, ...PICTURE_PUZZLE_DEMOS];
+export const ALL_PACKS: GamePack[] = [...ENGLISH_GAMES, ...ENGLISH_ILLUSTRATED_GAMES, ...ENGLISH_PUBLIC_DEMO_INSPIRED, ...VIETNAMESE_GAMES, ...TRAIL_ADVENTURES, ...MYSTERY_DOORS_DEMOS, ...PICTURE_PUZZLE_DEMOS, ...FUSION_REVEAL_DEMOS];
 
 const PRODUCTS = [
   {

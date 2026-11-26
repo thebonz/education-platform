@@ -10,8 +10,9 @@ describe('Seed nội dung game', () => {
   });
   afterAll(async () => { await prisma.$disconnect(); });
 
-  it('tạo đủ 38 game (29 đã xuất bản, 9 bản thử chờ duyệt), cấp độ và danh mục; chạy lại không tạo trùng', async () => {
-    expect(await prisma.game.count()).toBe(38);
+  it('tạo đủ 39 game (29 xuất bản, 10 bản nháp chờ duyệt), cấp độ và danh mục; chạy lại không tạo trùng', async () => {
+    expect(ALL_PACKS).toHaveLength(39);
+    expect(await prisma.game.count()).toBe(ALL_PACKS.length);
     expect(await prisma.game.count({ where: { isPublished: true } })).toBe(29);
     expect(await prisma.game.count({ where: { templateKey: 'trail-board', isPublished: false, reviewStatus: 'PENDING' } })).toBe(2);
     expect(await prisma.game.count({ where: { templateKey: 'mystery-doors', isPublished: false, reviewStatus: 'PENDING' } })).toBe(1);
@@ -21,7 +22,14 @@ describe('Seed nội dung game', () => {
       where: { slug: { in: ['sound-family-village', 'little-learning-classroom', 'shadow-safari-animals'] },
         isPublished: false, reviewStatus: 'PENDING' },
     })).toBe(3);
-    for (const templateKey of ['phonics-family', 'classroom-explore', 'shadow-guess']) {
+    const fusion = await prisma.game.findFirstOrThrow({
+      where: { slug: 'happyclass-fusion-reveal', templateKey: 'fusion-reveal',
+        isPublished: false, reviewStatus: 'PENDING' },
+      include: { versions: { where: { isPublished: true } } },
+    });
+    expect((fusion.versions[0].content as { stripeCount: number; items: unknown[] }).stripeCount).toBe(40);
+    expect((fusion.versions[0].content as { items: unknown[] }).items).toHaveLength(12);
+    for (const templateKey of ['phonics-family', 'classroom-explore', 'shadow-guess', 'fusion-reveal']) {
       expect(await prisma.game.count({ where: { templateKey, isPublished: false } })).toBe(1);
     }
     const animal = await prisma.game.findFirstOrThrow({ where: { slug: 'vocabulary-matching' }, include: { versions: { where: { isPublished: true } } } });
@@ -33,8 +41,8 @@ describe('Seed nội dung game', () => {
     expect(await prisma.level.count()).toBe(12);
     expect(await prisma.gameCategory.count({ where: { product: { slug: 'english' } } })).toBe(20);
     const again = await seed(prisma);
-    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: 38 });
-    expect(await prisma.gameVersion.count()).toBe(38);
+    expect(again).toMatchObject({ gamesCreated: 0, gamesUpdated: 0, gamesSkipped: ALL_PACKS.length });
+    expect(await prisma.gameVersion.count()).toBe(ALL_PACKS.length);
   });
 
   it('nâng cấp game cũ lên phiên bản nội dung mới, giữ bản cũ', async () => {

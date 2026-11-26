@@ -30,6 +30,20 @@ const STARTERS: Partial<Record<TemplateKey, Partial<Record<Locale, unknown>>>> =
       ],
     },
   },
+  'fusion-reveal': {
+    en: {
+      instructions: 'Slide decoder B until both patterns align. Guess the hidden picture. Teachers can print sheets A and B at 145 mm.',
+      stripeCount: 40, cardsPerRound: 3,
+      items: [
+        { id: 'cat', word: 'cat', picture: { kind: 'image', src: '/illustrations/puzzle-cat.svg', alt: 'Original HappyClass illustration of a cat' },
+          choices: ['cat', 'dog', 'apple'] },
+        { id: 'dog', word: 'dog', picture: { kind: 'image', src: '/illustrations/vocab/dog.svg', alt: 'Original HappyClass illustration of a dog' },
+          choices: ['cat', 'dog', 'apple'] },
+        { id: 'apple', word: 'apple', picture: { kind: 'image', src: '/illustrations/puzzle-apple.svg', alt: 'Original HappyClass illustration of an apple' },
+          choices: ['cat', 'dog', 'apple'] },
+      ],
+    },
+  },
   'phonics-family': {
     en: { instructions: 'Listen to a word, then choose the house with the same ending.',
       wordsPerRound: 6, families: [
