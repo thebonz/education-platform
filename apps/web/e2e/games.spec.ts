@@ -219,16 +219,16 @@ test('Bubble Garden: skip has no score, undo restores a letter, completed words 
   const firstWord = unit.words.find((item: { id: string }) => item.id === originalId);
   expect(firstWord).toBeTruthy();
 
+  await tile.click();
+  await expect(page.getByTestId('bubble-slots').locator('.slot').first()).toHaveText(parts[0]);
+  await page.getByTestId('bubble-undo').click();
   await page.getByTestId('bubble-next-word').click();
   expect(await page.getByTestId('bubble-word').getAttribute('data-word-id')).not.toBe(originalId);
   await expect(page.getByTestId('bubble-completed-count')).toContainText('0/6');
   await page.getByTestId('bubble-prev-word').click();
   await expect(page.getByTestId('bubble-word')).toHaveAttribute('data-word-id', originalId!);
-  const parts = firstWord.segments ?? graphemes(firstWord.word);
-  const tile = page.locator(`[data-testid=bubble][data-value="${parts[0]}"]:not([disabled])`).first();
-  await tile.click();
+  // The typed letter is retained when returning to this unfinished word.
   await expect(page.getByTestId('bubble-slots').locator('.slot').first()).toHaveText(parts[0]);
-  await page.getByTestId('bubble-undo').click();
   await expect(page.getByTestId('bubble-slots').locator('.slot').first()).toBeEmpty();
   for (const value of parts) {
     await page.locator(`[data-testid=bubble][data-value="${value}"]:not([disabled])`).first().click();
