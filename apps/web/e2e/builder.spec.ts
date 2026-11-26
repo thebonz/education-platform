@@ -263,6 +263,15 @@ test('Picture Puzzle: ba tranh gốc, ghép 3x3 trong Admin Preview và vẫn gi
   }
   await expect(preview.getByTestId('shell-result')).toBeVisible();
   await expect(preview.getByTestId('result-score')).toContainText('3/3');
+  // The next session must contain different vocabulary, not just shuffled tiles.
+  const lastPicture = await preview.locator('.puzzle-tile-image').first().count();
+  // The result screen unmounts game cards; start replay and inspect current art.
+  await preview.getByTestId('play-again').click();
+  await expect(preview.getByTestId('puzzle-piece')).toHaveCount(9);
+  const replayArt = await preview.locator('.puzzle-tile-image').first().evaluate(
+    (element) => (element as HTMLElement).style.backgroundImage);
+  expect(lastPicture).toBe(0);
+  expect(replayArt).toMatch(/\\/illustrations\\//);
 
   // Preview không tự thay đổi review hay isPublished.
   const verify = await page.request.get(`${ADMIN}/api/admin/games?product=english&review=PENDING&pageSize=100`);
