@@ -91,9 +91,15 @@ const puzzleRound = z.object({
 export const picturePuzzleSchema = z.object({
   instructions: optionalText(300),
   size: z.union([z.literal(2), z.literal(3), z.literal(4)]).default(3),
+  /** Optional: play a rotating subset of a larger picture bank per session. */
+  picturesPerRound: z.number().int().min(2).max(12).optional(),
   rounds: z.array(puzzleRound).min(2).max(12),
 }).superRefine((data, ctx) => {
   uniqueBy(data.rounds, (round) => round.id, ctx, 'rounds', 'id');
+  if (data.picturesPerRound !== undefined && data.picturesPerRound > data.rounds.length) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['picturesPerRound'],
+      message: 'Số tranh mỗi lượt không được vượt số tranh trong thư viện' });
+  }
 });
 
 // ---------------------------------------------------------------------------
