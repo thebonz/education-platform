@@ -846,3 +846,16 @@ label.check input{margin-top:3px;width:18px;height:18px}
  .puzzle-ring-display{grid-template-columns:repeat(auto-fit,minmax(106px,1fr));padding:10px;gap:8px}
 }
 @media(prefers-reduced-motion:reduce){.puzzle-ring-card{transition:none}}
+
+
+/* Phase 14 — original Bubble Garden learning controls, responsive and touch friendly. */
+.bubble-word-navigator{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:10px;padding:12px;border:2px solid #e7e6f5;background:linear-gradient(110deg,#f4f8ff,#fff8ed);border-radius:20px;margin:13px auto 16px;max-width:870px}
+.bubble-word-navigator .secondary-button{min-height:46px;padding:10px 14px;background:#fff;border:2px solid #e7dbef;color:#685a89;border-radius:13px;font-weight:800}
+.bubble-word-navigator .secondary-button:focus-visible,.tpl-bubble [data-testid="bubble-undo"]:focus-visible{outline:3px solid #aa79bc;outline-offset:3px}
+.bubble-word-navigator strong{padding:9px 12px;border-radius:999px;background:#fff;box-shadow:0 3px 12px rgba(53,54,91,.08);color:#84619b;font-size:13px}
+.tpl-bubble [data-testid="bubble-undo"]:disabled{opacity:.45;cursor:not-allowed}
+@media(max-width:600px){
+ .bubble-word-navigator{gap:7px;padding:9px}
+ .bubble-word-navigator .secondary-button{min-height:44px;padding:8px 10px;font-size:12px}
+ .bubble-word-navigator strong{font-size:12px;order:-1;width:100%;text-align:center}
+}
