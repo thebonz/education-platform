@@ -72,7 +72,7 @@ const mysteryRoundSchema = z
 export const mysteryDoorsSchema = z
   .object({
     instructions: optionalText(300),
-    doorCount: z.union([z.literal(4), z.literal(6), z.literal(9)]).default(6),
+    doorCount: z.union([z.literal(4), z.literal(6), z.literal(8), z.literal(9)]).default(6),
     rounds: z.array(mysteryRoundSchema).min(3).max(12),
   })
   .superRefine((data, ctx) => {
