@@ -161,11 +161,17 @@ export const trailBoardSchema = z
     boardLength: z.number().int().min(8).max(24).default(12),
     diceSides: z.number().int().min(2).max(6).default(4),
     defaultTeams: z.number().int().min(2).max(4).default(2),
+    rollMode: z.enum(['dice', 'spinner']).default('dice'),
     shuffleChoices: z.boolean().default(true),
+    /** Use an actual subset of teacher-authored questions on each replay. */
+    questionsPerRound: z.number().int().min(4).max(40).optional(),
     questions: z.array(choiceQuestion).min(4).max(40),
   })
   .superRefine((d, ctx) => {
     uniqueBy(d.questions, (q) => q.id, ctx, 'questions', 'id');
+    if (d.questionsPerRound !== undefined && d.questionsPerRound > d.questions.length)
+      ctx.addIssue({ code: z.ZodIssueCode.custom, path: ['questionsPerRound'],
+        message: 'Số câu mỗi lượt không vượt số câu trong ngân hàng' });
   });
 
 // ---------------------------------------------------------------------------
