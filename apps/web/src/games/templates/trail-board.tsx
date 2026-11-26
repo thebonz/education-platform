@@ -1,7 +1,8 @@
 'use client';
 
 import { useMemo, useRef, useState } from 'react';
-import { shuffle } from '@happyclass/game-core/rng';
+import { createRng, shuffle } from '@happyclass/game-core/rng';
+import { sessionSelection } from '@happyclass/game-core/learning-session';
 import { rankTeams } from '@happyclass/game-core/scoring';
 import { advanceTrail } from '@happyclass/game-core/trail';
 import type { TrailBoardData } from '@happyclass/game-core/templates';
@@ -15,20 +16,26 @@ import type { TemplateProps } from '../shell/types';
  * Không có dữ liệu hay asset sao chép từ website khác.
  */
 export function TrailBoardTemplate({
-  data, lang, t, rng, audio, settings, onProgress, onFinish,
+  data, lang, t, rng, round, audio, settings, onProgress, onFinish,
 }: TemplateProps<TrailBoardData>) {
   const teams = Math.max(2, Math.min(4, settings.teamCount || data.defaultTeams));
-  const questions = useMemo(
-    () => data.questions.map((q) => ({
-      ...q,
-      choices: data.shuffleChoices ? shuffle(q.choices, rng) : q.choices,
-    })),
-    [data.questions, data.shuffleChoices, rng],
-  );
+  const seed = useMemo(() => Math.floor(rng() * 0x100000000), [rng]);
+  const questions = useMemo(() => {
+    const selected = data.questionsPerRound === undefined ? data.questions :
+      sessionSelection(data.questions, data.questionsPerRound, round, createRng(`trail-bank-${seed}`));
+    return selected.map((q) => ({
+      ...q, choices: data.shuffleChoices ? shuffle(q.choices, createRng(`trail-choices-${seed}-${q.id}`)) : q.choices,
+    }));
+  }, [data.questions, data.questionsPerRound, data.shuffleChoices, round, seed]);
 
   const [index, setIndex] = useState(0);
   const [rolled, setRolled] = useState<number | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
+  const [rollMode, setRollMode] = useState<'dice' | 'spinner'>(data.rollMode);
+  const [wheelRotation, setWheelRotation] = useState(0);
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [history, setHistory] = useState<{ team: number; roll: number; correct: boolean; answer: string }[]>([]);
+  const [teamHits, setTeamHits] = useState<number[]>(() => Array(teams).fill(0));
   const [positions, setPositions] = useState<number[]>(() => Array(teams).fill(0));
   const [correct, setCorrect] = useState(0);
   const [mistakes, setMistakes] = useState(0);
@@ -39,10 +46,21 @@ export function TrailBoardTemplate({
   const teamName = (i: number) => lang === 'vi' ? `Đội ${String.fromCharCode(65 + i)}` : `Team ${String.fromCharCode(65 + i)}`;
   const answered = selected !== null;
   const tiles = Array.from({ length: data.boardLength + 1 }, (_, pos) => pos);
+  const segmentSize = 360 / data.diceSides;
+  const spinnerColors = ['#fff0af', '#bfe8f4', '#f8c6dc', '#c4efdd', '#e0cdf9', '#f8d7af'];
+  const spinnerBackground = `conic-gradient(${Array.from({ length: data.diceSides }, (_, index) =>
+    `${spinnerColors[index % spinnerColors.length]} ${index * segmentSize}deg ${(index + 1) * segmentSize}deg`).join(', ')})`;
 
   function rollDice() {
     if (rolled !== null || finished.current) return;
     const value = Math.min(data.diceSides, 1 + Math.floor(rng() * data.diceSides));
+    if (rollMode === 'spinner') {
+      const target = (360 - (value - .5) * segmentSize + 360) % 360;
+      setWheelRotation((current) => {
+        const delta = (target - (current % 360) + 360) % 360;
+        return current + 720 + delta;
+      });
+    }
     setRolled(value);
     audio.sfx('pop');
     audio.say(q.say ?? q.prompt);
@@ -58,7 +76,9 @@ export function TrailBoardTemplate({
     setMistakes(errors);
     if (ok) {
       setPositions((previous) => advanceTrail(previous, activeTeam, rolled, data.boardLength, true));
+      setTeamHits((previous) => previous.map((hits, team) => team === activeTeam ? hits + 1 : hits));
     }
+    setHistory((previous) => [...previous, { team: activeTeam, roll: rolled, correct: ok, answer: q.answer }]);
     audio.sfx(ok ? 'correct' : 'wrong');
     onProgress({ score: points, mistakes: errors });
   }
@@ -104,7 +124,7 @@ export function TrailBoardTemplate({
             data-testid={`trail-team-${team}`}>
             <span aria-hidden="true">●</span>
             <b>{teamName(team)}</b>
-            <small>{position}/{data.boardLength}</small>
+            <small>{position}/{data.boardLength} · ✓ {teamHits[team]}</small>
           </div>
         ))}
       </div>
@@ -130,10 +150,31 @@ export function TrailBoardTemplate({
 
       {rolled === null ? (
         <div className="trail-roll-panel">
-          <div className="trail-die" aria-hidden="true">🎲</div>
-          <p>{lang === 'vi' ? 'Tung xúc xắc để mở câu hỏi!' : 'Roll the dice to reveal your question!'}</p>
+          <label className="trail-roll-mode-label">{lang === 'vi' ? 'Cách chọn số bước' : 'How to choose your move'}
+            <select data-testid="trail-roll-mode" value={rollMode}
+              onChange={(event) => setRollMode(event.target.value as 'dice' | 'spinner')}>
+              <option value="dice">{lang === 'vi' ? '🎲 Xúc xắc' : '🎲 Dice'}</option>
+              <option value="spinner">{lang === 'vi' ? '🎡 Vòng quay' : '🎡 Spinner'}</option>
+            </select>
+          </label>
+          {rollMode === 'spinner' ? (
+            <div className="trail-spinner-wrap" data-testid="trail-spinner" aria-label={lang === 'vi' ? 'Vòng quay số bước' : 'Move spinner'}>
+              <div className="trail-spinner-pointer" aria-hidden="true">▼</div>
+              <div className="trail-spinner-wheel"
+                style={{ background: spinnerBackground, transform: `rotate(${wheelRotation}deg)` }}>
+                {Array.from({ length: data.diceSides }, (_, index) => (
+                  <span key={index} style={{ transform: `translate(-50%, -50%) rotate(${(index + .5) * segmentSize}deg) translateY(-50px) rotate(${-(index + .5) * segmentSize}deg)` }}>{index + 1}</span>
+                ))}
+              </div>
+            </div>
+          ) : <div className="trail-die" aria-hidden="true">🎲</div>}
+          <p>{rollMode === 'spinner'
+            ? (lang === 'vi' ? 'Quay để chọn số bước cho đội!' : 'Spin for your team’s next move!')
+            : (lang === 'vi' ? 'Tung xúc xắc để mở câu hỏi!' : 'Roll the dice to reveal your question!')}</p>
           <button type="button" className="primary-button big" data-testid="trail-roll" onClick={rollDice}>
-            {lang === 'vi' ? '🎲 Tung xúc xắc' : '🎲 Roll the dice'}
+            {rollMode === 'spinner'
+              ? (lang === 'vi' ? '🎡 Quay vòng' : '🎡 Spin the wheel')
+              : (lang === 'vi' ? '🎲 Tung xúc xắc' : '🎲 Roll the dice')}
           </button>
         </div>
       ) : (
