@@ -182,6 +182,7 @@ export function TrailBoardTemplate({
           ))}
       </ol>}
 
+      {rollMode === 'spinner' && spinnerWheel}
       {rolled === null ? (
         <div className="trail-roll-panel">
           <label className="trail-roll-mode-label">{lang === 'vi' ? 'Cách chọn số bước' : 'How to choose your move'}
@@ -191,7 +192,7 @@ export function TrailBoardTemplate({
               <option value="spinner">{lang === 'vi' ? '🎡 Vòng quay' : '🎡 Spinner'}</option>
             </select>
           </label>
-          {rollMode === 'spinner' ? spinnerWheel : <div className="trail-die" aria-hidden="true">🎲</div>}
+          {rollMode === 'dice' && <div className="trail-die" aria-hidden="true">🎲</div>}
           <p>{rollMode === 'spinner'
             ? (lang === 'vi' ? 'Quay để chọn số bước cho đội!' : 'Spin for your team’s next move!')
             : (lang === 'vi' ? 'Tung xúc xắc để mở câu hỏi!' : 'Roll the dice to reveal your question!')}</p>
@@ -203,7 +204,6 @@ export function TrailBoardTemplate({
         </div>
       ) : (
         <div className="trail-question-area">
-          {rollMode === 'spinner' && spinnerWheel}
           <p className="trail-roll-result" data-testid="trail-roll-result">
             {rollMode === 'spinner' ? '🎡' : '🎲'} {lang === 'vi' ? `Đã chọn: ${rolled} bước` : `Selected: ${rolled} spaces`}
           </p>
