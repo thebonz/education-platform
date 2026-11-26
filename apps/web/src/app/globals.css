@@ -807,3 +807,42 @@ label.check input{margin-top:3px;width:18px;height:18px}
  .phonics-header h2,.classroom-banner h2,.shadow-banner h2{font-size:26px}
 }
 @media(prefers-reduced-motion:reduce){.phonics-house,.phonics-word,.classroom-object,.shadow-art img{transition:none}}
+
+
+/* Phase 13 — original picture ring / teacher showcase; no assessment shortcuts. */
+.puzzle-mode-switch{display:flex;gap:9px;justify-content:center;flex-wrap:wrap;padding:6px}
+.puzzle-mode-switch button{border:2px solid #e4d6f4;border-radius:15px;background:#fff;padding:12px 18px;min-height:48px;font-size:14px;font-weight:850;color:#76668e;cursor:pointer}
+.puzzle-mode-switch button[aria-pressed="true"]{background:linear-gradient(110deg,#fff1db,#fceaff);border-color:#d29ac5;color:#80527c;box-shadow:0 4px 13px rgba(131,84,130,.13)}
+.puzzle-mode-switch button:focus-visible{outline:3px solid #a65f9f;outline-offset:2px}
+.puzzle-ring-gallery{background:linear-gradient(145deg,#faf0ff,#e7f8ff 45%,#fff9df);border-radius:29px;border:4px solid #fff;padding:clamp(12px,2.5vw,24px);display:flex;flex-direction:column;gap:14px;box-shadow:0 12px 29px rgba(72,62,97,.09)}
+.puzzle-ring-intro{text-align:center}
+.puzzle-ring-intro h3{font-size:clamp(21px,3vw,29px);color:#62517d;margin:0 0 7px}
+.puzzle-ring-intro p{font-size:13px;line-height:1.5;color:#677790;margin:0}
+.puzzle-ring-controls,.puzzle-ring-actions,.puzzle-ring-current{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:9px}
+.puzzle-ring-controls .secondary-button,.puzzle-ring-actions .secondary-button,.puzzle-ring-actions .primary-button,.puzzle-ring-current .secondary-button{min-height:46px;padding:10px 16px}
+.puzzle-ring-speed{display:flex;gap:8px;align-items:center;font-weight:800;font-size:13px;color:#665b7b}
+.puzzle-ring-speed select{border:2px solid #e4d8eb;border-radius:10px;background:#fff;padding:10px;font-size:13px;min-height:44px}
+.puzzle-ring-viewport{position:relative;height:264px;max-width:100%;overflow:hidden;perspective:850px;transform-style:preserve-3d;border-radius:23px;background:radial-gradient(ellipse at center,#fff 5%,#f2eefa 70%,#e9f8ff)}
+.puzzle-ring-viewport:focus-visible{outline:3px solid #9e6cae;outline-offset:3px}
+.puzzle-ring-card{position:absolute;top:28px;left:calc(50% - 82px);display:flex;flex-direction:column;align-items:center;justify-content:center;width:164px;height:205px;padding:9px 7px;border-radius:22px;border:4px solid #fff;background:#fff;box-shadow:0 12px 27px rgba(67,65,95,.18);transition:transform .38s ease,opacity .28s ease,border-color .2s;backface-visibility:hidden;cursor:pointer}
+.puzzle-ring-card img{width:145px;height:145px;max-width:100%;object-fit:contain;background:#faf6ff;border-radius:14px}
+.puzzle-ring-card strong{display:block;margin-top:8px;font-size:14px;line-height:1.3;color:#736486;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.puzzle-ring-card.is-focused{border-color:#efbf67;box-shadow:0 14px 30px rgba(137,90,127,.2)}
+.puzzle-ring-card:focus-visible{outline:3px solid #965eac;outline-offset:1px}
+.puzzle-ring-current{font-size:15px;font-weight:700;color:#6b6a8e}
+.puzzle-ring-count{text-align:center;margin:0;color:#796b91;font-size:13px;font-weight:850}
+.puzzle-ring-display{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:13px;background:rgba(255,255,255,.82);border-radius:22px;padding:16px;min-height:128px}
+.puzzle-ring-display>p{grid-column:1/-1;margin:auto;text-align:center;color:#8c7a9e;font-size:13px}
+.puzzle-ring-placed-card{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;border-radius:18px;border:2px solid #e9d9f5;padding:9px;background:#fff}
+.puzzle-ring-placed-card img{width:112px;height:112px;max-width:100%;object-fit:contain}
+.puzzle-ring-placed-card span{font-size:14px;font-weight:850;color:#6c6683}
+@media(max-width:640px){
+ .puzzle-ring-viewport{height:220px}
+ .puzzle-ring-card{top:20px;width:132px;height:174px;left:calc(50% - 66px)}
+ .puzzle-ring-card img{width:113px;height:112px}
+ .puzzle-ring-card strong{font-size:12px}
+ .puzzle-ring-controls{gap:7px}
+ .puzzle-ring-controls .secondary-button{padding:9px 11px}
+ .puzzle-ring-display{grid-template-columns:repeat(auto-fit,minmax(106px,1fr));padding:10px;gap:8px}
+}
+@media(prefers-reduced-motion:reduce){.puzzle-ring-card{transition:none}}
